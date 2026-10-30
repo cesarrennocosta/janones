@@ -39,6 +39,8 @@ SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
 OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/medium_100k"
 mkdir -p "${OUTPUT_DIR}"
 
+python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
+
 BLOCK_ID="${SLURM_ARRAY_TASK_ID:-0}"
 START_SEED=$(( BLOCK_ID * 32 ))
 END_SEED=$(( START_SEED + 31 ))
@@ -46,6 +48,7 @@ if [ "${END_SEED}" -gt 100 ]; then
     END_SEED=100
 fi
 
+RUNNING=0
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
     python3 scripts/run_single_simulation.py \
         --config configs/local_cities_nomedia.yaml \
@@ -56,6 +59,11 @@ for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
         --no-media \
         --output-dir "${OUTPUT_DIR}" \
         --task-id "${SEED_ID}" &
+    RUNNING=$(( RUNNING + 1 ))
+    if [ "${RUNNING}" -ge 16 ]; then
+        wait -n 2>/dev/null || wait
+        RUNNING=$(( RUNNING - 1 ))
+    fi
 done
 
 wait
