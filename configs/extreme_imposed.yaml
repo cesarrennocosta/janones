@@ -1,0 +1,99 @@
+# ==============================================================================
+# OmniOpinion Configuration: Extreme Imposed Influencer Scenario
+#
+# Models a deliberate algorithmic & popularity imposition in one extreme corner
+# of the multidimensional subject space (`extreme_imposed`, e_imp = [+0.85, ..., +0.85]):
+# 1. Influencers in the `extreme_imposed` region (25% of influencers) are mostly
+#    tendentious (tau_inf in [0.85, 0.98]) and anchored near e_imp.
+# 2. Their posts and interactions receive an artificial popularity boost
+#    (`extreme_imposed_popularity_boost`) and algorithmic reach amplification
+#    (`extreme_imposed_reach_boost`), widening social-proof acceptance bounds
+#    (Muchnik, Aral, & Taylor, 2013, Science; Bail et al., 2018, PNAS;
+#    Huszár et al., 2022, PNAS; Recuero, Zago, & Soares, 2021).
+# 3. Quantifies:
+#    - Population tendency to follow Extreme Imposed ideals:
+#      `frac_following_extreme_imposed`, `extreme_imposed_alignment`,
+#      `dist_to_extreme_imposed_mean`.
+#    - Influencer dominance over other influencers in general:
+#      `extreme_imposed_follower_ratio`, `extreme_imposed_follower_share`,
+#      `extreme_imposed_popularity_ratio`, `extreme_imposed_popularity_share`.
+# ==============================================================================
+
+simulation:
+  n_agents: 100000
+  n_dims: 4
+  n_steps: 1500
+  snapshot_interval: 50
+  checkpoint_interval: 50
+  n_candidates: 3
+  n_districts: 10
+  n_news_items: 60
+  init_mode: "uniform_random"
+  age_distribution: "ibge_2022"
+  base_epsilon: 0.42
+  base_assimilation_bias: 1.15
+  dt: 0.15
+  noise_std: 0.008
+  er_alpha: 1.3
+  er_bins: 4
+
+media:
+  enabled: true
+  traditional_enabled: false
+  social_enabled: true
+  n_vehicle_groups: 0
+  group_tendentiousness: [0.80, 0.25, 0.65]
+  influencer_tendentiousness: "heterogeneous"
+  extreme_imposed_enabled: true
+  extreme_imposed_target: [0.85, 0.85, 0.85, 0.85]
+  extreme_imposed_Radius: 0.52
+  extreme_imposed_fraction: 0.25
+  extreme_imposed_reach_boost: 4.0
+  extreme_imposed_popularity_boost: 5.0
+  sync_tactics_enabled: false
+  cowork_enabled: false
+  cowork_prob: 0.65
+  cowork_reach_fraction: 0.50
+  fact_dictation_enabled: false
+  fact_dictation_pull: 0.42
+  fact_rate: 1.5
+  gatekeeping_sigma: 0.85
+  broadcast_strength: 0.06
+  traditional_selectivity_beta: 1.2
+  beta: 2.0
+  emotional_boost: 1.5
+  feed_strength: 0.07
+  dislike_reaction_strength: 0.45
+  backfire_repulsion_strength: 0.35
+  influencer_impact_strength: 0.04
+  misinfo_fraction: 0.25
+  whatsapp_trust: 0.85
+  whatsapp_forward_prob: 0.25
+
+networks:
+  mean_family_size: 2.79
+  work_school_mean_deg: 10
+  church_mean_deg: 7
+  friends_k: 6
+  friends_p: 0.15
+  weak_ties_mean_deg: 4
+  influencer_fraction: 0.02
+  whatsapp_max_group_size: 256
+  whatsapp_mean_group_size: 32
+  whatsapp_groups_per_agent: 3
+  layer_weights:
+    family: 0.36
+    work_school: 0.26
+    church_community: 0.14
+    friends: 0.14
+    weak_ties: 0.10
+
+electoral:
+  indifference_threshold: -1.65
+  rationality_lambda: 4.0
+  noise_scale: 0.12
+
+io:
+  hdf5_compression: "lzf"
+  buffer_size: 25
+  save_full_trajectory: false

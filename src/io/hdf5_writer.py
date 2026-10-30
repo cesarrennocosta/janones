@@ -243,6 +243,10 @@ class HDF5TrajectoryWriter:
                     ("sensationalism", news_pool.sensationalism),
                     ("veracity", news_pool.veracity),
                     ("popularity", news_pool.popularity),
+                    ("like_count", news_pool.like_count),
+                    ("dislike_count", news_pool.dislike_count),
+                    ("platform_type", news_pool.platform_type),
+                    ("influencer_tendentiousness", news_pool.influencer_tendentiousness),
                     ("viral_cascades", news_pool.viral_cascades),
                 ]:
                     if name in news_grp:

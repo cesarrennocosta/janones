@@ -380,14 +380,31 @@ class AnalyticsEngine:
         group_centers = None
         group_tendentiousness = None
         n_vehicle_groups = 0
-        if (
-            news_pool is not None
-            and getattr(news_pool, "traditional_ecosystem", None) is not None
-        ):
-            trad_eco = news_pool.traditional_ecosystem
-            group_centers = trad_eco.group_centers
-            group_tendentiousness = trad_eco.group_tendentiousness
-            n_vehicle_groups = int(trad_eco.n_groups)
+        ext_target = np.full(agent_state.n_dims, 0.85, dtype=np.float64)
+        if news_pool is not None:
+            if getattr(news_pool, "extreme_imposed_target", None) is not None:
+                ext_target = news_pool.extreme_imposed_target
+            if getattr(news_pool, "traditional_ecosystem", None) is not None:
+                trad_eco = news_pool.traditional_ecosystem
+                group_centers = trad_eco.group_centers
+                group_tendentiousness = trad_eco.group_tendentiousness
+                n_vehicle_groups = int(trad_eco.n_groups)
+
+        # Quantify population tendency to follow the Extreme Imposed ideals (e_imp = [+0.85, ..., +0.85])
+        inv_sqrt_d = 1.0 / math.sqrt(float(max(1, agent_state.n_dims)))
+        dists_to_ext = (
+            np.linalg.norm(agent_state.opinions - ext_target[None, :], axis=1) * inv_sqrt_d
+        )
+        dist_to_extreme_imposed_mean = float(np.mean(dists_to_ext))
+        frac_following_extreme_imposed = float(np.mean(dists_to_ext <= 0.45))
+        ext_norm = float(np.linalg.norm(ext_target))
+        if ext_norm > 1e-9:
+            pop_cm = np.mean(agent_state.opinions, axis=0)
+            extreme_imposed_alignment = (
+                float(np.dot(pop_cm, ext_target) / ext_norm) * inv_sqrt_d
+            )
+        else:
+            extreme_imposed_alignment = 0.0
 
         cm_metrics = compute_media_center_of_mass_metrics(
             agent_state.opinions,
@@ -434,7 +451,38 @@ class AnalyticsEngine:
             "press_reached": float(media_stats.get("press_reached", 0.0)) if media_stats else 0.0,
             "facts_count": float(media_stats.get("facts_count", 0.0)) if media_stats else 0.0,
             "published_notices": float(media_stats.get("published_notices", 0.0)) if media_stats else 0.0,
+            "dictated_trad_share": float(media_stats.get("dictated_trad_share", 0.0)) if media_stats else 0.0,
+            "mean_fact_longevity": float(media_stats.get("mean_fact_longevity", 1.0)) if media_stats else 1.0,
+            "mean_fact_relevance": float(media_stats.get("mean_fact_relevance", 0.65)) if media_stats else 0.65,
+            "sync_network_interest_push": float(media_stats.get("sync_network_interest_push", 0.0)) if media_stats else 0.0,
+            "synchronized_fact_share": float(media_stats.get("synchronized_fact_share", 0.0)) if media_stats else 0.0,
             "feed_engaged": float(media_stats.get("feed_engaged", 0.0)) if media_stats else 0.0,
+            "likes_count": float(media_stats.get("likes_count", 0.0)) if media_stats else 0.0,
+            "dislikes_count": float(media_stats.get("dislikes_count", 0.0)) if media_stats else 0.0,
+            "dislike_share": float(media_stats.get("dislike_share", 0.0)) if media_stats else 0.0,
+            "ig_tiktok_reached": float(media_stats.get("ig_tiktok_reached", 0.0)) if media_stats else 0.0,
+            "youtube_x_reached": float(media_stats.get("youtube_x_reached", 0.0)) if media_stats else 0.0,
+            "facebook_reached": float(media_stats.get("facebook_reached", 0.0)) if media_stats else 0.0,
+            "influencer_direct_impacts": float(media_stats.get("influencer_direct_impacts", 0.0)) if media_stats else 0.0,
+            "cowork_cross_exposures": float(media_stats.get("cowork_cross_exposures", 0.0)) if media_stats else 0.0,
+            "influencer_unfollows": float(media_stats.get("influencer_unfollows", 0.0)) if media_stats else 0.0,
+            "followers_gained": float(media_stats.get("followers_gained", 0.0)) if media_stats else 0.0,
+            "followers_lost": float(media_stats.get("followers_lost", 0.0)) if media_stats else 0.0,
+            "net_follower_change": float(media_stats.get("net_follower_change", 0.0)) if media_stats else 0.0,
+            "mean_inf_followers": float(media_stats.get("mean_inf_followers", 0.0)) if media_stats else 0.0,
+            "max_inf_followers": float(media_stats.get("max_inf_followers", 0.0)) if media_stats else 0.0,
+            "influencer_follower_gini": float(media_stats.get("influencer_follower_gini", 0.0)) if media_stats else 0.0,
+            "mean_inf_tendentiousness": float(media_stats.get("mean_inf_tendentiousness", 0.0)) if media_stats else 0.0,
+            "tendentious_follower_share": float(media_stats.get("tendentious_follower_share", 0.5)) if media_stats else 0.5,
+            "frac_following_extreme_imposed": frac_following_extreme_imposed,
+            "dist_to_extreme_imposed_mean": dist_to_extreme_imposed_mean,
+            "extreme_imposed_alignment": extreme_imposed_alignment,
+            "extreme_imposed_inf_followers_mean": float(media_stats.get("extreme_imposed_inf_followers_mean", 0.0)) if media_stats else 0.0,
+            "other_inf_followers_mean": float(media_stats.get("other_inf_followers_mean", 0.0)) if media_stats else 0.0,
+            "extreme_imposed_follower_ratio": float(media_stats.get("extreme_imposed_follower_ratio", 1.0)) if media_stats else 1.0,
+            "extreme_imposed_follower_share": float(media_stats.get("extreme_imposed_follower_share", 0.0)) if media_stats else 0.0,
+            "extreme_imposed_popularity_ratio": float(media_stats.get("extreme_imposed_popularity_ratio", 1.0)) if media_stats else 1.0,
+            "extreme_imposed_popularity_share": float(media_stats.get("extreme_imposed_popularity_share", 0.0)) if media_stats else 0.0,
             "whatsapp_cascades": float(media_stats.get("whatsapp_cascades", 0.0)) if media_stats else 0.0,
         }
 

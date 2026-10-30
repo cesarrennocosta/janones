@@ -1,0 +1,114 @@
+# ==============================================================================
+# OmniOpinion Configuration: Multi-Platform Social Media Ecosystem &
+# Most Accurate Brazilian Traditional Press Calibration (M = 3 Tripolar Press)
+#
+# 1. Empirical Brazilian Social Media Platform Usage References:
+#    - DataReportal, Digital 2024: Brazil (We Are Social / Meltwater, 2024) &
+#      CETIC.br / NIC.br, TIC Domicilios 2023 (Comite Gestor da Internet no Brasil):
+#      * WhatsApp / Telegram (Messaging): 93.4% of Brazilian internet users (16-64),
+#        hyper-ubiquitous across all age cohorts and socioeconomic strata.
+#      * Instagram & TikTok (Visual Influencer & Short-Form Video):
+#        91.2% Instagram / 63.3% TikTok penetration; 50% use Instagram for news
+#        (Reuters DNR 2024), with steep youth/young-adult concentration (16-39 yrs).
+#      * YouTube & X / Twitter (Video Channels, Political Commentary & Microblogging):
+#        86.2% YouTube (41% for news) and 22.1% X reach, higher SES/education weight.
+#      * Facebook (Social Graph & Legacy Algorithmic Feed):
+#        72.5% reach (39% for news), concentrated in mature/older cohorts (35-75 yrs).
+#
+# 2. Influencer Network of Impact, Factual vs. Tendentious Creators & Follower Dynamics:
+#    - Barabasi, A.-L., & Albert, R. (1999). Science, 286(5439), 509-512;
+#      Bianconi, G., & Barabasi, A.-L. (2001). Europhys. Lett., 54(4), 436.
+#      (Preferential attachment with fitness: tendentious/high-engagement creators
+#      accelerate follower acquisition).
+#    - Sasahara, K., et al. (2021). "Social influence and unfollowing accelerate
+#      the emergence of echo chambers." Nature Human Behaviour, 5, 16-25;
+#      Myers, S. A., & Leskovec, J. (2014). "The bursty dynamics of the twitter
+#      information network." WWW '14.
+#      (Cognitive dissonance and out-group backlash drive unfollowing and sorting).
+#    - Recuero, R., Zago, G., & Soares, F. (2019/2021). Social Media + Society.
+#      (Hyper-partisan Brazilian digital influencers vs. factual journalistic creators).
+#
+# 3. Dual-Valence Affective Reactions (Like / Assimilation vs. Dislike / Backfire):
+#    - Bail, C. A., et al. (2018). "Exposure to opposing views on social media can
+#      increase political polarization." PNAS, 115(37), 9216-9221.
+#    - Rathje, S., Van Bavel, J. J., & van der Linden, S. (2021). "Out-group
+#      animosity drives engagement on social media." PNAS, 118(26), e2024292118.
+#    - Brady, W. J., et al. (2017). "Emotion shapes the diffusion of moralized
+#      content in social networks." PNAS, 114(28), 7313-7318.
+#    - Vosoughi, S., Roy, D., & Aral, S. (2018). Science, 359(6380), 1146-1151.
+#
+# 4. Most Accurate Brazilian Traditional Press Baseline (M = 3 Tripolar Ecosystem):
+#    - Reporters Without Borders (RSF) & Intervozes — Media Ownership Monitor (MOM)
+#      Brazil; Azevedo, F. A. (2006/2017), "A Grande Imprensa e o PT"; Reuters DNR Brazil:
+#      Three major ideological vehicle groups:
+#      * Group 1 (+0.65, tau_0 = 0.80): Market-Liberal / Conservative partisan press & radio
+#      * Group 2 (+0.15, tau_1 = 0.25): Institutional / Professional Centrist Journalism
+#      * Group 3 (-0.50, tau_2 = 0.65): Progressive / Popular-Left press & broadcast
+# ==============================================================================
+
+simulation:
+  n_agents: 100000
+  n_dims: 4
+  n_steps: 1500
+  snapshot_interval: 50
+  checkpoint_interval: 50
+  n_candidates: 3
+  n_districts: 10
+  n_news_items: 60
+  init_mode: "uniform_random"
+  age_distribution: "ibge_2022"
+  base_epsilon: 0.42
+  base_assimilation_bias: 1.15
+  dt: 0.15
+  noise_std: 0.008
+  er_alpha: 1.3
+  er_bins: 4
+
+media:
+  enabled: true
+  traditional_enabled: true
+  social_enabled: true
+  n_vehicle_groups: 3
+  group_tendentiousness: [0.80, 0.25, 0.65]
+  influencer_tendentiousness: "heterogeneous"
+  fact_rate: 1.5
+  gatekeeping_sigma: 0.85
+  broadcast_strength: 0.06
+  traditional_selectivity_beta: 1.2
+  beta: 2.0
+  emotional_boost: 1.5
+  feed_strength: 0.07
+  dislike_reaction_strength: 0.45
+  backfire_repulsion_strength: 0.35
+  influencer_impact_strength: 0.04
+  misinfo_fraction: 0.25
+  whatsapp_trust: 0.85
+  whatsapp_forward_prob: 0.25
+
+networks:
+  mean_family_size: 2.79
+  work_school_mean_deg: 10
+  church_mean_deg: 7
+  friends_k: 6
+  friends_p: 0.15
+  weak_ties_mean_deg: 4
+  influencer_fraction: 0.02
+  whatsapp_max_group_size: 256
+  whatsapp_mean_group_size: 32
+  whatsapp_groups_per_agent: 3
+  layer_weights:
+    family: 0.36
+    work_school: 0.26
+    church_community: 0.14
+    friends: 0.14
+    weak_ties: 0.10
+
+electoral:
+  indifference_threshold: -1.65
+  rationality_lambda: 4.0
+  noise_scale: 0.12
+
+io:
+  hdf5_compression: "lzf"
+  buffer_size: 25
+  save_full_trajectory: false

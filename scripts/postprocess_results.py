@@ -205,6 +205,58 @@ def consolidate_all_tendentiousness_scenarios(
     return written_files
 
 
+def consolidate_scenario_suite(
+    suite_dir: str | Path,
+    output_dir: str | Path,
+    suite_prefix: str,
+    master_filename: str,
+    city_scale_label: str = "medium_100k",
+) -> list[Path]:
+    """Generic consolidator for multi-scenario suites (`social_media`, `extreme_imposed`,
+    `extreme_imposed_1500runs`, `sync_dictation_100k`).
+    """
+    base = Path(suite_dir)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written_files: list[Path] = []
+    all_tables = []
+
+    if not base.exists():
+        return written_files
+
+    for scen_dir in sorted(base.iterdir()):
+        if not scen_dir.is_dir():
+            continue
+        shards = sorted(scen_dir.glob("metrics_task_*.parquet"))
+        if not shards:
+            continue
+        scen_name = scen_dir.name
+        out_file = out_dir / f"consolidated_{suite_prefix}_{scen_name}.parquet"
+        consolidate_parquet_shard_files(scen_dir, out_file, city_scale_label=city_scale_label)
+        tbl = pq.read_table(out_file)
+        if "scenario_name" not in tbl.column_names:
+            tbl = tbl.append_column(
+                "scenario_name",
+                pa.array([scen_name] * tbl.num_rows, type=pa.string()),
+            )
+        pq.write_table(tbl, out_file, compression="zstd")
+        written_files.append(out_file)
+        all_tables.append(tbl)
+        print(f"[OK] Consolidated {len(shards)} seeds for {suite_prefix}/{scen_name} -> {out_file}")
+
+    if all_tables:
+        master_file = out_dir / master_filename
+        master_tbl = pa.concat_tables(all_tables, promote_options="default")
+        pq.write_table(master_tbl, master_file, compression="zstd")
+        written_files.append(master_file)
+        print(
+            f"[OK] Master {suite_prefix} table written -> {master_file} ({master_tbl.num_rows} rows)"
+        )
+
+    return written_files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Consolidate SLURM Parquet metric outputs into compact summary tables for local download."
@@ -240,18 +292,43 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.all_cities:
-        out_dir = Path(args.scratch_base).parent / "consolidated"
+        root_dir = Path(args.scratch_base).parent
+        out_dir = root_dir / "consolidated"
         consolidate_all_city_scales(
             scratch_base=args.scratch_base,
             output_dir=out_dir,
         )
         consolidate_all_trad_media_groups(
-            scratch_root=Path(args.scratch_base).parent,
+            scratch_root=root_dir,
             output_dir=out_dir,
         )
         consolidate_all_tendentiousness_scenarios(
-            scratch_root=Path(args.scratch_base).parent,
+            scratch_root=root_dir,
             output_dir=out_dir,
+        )
+        consolidate_scenario_suite(
+            suite_dir=root_dir / "social_media",
+            output_dir=out_dir,
+            suite_prefix="socmed",
+            master_filename="all_social_media_metrics.parquet",
+        )
+        consolidate_scenario_suite(
+            suite_dir=root_dir / "extreme_imposed",
+            output_dir=out_dir,
+            suite_prefix="extimp",
+            master_filename="all_extreme_imposed_metrics.parquet",
+        )
+        consolidate_scenario_suite(
+            suite_dir=root_dir / "extreme_imposed_1500runs",
+            output_dir=out_dir,
+            suite_prefix="ext1500",
+            master_filename="all_extreme_imposed_1500runs_metrics.parquet",
+        )
+        consolidate_scenario_suite(
+            suite_dir=root_dir / "sync_dictation_100k",
+            output_dir=out_dir,
+            suite_prefix="syncdict",
+            master_filename="all_sync_dictation_metrics.parquet",
         )
     elif args.all_trad_media:
         out_dir = Path(args.scratch_base).parent / "consolidated"

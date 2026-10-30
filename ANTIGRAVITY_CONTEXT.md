@@ -389,18 +389,102 @@ Built directly on top of the local interpersonal baseline ($M = 0$), the model i
 
 ---
 
-## 8. Current Datasets, Notebooks, & Handoff for Next Features
+## 8. Multi-Platform Social Media Ecosystem, Influencer Follower Dynamics & Dual-Valence Reactions
 
-### A. Consolidated Datasets in `/Users/rennocosta/janones/data/results/`
-- `all_cities_metrics.parquet`: Complete multi-scale no-media interpersonal baseline across all 4 city scales (`small_10k`, `medium_100k`, `large_1m`, and `metropolis_10m`), $100$ steps.
-- `all_trad_media_metrics.parquet`: Consolidated traditional media dataset across $M \in \{0, 1, 2, 3, 4\}$ (`medium_100k` reference + `small_10k` scale-invariance comparison).
-- `all_tendentiousness_metrics.parquet`: Consolidated 7-scenario media tendentiousness sweep ($M=1$) and symmetric/asymmetric duopoly ($M=2$) dataset at $N = 100,000$.
-- `trajectory_task_0000.h5`: Full $10\text{k}$ spatial/opinion trajectory snapshot for PCA and bivariate density visualization.
+### A. Investigation of the Most Accurate Traditional Press Scenario Before Social Media ($M = 3$ Tripolar Press)
+Before coupling the social media layer, we evaluated all $M \in \{0, 1, 2, 3, 4\}$ vehicle group configurations (`all_trad_media_metrics.parquet`) and the 7 tendentiousness sweep scenarios (`all_tendentiousness_metrics.parquet`) against Brazilian media ownership and audience studies (**Reporters Without Borders & Intervozes — *Media Ownership Monitor (MOM) Brasil***; **Reuters Institute *Digital News Report 2023/2024 — Brazil***; **Azevedo, F. A., 2006/2017, *A Grande Imprensa e o PT***):
+- **$M = 1$ (Single Hegemonic Monopoly):** Produces artificial unidirectional shift (`shift_toward_media_cm = +0.293`, $91.9\%$ positive $d_0$) and excessive bimodality ($BC = 0.818$).
+- **$M = 2$ (Symmetric High-Tendentiousness Duopoly $\tau=(0.90, 0.90)$):** Collapses attitude dimensionality to a 1D partisan axis (`effective_dimensionality = 1.43`, `mean_issue_correlation = 0.773`), missing the institutional professional press buffer.
+- **$M = 3$ Tripolar Brazilian Press Ecosystem (Selected Reference Baseline):** Captures the three empirical pillars of the Brazilian traditional media landscape:
+  1. **Group 1 ($\mathbf{m}_1 = +0.65, \tau_1 = 0.80$):** Market-liberal / conservative partisan press and talk-radio networks.
+  2. **Group 2 ($\mathbf{m}_2 = +0.15, \tau_2 = 0.25$):** High-credibility institutional / professional centrist journalism (*Folha*, *Estadão*, *O Globo* mainstream newsroom standards).
+  3. **Group 3 ($\mathbf{m}_3 = -0.50, \tau_3 = 0.65$):** Progressive / popular-left press and broadcast outlets.
+  This $M=3$ configuration preserves multidimensionality (`effective_dimensionality = 3.72`), realistic ideological moderation, and a mild center-right net center of mass (`shift_toward_media_cm = +0.071`).
 
-### B. Executing Analysis Notebooks & Regenerating Figures (`figures/`)
-Both analysis notebooks have valid `nbformat` cell IDs, raw-string LaTeX labels (`r'...'`), and can be executed end-to-end via `uv`:
+### B. Multi-Platform Social Media Layer & Empirical Brazilian Usage (`social_media_ecosystem_kernel_jit`)
+Grounded in **DataReportal — *Digital 2024: Brazil***, **CETIC.br / NIC.br — *TIC Domicílios 2023***, and **Reuters Institute *Digital News Report 2024 (Brazil)***:
+1. **Instagram & TikTok (`SOCIAL_PLATFORM_VISUAL_INFLUENCER = 0`):**
+   - Penetration: $91.2\%$ (Instagram) and $63.3\%$ (TikTok) of Brazilian internet users; $50\%$ use Instagram for news, heavily concentrated in youth and young adults ($16\text{--}39$ yrs):
+     $$P_{\text{IG/TT}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.84 - 0.62\left(\frac{a_i - 16}{74}\right)^{0.85} + 0.10\,\text{ses}_i, \; 0.08, \; 0.94\right)$$
+2. **YouTube & X / Twitter (`SOCIAL_PLATFORM_VIDEO_BLOG = 1`):**
+   - Penetration: $86.2\%$ (YouTube, $41\%$ for news) and $22.1\%$ (X/Twitter), with strong socioeconomic/educational weighting for political commentary:
+     $$P_{\text{YT/X}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.56 - 0.28\left(\frac{a_i - 16}{74}\right) + 0.24\,(\text{ses}_i)^{1.2}, \; 0.12, \; 0.88\right)$$
+3. **Facebook (`SOCIAL_PLATFORM_SOCIAL_FEED = 2`):**
+   - Penetration: $72.5\%$ ($39\%$ for news), shifting toward mature and older Brazilian cohorts ($35\text{--}75$ yrs):
+     $$P_{\text{FB}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.22 + 0.44\sin\!\left(\pi\left(\frac{a_i - 16}{74}\right)^{0.75}\right) - 0.08\,\text{ses}_i, \; 0.10, \; 0.78\right)$$
+4. **WhatsApp & Telegram (`SOCIAL_PLATFORM_MESSAGING = 3`, `propagate_whatsapp_cascades_jit`):**
+   - Penetration: $93.4\%$ of Brazilian internet users ($48\%$ use WhatsApp for news), modeled via closed homophilous groups ($K \le 256$) with high interpersonal trust and cross-group viral forwarding cascades.
+
+### C. Influencer Network of Impact, Factual vs. Tendentious Creators & Follower Gain/Loss Dynamics
+Implemented in `influencer_network_broadcast_and_follower_dynamics_jit` (`src/kernels/recommendation_algos.py`) and `NewsEntityPool` (`src/core/news_entity.py`):
+- **Influencer Network of Impact:** Each influencer $k$ holds an explicit follower network (`inf_follower_indptr`, `inf_follower_members` in `GraphEngine`) and a dynamic audience size $F_k(t)$ (`influencer_followers`).
+- **Factual vs. Tendentious Influencer Option (`influencer_tendentiousness`, $\tau_{\text{inf}} \in [0, 1]$):**
+  - Supports `"factual"` ($\tau_{\text{inf}} \in [0.08, 0.22]$), `"tendentious"` ($\tau_{\text{inf}} \in [0.80, 0.96]$), or `"heterogeneous"` (bimodal ecosystem of factual creators and hyper-partisan political firebrands; **Recuero, Zago, & Soares, 2019/2021, *Social Media + Society***).
+- **Literature-Grounded Follower Gain & Loss Dynamics:**
+  - **Follower Gain (Preferential Attachment with Fitness & Emotional Virality):** Grounded in **Bianconi & Barabási (2001, *Europhys. Lett.*)**, **Barabási & Albert (1999, *Science*)**, and **Vosoughi, Roy, & Aral (2018, *Science*)**:
+    $$\Delta F_k^{+}(t) = 0.035 \ln(1 + F_k(t)) \cdot \eta_k \cdot \ln\!\big(1 + L_k(t) + 0.55 D_k(t)\big) + 0.08 L_k(t), \quad \eta_k = 0.65 + 0.70\tau_{\text{inf}, k}$$
+  - **Follower Loss (Cognitive Dissonance Unfollowing & Out-Group Backlash):** Grounded in **Sasahara et al. (2021, *Nature Human Behaviour*, *"Social influence and unfollowing accelerate the emergence of echo chambers"*)** and **Myers & Leskovec (2014, *WWW*, *"The bursty dynamics of the twitter information network"*)**:
+    Followers unfollow when attitudinal distance exceeds $1.35\,\epsilon_{\text{eff}}$, and creators suffer backlash churn proportional to dislike reactions $D_k(t)$ and natural decay.
+
+### D. Dual-Valence Affective Reactions: Positive (Like) vs. Negative (Dislike / Moral Outrage & Backfire)
+Grounded in **Bail et al. (2018, *PNAS*)**, **Rathje, Van Bavel, & van der Linden (2021, *PNAS*)**, **Brady et al. (2017, *PNAS*)**, and **Jager & Amblard (2005, *Computation & Mathematical Organization Theory*)**:
+- **Positive Reaction (`reaction_types[i] = +1`, Like/Share):** Triggered when $\|\mathbf{x}_i - \mathbf{y}_j\| / \sqrt{d} \le \epsilon_i(1 + 0.30 e_j)$, pulling $\mathbf{x}_i$ toward $\mathbf{y}_j$ via biased assimilation and cognitive coupling $C$.
+- **Negative Reaction (`reaction_types[i] = -1`, Dislike / Outrage Engagement):** Triggered when content is strongly discordant ($\|\mathbf{x}_i - \mathbf{y}_j\| / \sqrt{d} \ge \tau_{\text{dislike}}$) with probability increasing in sensationalism $e_j$, assimilation bias $b_i$, and attitudinal distance. Negative reactions **feed algorithmic popularity** ($\Delta \text{pop}_j = +0.75$, capturing outrage virality) while inducing a **repulsive backfire shift away from $\mathbf{y}_j$**.
+
+### E. SLURM Scripts & Consolidated Datasets (`data/results/`)
+- **Social Media With vs. Without Traditional Press ($N = 100,000$, $1500$ steps, $32$ seeds/scenario across 6 scenarios):**
+  - [`scripts/slurm/social_media_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/social_media_100k_intel128.sh) (`sm100ki`, array `0-23`)
+  - [`scripts/slurm/social_media_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/social_media_100k_amd512.sh) (`sm100ka`, array `0-11`)
+- **Consolidated Datasets in `/Users/rennocosta/janones/data/results/`:**
+  - `all_cities_metrics.parquet`: Complete multi-scale no-media interpersonal baseline across all 4 city scales (`small_10k`, `medium_100k`, `large_1m`, and `metropolis_10m`), $100$ steps.
+  - `all_trad_media_metrics.parquet`: Consolidated traditional media dataset across $M \in \{0, 1, 2, 3, 4\}$ (`medium_100k` reference + `small_10k` scale-invariance comparison).
+  - `all_tendentiousness_metrics.parquet`: Consolidated 7-scenario media tendentiousness sweep ($M=1$) and symmetric/asymmetric duopoly ($M=2$) dataset at $N = 100,000$.
+  - `all_social_media_metrics.parquet`: Consolidated 6-scenario social media comparison (Factual, Mixed, and Tendentious influencers **With** vs. **Without** the $M=3$ Brazilian Tripolar Traditional Press ecosystem).
+  - `all_extreme_imposed_metrics.parquet`: Consolidated 6-scenario `extreme_imposed` dataset across `1500` steps (Baseline `1x`, Moderate Boost `3.5x/4x`, and High Boost `7x/8x`, **With** vs. **Without** the $M=3$ Tripolar Press).
+  - `trajectory_task_0000.h5`: Full $10\text{k}$ spatial/opinion trajectory snapshot for PCA and bivariate density visualization.
+
+---
+
+## 9. The `extreme_imposed` Scenario: Algorithmic Reach & Popularity Amplification of Extreme Tendentious Influencers
+
+### A. Conceptual & Mathematical Formulation (`extreme_imposed`)
+In the **`extreme_imposed`** scenario ([`configs/extreme_imposed.yaml`](file:///Users/rennocosta/janones/configs/extreme_imposed.yaml)), one extreme corner of the $d$-dimensional subject space is deliberately designated:
+$$\mathbf{e}_{\text{imp}} = [+0.85, +0.85, +0.85, +0.85] \in [-1, 1]^d$$
+1. **Extreme Imposed Influencer Subpopulation (`influencer_is_extreme_imposed` in `NewsEntityPool`):**
+   - A fraction $f_{\text{ext}} = 0.25$ (`extreme_imposed_fraction`) of the influencer pool is anchored in the `extreme_imposed` region around $\mathbf{e}_{\text{imp}}$ with high tendentiousness $\tau_{\text{inf}, k} \in [0.85, 0.98]$ (mostly tendentious firebrands).
+   - The remaining $75\%$ of influencers are distributed across the rest of the ideological spectrum with heterogeneous factual/moderate/tendentious profiles.
+2. **Artificial Popularity & Algorithmic Reach Amplification (`extreme_imposed_popularity_boost`, `extreme_imposed_reach_boost`):**
+   - Grounded in **Huszár et al. (2022, *PNAS*, *"Algorithmic amplification of politics on Twitter"*)**, **Muchnik, Aral, & Taylor (2013, *Science*, *"Social influence bias: A randomized experiment"*)**, **Brady et al. (2017, *PNAS*)**, and **Recuero, Zago, & Soares (2019/2021, *Social Media + Society*)**:
+   - **Post & Interaction Popularity Boost ($\beta_{\text{pop}} = \text{extreme\_imposed\_popularity\_boost}$):** Initial post popularity, refreshed post popularity, and every positive/negative user interaction on `extreme_imposed` content are multiplied by $\beta_{\text{pop}}$.
+   - **Algorithmic Feed & Broadcast Reach Boost ($\beta_{\text{reach}} = \text{extreme\_imposed\_reach\_boost}$):** Recommendation selection weights in `social_media_ecosystem_kernel_jit` and post supply weights in `NewsEntityPool` are amplified by $\beta_{\text{reach}}$, while algorithmic promotion flattens the homophily distance penalty ($\alpha_{\text{eff}} = \alpha / (1 + 0.40(\beta_{\text{reach}} - 1))$).
+   - **Social-Proof Confidence Widening (Muchnik et al., 2013):** Artificial popularity and ubiquitous feed presence create a perceived mainstream/majority norm that widens the effective acceptance threshold $\epsilon_{\text{like}}$ by $1 + 0.35\ln(1 + \beta_{\text{reach}})$ and dampens repulsive backfire, allowing moderate citizens to assimilate `extreme_imposed` ideals.
+   - **Amplified Follower Acquisition:** In `influencer_network_broadcast_and_follower_dynamics_jit`, `extreme_imposed` influencers receive a fitness and recommendation boost $1 + 0.45(\beta_{\text{reach}} - 1)$ in the Bianconi-Barabási preferential attachment rate $\Delta F_k^+(t)$ and lower dissonance unfollowing.
+
+### B. Quantifying Population Alignment & Influencer Dominance
+Implemented in [`AnalyticsEngine.compute_step_metrics`](file:///Users/rennocosta/janones/src/metrics/polarization.py) and [`MediaEngine.step`](file:///Users/rennocosta/janones/src/engines/media_engine.py):
+1. **Population Tendency to Follow `extreme_imposed` Ideals:**
+   - `frac_following_extreme_imposed`: Fraction of the population whose normalized Euclidean distance to $\mathbf{e}_{\text{imp}}$ in $d$-dimensional subject space is $\le 0.45$ ($\|\mathbf{x}_i - \mathbf{e}_{\text{imp}}\|_2 / \sqrt{d} \le 0.45$).
+   - `extreme_imposed_alignment`: Directional projection of the population center of mass onto the unit `extreme_imposed` vector ($\bar{\mathbf{x}} \cdot \hat{\mathbf{e}}_{\text{imp}} \in [-1, 1]$).
+   - `dist_to_extreme_imposed_mean`: Mean normalized Euclidean distance from all agents to $\mathbf{e}_{\text{imp}}$.
+2. **Popularity & Follower Dominance of `extreme_imposed` Influencers Over Other Influencers:**
+   - `extreme_imposed_follower_ratio`: Ratio of mean followers per `extreme_imposed` influencer to mean followers per non-`extreme_imposed` influencer ($\bar{F}_{\text{ext}} / \bar{F}_{\text{other}}$).
+   - `extreme_imposed_follower_share`: Share of total ecosystem followers held by `extreme_imposed` influencers (compared against their $25\%$ baseline share of creators).
+   - `extreme_imposed_popularity_ratio`: Ratio of mean post engagement/popularity of `extreme_imposed` influencers to that of other influencers ($\bar{P}_{\text{ext}} / \bar{P}_{\text{other}}$).
+   - `extreme_imposed_popularity_share`: Share of total platform post popularity/engagement captured by `extreme_imposed` influencers.
+
+### C. Supercomputer SLURM Scripts (`1500` Steps & `1500` Runs Ensemble)
+1. **Reference Scale ($N = 100,000$), $1500$ Steps, $32$ Seeds/Scenario across 6 Scenarios:**
+   - [`scripts/slurm/extreme_imposed_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_100k_intel128.sh) (`ex100ki`, array `0-23`)
+   - [`scripts/slurm/extreme_imposed_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_100k_amd512.sh) (`ex100ka`, array `0-11`)
+2. **Full `1500`-Run Monte Carlo Ensemble (`1500` Independent Runs per Scenario, Seeds `0..1499`, `1500` Steps):**
+   - [`scripts/slurm/extreme_imposed_1500runs_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_1500runs_intel128.sh) (`ex1500i`, array `0-149`, 60 runs/task = 9,000 total runs across 6 scenarios)
+   - [`scripts/slurm/extreme_imposed_1500runs_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_1500runs_amd512.sh) (`ex1500a`, array `0-74`, 120 runs/task = 9,000 total runs across 6 scenarios)
+
+### D. Executing Analysis Notebooks & Regenerating Figures (`figures/`)
+All three analysis notebooks have valid `nbformat` cell IDs, raw-string LaTeX labels (`r'...'`), and can be executed end-to-end via `uv`:
 ```bash
 uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_local_cities.ipynb
 uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_social_media.ipynb
 ```
-Generated figures are written to `/Users/rennocosta/janones/figures/` (`fig1_*.png`–`fig5_*.png` and `fig_trad1_*.png`–`fig_trad5_*.png`).
+Generated figures are written to `/Users/rennocosta/janones/figures/` (`fig1_*.png`–`fig5_*.png`, `fig_trad1_*.png`–`fig_trad5_*.png`, and `fig_sm1_*.png`–`fig_sm3_*.png`).

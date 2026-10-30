@@ -114,8 +114,47 @@ class SimulationEngine:
                 n_vehicle_groups=self.n_vehicle_groups,
                 vehicle_group_centers=media_cfg.get("vehicle_group_centers", None),
                 group_tendentiousness=media_cfg.get("group_tendentiousness", 0.65),
+                influencer_tendentiousness=media_cfg.get(
+                    "influencer_tendentiousness", "heterogeneous"
+                ),
                 fact_rate=float(media_cfg.get("fact_rate", 1.5)),
                 gatekeeping_sigma=float(media_cfg.get("gatekeeping_sigma", 0.85)),
+                extreme_imposed_enabled=bool(
+                    media_cfg.get("extreme_imposed_enabled", False)
+                ),
+                extreme_imposed_target=media_cfg.get("extreme_imposed_target", None),
+                extreme_imposed_Radius=float(
+                    media_cfg.get("extreme_imposed_Radius", 0.52)
+                ),
+                extreme_imposed_fraction=float(
+                    media_cfg.get("extreme_imposed_fraction", 0.25)
+                ),
+                extreme_imposed_reach_boost=float(
+                    media_cfg.get("extreme_imposed_reach_boost", 3.5)
+                ),
+                extreme_imposed_popularity_boost=float(
+                    media_cfg.get("extreme_imposed_popularity_boost", 4.0)
+                ),
+                sync_tactics_enabled=bool(
+                    media_cfg.get("sync_tactics_enabled", False)
+                ),
+                cowork_enabled=bool(
+                    media_cfg.get("cowork_enabled", False)
+                ),
+                cowork_prob=float(
+                    media_cfg.get("cowork_prob", 0.65)
+                ),
+                cowork_reach_fraction=float(
+                    media_cfg.get("cowork_reach_fraction", 0.50)
+                ),
+                fact_dictation_enabled=bool(
+                    media_cfg.get("fact_dictation_enabled", False)
+                ),
+                fact_dictation_pull=float(
+                    media_cfg.get("fact_dictation_pull", 0.42)
+                ),
+                agent_opinions=self.agent_state.opinions,
+                agent_innate_beliefs=self.agent_state.innate_beliefs,
             )
 
         # 4. Initialize Kernels & Engines
@@ -137,6 +176,15 @@ class SimulationEngine:
             enable_social_media=self.enable_social_media,
             traditional_selectivity_beta=float(
                 media_cfg.get("traditional_selectivity_beta", 1.2)
+            ),
+            dislike_reaction_strength=float(
+                media_cfg.get("dislike_reaction_strength", 0.45)
+            ),
+            backfire_repulsion_strength=float(
+                media_cfg.get("backfire_repulsion_strength", 0.35)
+            ),
+            influencer_impact_strength=float(
+                media_cfg.get("influencer_impact_strength", 0.04)
             ),
         )
         elec_cfg = self.config.get("electoral", {})

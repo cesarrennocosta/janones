@@ -49,15 +49,21 @@ env/
 *.feather
 *.npz
 *.npy
+*.png
+*.pdf
+figures/
 slurm-*.out
 slurm-*.err
+slurm_*.out
+slurm_*.err
 results/
 outputs/
 checkpoints/
 scratch/
 data/results/
 
-# IDE & OS
+# Jupyter & IDE & OS
+.ipynb_checkpoints/
 .vscode/
 .idea/
 .DS_Store

@@ -108,6 +108,16 @@ def parse_args() -> argparse.Namespace:
         help="Enable Traditional Media (TV, Radio, Press) while keeping algorithmic social media & WhatsApp disabled.",
     )
     parser.add_argument(
+        "--social-media-only",
+        action="store_true",
+        help="Enable Social Media (Instagram/TikTok, YouTube/X, Facebook, WhatsApp) without Traditional Press.",
+    )
+    parser.add_argument(
+        "--full-media-ecosystem",
+        action="store_true",
+        help="Enable BOTH Traditional Media (TV, Radio, Press) and the Multi-Platform Social Media Layer.",
+    )
+    parser.add_argument(
         "--n-vehicle-groups",
         type=int,
         default=None,
@@ -118,6 +128,68 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Tendentiousness level tau in [0, 1] as a scalar (e.g. '0.15', '0.90') or comma-separated per-group list (e.g. '0.90,0.15').",
+    )
+    parser.add_argument(
+        "--influencer-tendentiousness",
+        type=str,
+        default=None,
+        help="Influencer tendentiousness mode ('factual', 'tendentious', 'heterogeneous') or scalar/comma-separated values in [0, 1].",
+    )
+    parser.add_argument(
+        "--dislike-strength",
+        type=float,
+        default=None,
+        help="Strength of negative/dislike out-group reaction probability on social media.",
+    )
+    parser.add_argument(
+        "--backfire-strength",
+        type=float,
+        default=None,
+        help="Repulsive backfire shift strength when reacting negatively (dislike) to discordant content.",
+    )
+    parser.add_argument(
+        "--extreme-imposed",
+        action="store_true",
+        help="Enable the Extreme Imposed scenario: tendentious influencers in one extreme of subject space have artificially boosted reach and popularity.",
+    )
+    parser.add_argument(
+        "--extreme-reach-boost",
+        type=float,
+        default=None,
+        help="Artificial algorithmic reach multiplier for Extreme Imposed influencers (e.g. 3.5, 6.0).",
+    )
+    parser.add_argument(
+        "--extreme-popularity-boost",
+        type=float,
+        default=None,
+        help="Artificial popularity/interaction multiplier for Extreme Imposed influencer posts (e.g. 4.0, 8.0).",
+    )
+    parser.add_argument(
+        "--extreme-fraction",
+        type=float,
+        default=None,
+        help="Fraction of influencers anchored in the Extreme Imposed subject zone (default 0.25).",
+    )
+    parser.add_argument(
+        "--sync-tactics",
+        action="store_true",
+        help="Enable synchronized focal-fact narratives among Extreme Imposed influencers.",
+    )
+    parser.add_argument(
+        "--cowork",
+        action="store_true",
+        help="Enable influencer co-working (collaborations accessing partner follower networks & mutual recruitment).",
+    )
+    parser.add_argument(
+        "--fact-dictation",
+        action="store_true",
+        help="Enable intermedia fact & subject dictation (synchronized network pushes focal facts into traditional media coverage & extends longevity).",
+    )
+    parser.add_argument(
+        "--fact-dictation-pull",
+        type=float,
+        default=None,
+        help="Strength of intermedia frame dictation pull on traditional media coverage (default 0.42).",
     )
     parser.add_argument(
         "--symmetric-duopoly",
@@ -172,6 +244,15 @@ def main() -> None:
         media_cfg["enabled"] = True
         media_cfg["traditional_enabled"] = True
         media_cfg["social_enabled"] = False
+    if args.social_media_only:
+        media_cfg["enabled"] = True
+        media_cfg["traditional_enabled"] = False
+        media_cfg["social_enabled"] = True
+        media_cfg["n_vehicle_groups"] = 0
+    if args.full_media_ecosystem:
+        media_cfg["enabled"] = True
+        media_cfg["traditional_enabled"] = True
+        media_cfg["social_enabled"] = True
     if args.n_vehicle_groups is not None:
         media_cfg["n_vehicle_groups"] = args.n_vehicle_groups
         if args.n_vehicle_groups > 0:
@@ -182,6 +263,41 @@ def main() -> None:
     if args.tendentiousness is not None:
         parts = [float(x.strip()) for x in args.tendentiousness.split(",") if x.strip()]
         media_cfg["group_tendentiousness"] = parts[0] if len(parts) == 1 else parts
+    if args.influencer_tendentiousness is not None:
+        raw_inf_t = args.influencer_tendentiousness.strip()
+        if raw_inf_t.lower() in ("factual", "tendentious", "heterogeneous", "mixed", "bimodal"):
+            media_cfg["influencer_tendentiousness"] = raw_inf_t.lower()
+        else:
+            parts = [float(x.strip()) for x in raw_inf_t.split(",") if x.strip()]
+            media_cfg["influencer_tendentiousness"] = parts[0] if len(parts) == 1 else parts
+    if args.dislike_strength is not None:
+        media_cfg["dislike_reaction_strength"] = args.dislike_strength
+    if args.backfire_strength is not None:
+        media_cfg["backfire_repulsion_strength"] = args.backfire_strength
+    if args.extreme_imposed:
+        media_cfg["extreme_imposed_enabled"] = True
+    if args.extreme_reach_boost is not None:
+        media_cfg["extreme_imposed_reach_boost"] = args.extreme_reach_boost
+        if args.extreme_reach_boost > 1.0:
+            media_cfg["extreme_imposed_enabled"] = True
+    if args.extreme_popularity_boost is not None:
+        media_cfg["extreme_imposed_popularity_boost"] = args.extreme_popularity_boost
+        if args.extreme_popularity_boost > 1.0:
+            media_cfg["extreme_imposed_enabled"] = True
+    if args.extreme_fraction is not None:
+        media_cfg["extreme_imposed_fraction"] = args.extreme_fraction
+    if args.sync_tactics:
+        media_cfg["sync_tactics_enabled"] = True
+        media_cfg["extreme_imposed_enabled"] = True
+    if args.cowork:
+        media_cfg["cowork_enabled"] = True
+        media_cfg["extreme_imposed_enabled"] = True
+    if args.fact_dictation:
+        media_cfg["fact_dictation_enabled"] = True
+        media_cfg["sync_tactics_enabled"] = True
+        media_cfg["extreme_imposed_enabled"] = True
+    if args.fact_dictation_pull is not None:
+        media_cfg["fact_dictation_pull"] = args.fact_dictation_pull
     if args.symmetric_duopoly:
         n_dims = int(sim_cfg.get("n_dims", 4))
         media_cfg["vehicle_group_centers"] = [

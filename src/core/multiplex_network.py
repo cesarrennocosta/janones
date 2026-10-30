@@ -47,6 +47,11 @@ class GraphEngine:
     social_feed_csr: sp.csr_matrix | None = None
     influencer_ids: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
     eigenvector_centrality: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.float64))
+    # Influencer follower-to-creator CSR network of impact (rows: influencer k, cols: followers i)
+    inf_follower_indptr: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
+    inf_follower_members: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
+    influencer_followers: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.float64))
+    influencer_initial_followers: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.float64))
 
     # Closed messaging (WhatsApp) group structures (CSR-like flat arrays for Numba)
     wa_group_indptr: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
@@ -135,6 +140,10 @@ class GraphEngine:
             engine.eigenvector_centrality = np.full(n, 1.0 / n, dtype=np.float64)
             agent_state.is_influencer[:] = 0
             agent_state.is_influencer[engine.influencer_ids] = 1
+            engine.inf_follower_indptr = np.zeros(n_inf + 1, dtype=np.int32)
+            engine.inf_follower_members = np.empty(0, dtype=np.int32)
+            engine.influencer_followers = np.full(n_inf, 10.0, dtype=np.float64)
+            engine.influencer_initial_followers = np.full(n_inf, 10.0, dtype=np.float64)
             engine.n_wa_groups = 1
             engine.wa_group_indptr = np.array([0, min(n, 10)], dtype=np.int32)
             engine.wa_group_members = np.arange(min(n, 10), dtype=np.int32)
@@ -398,6 +407,15 @@ class GraphEngine:
         self.influencer_ids = np.ascontiguousarray(top_ids, dtype=np.int32)
         agent_state.is_influencer[:] = 0
         agent_state.is_influencer[self.influencer_ids] = 1
+
+        # Build influencer -> follower CSR network of impact (submatrix of adj_t for influencer rows)
+        inf_sub = adj_t[self.influencer_ids, :].tocsr()
+        inf_sub.sort_indices()
+        self.inf_follower_indptr = np.ascontiguousarray(inf_sub.indptr, dtype=np.int32)
+        self.inf_follower_members = np.ascontiguousarray(inf_sub.indices, dtype=np.int32)
+        deg_counts = np.diff(self.inf_follower_indptr).astype(np.float64)
+        self.influencer_followers = np.ascontiguousarray(np.maximum(deg_counts, 5.0), dtype=np.float64)
+        self.influencer_initial_followers = np.ascontiguousarray(self.influencer_followers.copy(), dtype=np.float64)
 
     def _build_whatsapp_groups(
         self,
