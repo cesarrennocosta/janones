@@ -103,6 +103,29 @@ def parse_args() -> argparse.Namespace:
         help="Disable all media platforms (run pure local interpersonal connections only).",
     )
     parser.add_argument(
+        "--traditional-media-only",
+        action="store_true",
+        help="Enable Traditional Media (TV, Radio, Press) while keeping algorithmic social media & WhatsApp disabled.",
+    )
+    parser.add_argument(
+        "--n-vehicle-groups",
+        type=int,
+        default=None,
+        help="Number of traditional media vehicle groups M in {0, 1, 2, 3, 4} (each operating TV, Radio, and Press).",
+    )
+    parser.add_argument(
+        "--fact-rate",
+        type=float,
+        default=None,
+        help="Mean number of exogenous facts occurring per simulation step.",
+    )
+    parser.add_argument(
+        "--broadcast-strength",
+        type=float,
+        default=None,
+        help="Persuasive pull strength of traditional broadcast/press media.",
+    )
+    parser.add_argument(
         "--beta",
         type=float,
         default=None,
@@ -132,6 +155,23 @@ def main() -> None:
         sim_cfg["init_mode"] = args.init_mode
     if args.no_media:
         media_cfg["enabled"] = False
+        media_cfg["traditional_enabled"] = False
+        media_cfg["social_enabled"] = False
+    if args.traditional_media_only:
+        media_cfg["enabled"] = True
+        media_cfg["traditional_enabled"] = True
+        media_cfg["social_enabled"] = False
+    if args.n_vehicle_groups is not None:
+        media_cfg["n_vehicle_groups"] = args.n_vehicle_groups
+        if args.n_vehicle_groups > 0:
+            media_cfg["traditional_enabled"] = True
+            media_cfg["enabled"] = True
+        else:
+            media_cfg["traditional_enabled"] = False
+    if args.fact_rate is not None:
+        media_cfg["fact_rate"] = args.fact_rate
+    if args.broadcast_strength is not None:
+        media_cfg["broadcast_strength"] = args.broadcast_strength
     if args.beta is not None:
         media_cfg["beta"] = args.beta
 
@@ -146,15 +186,16 @@ def main() -> None:
     final_m = result["final_metrics"]
     status = "PREEMPTED (Checkpoint Saved)" if result.get("preempted") else "COMPLETED"
     print(
-        f"[OmniOpinion Task {task_id:04d} | N={engine.n_agents} | {status}] "
+        f"[OmniOpinion Task {task_id:04d} | N={engine.n_agents} | M={engine.n_vehicle_groups} | {status}] "
         f"Step={final_m['step']} | "
         f"P_ER={final_m['esteban_ray']:.4f} | "
+        f"ShiftCM={final_m.get('shift_toward_media_cm', 0.0):+.3f} | "
         f"DispVsRand={final_m['dispersion_ratio_vs_random']:.3f} | "
         f"Clusters(IPR)={final_m['effective_clusters_ipr']:.2f} | "
-        f"IssueCorr={final_m['mean_issue_correlation']:.3f} | "
-        f"EffDim={final_m['effective_dimensionality']:.2f}"
+        f"IssueCorr={final_m['mean_issue_correlation']:.3f}"
     )
 
 
 if __name__ == "__main__":
     main()
+

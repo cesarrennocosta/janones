@@ -303,4 +303,64 @@ All scripts run $101$ independent seeds (`0..100`) with `--init-mode uniform_ran
 | **Large City** | $1,000,000$ | [`scripts/slurm/city_1m_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/city_1m_intel128.sh) (`c1m_i`) | [`scripts/slurm/city_1m_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/city_1m_amd512.sh) (`c1m_a`) | `intel-128`: 4 tasks $\times$ 16 threads (array 0–25); `amd-512`: 8 tasks $\times$ 16 threads (array 0–12) |
 | **Metropolis** | $10,000,000$ | [`scripts/slurm/city_10m_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/city_10m_intel128.sh) (`c10m_i`) | [`scripts/slurm/city_10m_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/city_10m_amd512.sh) (`c10m_a`) | `intel-128`: 1 task $\times$ 64 threads/node (array 0–100); `amd-512`: 4 tasks $\times$ 32 threads/node (array 0–25) |
 
+---
+
+## 7. Fact-Driven Traditional Media Vehicle Groups (TV, Radio, Press) & Empirical Brazilian Calibration
+
+### A. Conceptual Architecture (`TraditionalMediaEcosystem` in `src/core/news_entity.py`)
+Built directly on top of the local interpersonal baseline ($M = 0$), the model introduces **$M \in \{1, 2, 3, 4\}$ Traditional Media Vehicle Groups (Conglomerates)**. Each vehicle group $g \in \{1, \dots, M\}$ holds an editorial **center of mass** $\mathbf{m}_g \in [-1, 1]^d$ and operates **all three traditional broadcast/press modalities**:
+1. **Broadcast Television (`tv`, modality $0$)**
+2. **Radio AM/FM (`radio`, modality $1$)**
+3. **Written Press (`press`, modality $2$: print newspapers, magazines, and traditional press portals)**
+
+### B. Empirical Brazilian Demographic Access Data & References (`traditional_media_exposure_kernel_jit`)
+1. **Television (`tv`):**
+   - **References:**
+     - **IBGE — *PNAD Contínua TIC 2022/2023 (Acesso à Internet e à Televisão e Posse de Telefone Móvel Celular para Uso Pessoal)* (2023):** Television sets are present in **$94.4\%$ of Brazilian households** ($69.2\text{M}$ homes); free-to-air TV (*TV Aberta*) serves as the primary news source for lower and middle socioeconomic strata (`Classes C/D/E`).
+     - **Kantar IBOPE Media — *Inside Video 2023/2024*:** Linear television reaches **$78.9\%$ of Brazilians weekly** ($\sim 56\%$ daily), with an average daily viewing time of **$5\text{h}17\text{m}$** and a strong positive age gradient (adults $60+$ watch $>6.5\text{h}$/day vs. $<2.5\text{h}$/day among youth $16\text{--}24$).
+   - **Access Probability Function:**
+     $$P_{\text{TV}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.24 + 0.48 \left(\frac{a_i - 16}{74}\right)^{0.9} - 0.10\,\text{ses}_i, \; 0.05, \; 0.85\right)$$
+2. **Radio (`radio`):**
+   - **References:**
+     - **Kantar IBOPE Media — *Inside Audio / Inside Radio 2023*** & **ABERT (*Associação Brasileira de Emissoras de Rádio e Televisão*, 2023):** Radio reaches **$80.0\%\text{--}83.0\%$ of the population** across the 13 major Brazilian metropolitan regions ($\sim 3\text{h}55\text{m}$/day average listening), peaking among working-age urban commuters ($30\text{--}59$ years) and older adults across middle and working-class socioeconomic tiers.
+   - **Access Probability Function:**
+     $$P_{\text{Radio}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.18 + 0.34 \left(\frac{a_i - 16}{74}\right) + 0.14 \sin(\pi\,\text{ses}_i), \; 0.05, \; 0.75\right)$$
+3. **Written Press (`press`):**
+   - **References:**
+     - **Reuters Institute for the Study of Journalism (Oxford University) — *Digital News Report 2023/2024 (Brazil section, R. Carro)***, **IVC Brasil (*Instituto Verificador de Comunicação*, 2023)**, and **SECOM/PR — *Pesquisa Brasileira de Mídia (PBM)*:** Direct print newspaper circulation reaches $\sim 7\%\text{--}11\%$ and traditional press portals (*Folha*, *Estadão*, *O Globo*, *Valor*) reach $\sim 28\%\text{--}34\%$, with a **steep nonlinear concentration in high socioeconomic status ($\text{SES} \ge 0.65$, Classes A/B, university-educated)** and adults aged $30+$.
+   - **Access Probability Function:**
+     $$P_{\text{Press}}(a_i, \text{ses}_i) = \text{clip}\!\left(0.02 + 0.42\,(\text{ses}_i)^{1.8} + 0.12 \left(\frac{a_i - 16}{74}\right), \; 0.01, \; 0.65\right)$$
+
+### C. Published Theoretical Models for Fact Arrival, Slant Toward Center of Mass, Lag, Cadence & Decay
+1. **Exogenous Facts & Gatekeeping / Slant Toward Vehicle Center of Mass ($\mathbf{m}_g$):**
+   - **References:**
+     - **Mullainathan, S., & Shleifer, A. (2005).** *"The Market for News."* **American Economic Review**, 95(4), 1031–1053.
+     - **Gentzkow, M., & Shapiro, J. M. (2006).** *"Media Bias and Reputation."* **Journal of Political Economy**, 114(2), 280–316; and **Gentzkow & Shapiro (2010)**, *"What Drives Media Slant?"*, **Econometrica**, 78(1), 35–71.
+     - **DellaVigna, S., & Kaplan, E. (2007).** *"The Fox News Effect: Media Bias and Voting."* **The Quarterly Journal of Economics**, 122(3), 1187–1234.
+   - **Mechanism:**
+     - Exogenous real-world **facts** arrive via a Poisson process with mean `fact_rate` ($\lambda_{\text{fact}} = 1.5$/step), each with latent opinion valence $\mathbf{f}_k \in [-1, 1]^d$ and salience $I_k \in [0.55, 1.0]$.
+     - When a fact is favorable to vehicle group $g$'s center of mass $\mathbf{m}_g$ (measured by $A_{k,g} = \exp(-\|\mathbf{f}_k - \mathbf{m}_g\|_2 / (\sqrt{d}\,\sigma_{\text{gate}}))$), each modality $v \in \{\text{TV}, \text{Radio}, \text{Press}\}$ in group $g$ covers it with probability $\nu_v (0.35 + 0.65 A_{k,g})$ and produces a **slanted notice** pulled toward $\mathbf{m}_g$:
+       $$\mathbf{y}_{k,g,v} = \text{clip}\!\big((1 - \eta_v)\mathbf{f}_k + \eta_v \mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \; -1, \; 1\big)$$
+2. **Modality Publication Lag ($\tau_v$), Frequency ($\nu_v$), and Temporal Decay ($\exp(-\delta_v \Delta t)$):**
+   - **References:**
+     - **Wu, F., & Huberman, B. A. (2007).** *"Novelty and collective attention."* **PNAS**, 104(45), 17599–17601 (Exponential decay of news novelty/attention).
+     - **Leskovec, J., Backstrom, L., & Kleinberg, J. (2009).** *"Meme-tracking and the dynamics of the news cycle."* **ACM SIGKDD**, 497–506 (Publication lag between rapid broadcast/radio alerts, prime-time TV synthesis, and print press editions).
+     - **McCombs, M. E., & Shaw, D. L. (1972).** *"The Agenda-Setting Function of Mass Media."* **Public Opinion Quarterly**, 36(2), 176–187.
+   - **Modality Parameters:**
+     - **Radio (`radio`):** Lag $\tau_{\text{radio}} = 0$ steps (live bulletin), period $= 1$ step, pub prob $= 0.92$, slant pull $\eta_{\text{radio}} = 0.58$, fast decay $\delta_{\text{radio}} = 0.45\text{/step}$, credibility $\gamma_{\text{radio}} = 0.62$.
+     - **Television (`tv`):** Lag $\tau_{\text{tv}} = 1$ step (*telejornal* cycle), period $= 1$ step, pub prob $= 0.85$, slant pull $\eta_{\text{tv}} = 0.68$, medium decay $\delta_{\text{tv}} = 0.30\text{/step}$, credibility $\gamma_{\text{tv}} = 0.75$.
+     - **Written Press (`press`):** Lag $\tau_{\text{press}} = 2$ steps (editorial/print lag), period $= 2$ steps, pub prob $= 0.75$, slant pull $\eta_{\text{press}} = 0.78$, slow decay $\delta_{\text{press}} = 0.18\text{/step}$, credibility $\gamma_{\text{press}} = 0.82$.
+
+### D. Canonical Vehicle Group Configurations ($M = 1, 2, 3, 4$) & SLURM Scripts
+- **$M = 0$ (`no_media`):** Local interpersonal baseline (`configs/local_cities_nomedia.yaml`).
+- **$M = 1$ (`1_group`):** Hegemonic conglomerate at $\mathbf{m}_1 = (+0.55, +0.55, +0.55, +0.55)$.
+- **$M = 2$ (`2_groups`):** Asymmetric duopoly at $\mathbf{m}_1 = +0.60$, $\mathbf{m}_2 = -0.25$ (net center of mass $\bar{\mathbf{m}} = +0.175$).
+- **$M = 3$ (`3_groups`):** Tripolar ecosystem at $\mathbf{m}_1 = +0.65$, $\mathbf{m}_2 = +0.15$, $\mathbf{m}_3 = -0.50$ (net center of mass $\bar{\mathbf{m}} = +0.10$).
+- **$M = 4$ (`4_groups`):** Four-quadrant ideological ecosystem across economic and moral axes.
+- **SLURM Scripts (`scripts/slurm/`):**
+  - Small City ($10\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_10k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_intel128.sh) (`tm10k_i`) and [`scripts/slurm/trad_media_10k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_amd512.sh) (`tm10k_a`).
+  - Medium City ($100\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_intel128.sh) (`tm100ki`) and [`scripts/slurm/trad_media_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_amd512.sh) (`tm100ka`).
+  - Analysis Notebook: [`notebooks/analyze_traditional_media.ipynb`](file:///Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb).
+
+
 

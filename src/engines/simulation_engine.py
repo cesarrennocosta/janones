@@ -61,6 +61,17 @@ class SimulationEngine:
         self.init_mode = str(sim_cfg.get("init_mode", "correlated"))
         self.age_distribution = str(sim_cfg.get("age_distribution", "ibge_2022"))
         self.enable_media = bool(media_cfg.get("enabled", True))
+        self.enable_traditional_media = bool(
+            media_cfg.get("traditional_enabled", self.enable_media)
+        )
+        self.enable_social_media = bool(
+            media_cfg.get("social_enabled", self.enable_media)
+        )
+        self.n_vehicle_groups = int(
+            media_cfg.get("n_vehicle_groups", media_cfg.get("n_broadcast", 3))
+            if self.enable_traditional_media
+            else 0
+        )
 
         # 1. Initialize AgentStateEngine
         self.agent_state = AgentStateEngine.initialize(
@@ -75,42 +86,57 @@ class SimulationEngine:
             age_distribution=self.age_distribution,
         )
 
-        # 2. Initialize Multiplex GraphEngine
+        # 2. Initialize Multiplex GraphEngine (build social/WA graphs only when social media is enabled)
         net_cfg = self.config.get("networks", {})
         self.graph_engine = GraphEngine.build_multiplex(
             agent_state=self.agent_state,
             config=net_cfg,
             seed=self.rng_network,
-            enable_media_networks=self.enable_media,
+            enable_media_networks=self.enable_social_media,
         )
 
-        # 3. Initialize NewsEntityPool (if media enabled)
+        # 3. Initialize NewsEntityPool (if traditional or social media enabled)
         self.news_pool: NewsEntityPool | None = None
-        if self.enable_media:
-            inf_opinions = self.agent_state.opinions[self.graph_engine.influencer_ids]
+        if self.enable_traditional_media or self.enable_social_media:
+            inf_opinions = (
+                self.agent_state.opinions[self.graph_engine.influencer_ids]
+                if len(self.graph_engine.influencer_ids) > 0
+                else np.zeros((0, self.n_dims), dtype=np.float64)
+            )
             self.news_pool = NewsEntityPool.initialize(
-                n_items=self.n_news_items,
+                n_items=self.n_news_items if self.enable_social_media else 1,
                 n_dims=self.n_dims,
                 influencer_ids=self.graph_engine.influencer_ids,
                 influencer_opinions=inf_opinions,
-                n_broadcast=int(media_cfg.get("n_broadcast", 3)),
+                n_broadcast=max(1, self.n_vehicle_groups),
                 misinfo_fraction=float(media_cfg.get("misinfo_fraction", 0.25)),
                 seed=self.rng_media,
+                n_vehicle_groups=self.n_vehicle_groups,
+                vehicle_group_centers=media_cfg.get("vehicle_group_centers", None),
+                fact_rate=float(media_cfg.get("fact_rate", 1.5)),
+                gatekeeping_sigma=float(media_cfg.get("gatekeeping_sigma", 0.85)),
             )
 
         # 4. Initialize Kernels & Engines
         self.dynamics_kernel = DynamicsKernel(
             dt=float(sim_cfg.get("dt", 0.15)),
             noise_std=float(sim_cfg.get("noise_std", 0.01)),
-            media_strength=float(media_cfg.get("feed_strength", 0.07)) if self.enable_media else 0.0,
+            media_strength=float(media_cfg.get("feed_strength", 0.07))
+            if (self.enable_traditional_media or self.enable_social_media)
+            else 0.0,
         )
         self.media_engine = MediaEngine(
             beta=float(media_cfg.get("beta", 2.0)),
             emotional_boost=float(media_cfg.get("emotional_boost", 1.5)),
-            broadcast_strength=float(media_cfg.get("broadcast_strength", 0.05)),
+            broadcast_strength=float(media_cfg.get("broadcast_strength", 0.06)),
             feed_strength=float(media_cfg.get("feed_strength", 0.07)),
             whatsapp_trust=float(media_cfg.get("whatsapp_trust", 0.85)),
             whatsapp_forward_prob=float(media_cfg.get("whatsapp_forward_prob", 0.25)),
+            enable_traditional_media=self.enable_traditional_media,
+            enable_social_media=self.enable_social_media,
+            traditional_selectivity_beta=float(
+                media_cfg.get("traditional_selectivity_beta", 1.2)
+            ),
         )
         elec_cfg = self.config.get("electoral", {})
         self.electoral_engine = ElectoralEngine(
@@ -178,6 +204,7 @@ class SimulationEngine:
                         "n_steps": self.n_steps,
                         "init_mode": self.init_mode,
                         "enable_media": int(self.enable_media),
+                        "n_vehicle_groups": int(self.n_vehicle_groups),
                     },
                 )
 
@@ -186,7 +213,7 @@ class SimulationEngine:
                 self.dynamics_kernel.step_interpersonal(
                     self.agent_state, self.graph_engine, self.rng_dynamics
                 )
-                if self.enable_media and self.news_pool is not None:
+                if (self.enable_traditional_media or self.enable_social_media) and self.news_pool is not None:
                     media_stats = self.media_engine.step_all_platforms(
                         self.agent_state,
                         self.graph_engine,
@@ -197,12 +224,22 @@ class SimulationEngine:
                 else:
                     media_stats = {
                         "broadcast_reached": 0.0,
+                        "tv_reached": 0.0,
+                        "radio_reached": 0.0,
+                        "press_reached": 0.0,
+                        "facts_count": 0.0,
+                        "published_notices": 0.0,
                         "feed_engaged": 0.0,
                         "whatsapp_cascades": 0.0,
                     }
             else:
                 media_stats = {
                     "broadcast_reached": 0.0,
+                    "tv_reached": 0.0,
+                    "radio_reached": 0.0,
+                    "press_reached": 0.0,
+                    "facts_count": 0.0,
+                    "published_notices": 0.0,
                     "feed_engaged": 0.0,
                     "whatsapp_cascades": 0.0,
                 }
@@ -216,6 +253,7 @@ class SimulationEngine:
                 graph_engine=self.graph_engine,
                 electoral_result=last_electoral,
                 media_stats=media_stats,
+                news_pool=self.news_pool,
             )
             step_metrics["task_id"] = self.task_id
             step_metrics["n_agents"] = self.n_agents

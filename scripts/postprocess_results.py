@@ -89,6 +89,68 @@ def consolidate_all_city_scales(
     return written_files
 
 
+def consolidate_all_trad_media_groups(
+    scratch_root: str | Path = "/scratch/global/crcosta/omni_opinion",
+    output_dir: str | Path = "/scratch/global/crcosta/omni_opinion/consolidated",
+) -> list[Path]:
+    """Scan all completed traditional media vehicle group directories (`trad_media/<scale>_g<M>`)
+    plus the baseline (`local_nomedia/<scale>` as M=0) and build `all_trad_media_metrics.parquet`.
+    """
+    root_path = Path(scratch_root)
+    trad_base = root_path / "trad_media"
+    nomedia_base = root_path / "local_nomedia"
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written_files: list[Path] = []
+    all_tables = []
+
+    for scale_name in CITY_SCALES:
+        base_dir = nomedia_base / scale_name
+        if base_dir.exists() and list(base_dir.glob("metrics_task_*.parquet")):
+            out_0 = out_dir / f"consolidated_{scale_name}_g0.parquet"
+            consolidate_parquet_shard_files(base_dir, out_0, city_scale_label=scale_name)
+            tbl_0 = pq.read_table(out_0)
+            if "n_vehicle_groups" not in tbl_0.column_names:
+                tbl_0 = tbl_0.append_column(
+                    "n_vehicle_groups", pa.array([0] * tbl_0.num_rows, type=pa.int64())
+                )
+            all_tables.append(tbl_0)
+
+        for m_groups in (1, 2, 3, 4):
+            g_dir = trad_base / f"{scale_name}_g{m_groups}"
+            if not g_dir.exists():
+                continue
+            shards = sorted(g_dir.glob("metrics_task_*.parquet"))
+            if not shards:
+                continue
+            out_file = out_dir / f"consolidated_{scale_name}_g{m_groups}.parquet"
+            consolidate_parquet_shard_files(g_dir, out_file, city_scale_label=scale_name)
+            tbl = pq.read_table(out_file)
+            if "n_vehicle_groups" not in tbl.column_names:
+                tbl = tbl.append_column(
+                    "n_vehicle_groups",
+                    pa.array([m_groups] * tbl.num_rows, type=pa.int64()),
+                )
+            pq.write_table(tbl, out_file, compression="zstd")
+            written_files.append(out_file)
+            all_tables.append(tbl)
+            print(
+                f"[OK] Consolidated {len(shards)} seeds for {scale_name} (M={m_groups} groups) -> {out_file}"
+            )
+
+    if all_tables:
+        master_file = out_dir / "all_trad_media_metrics.parquet"
+        master_tbl = pa.concat_tables(all_tables, promote_options="default")
+        pq.write_table(master_tbl, master_file, compression="zstd")
+        written_files.append(master_file)
+        print(
+            f"[OK] Master traditional media table written -> {master_file} ({master_tbl.num_rows} rows)"
+        )
+
+    return written_files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Consolidate SLURM Parquet metric outputs into compact summary tables for local download."
@@ -96,7 +158,12 @@ def main() -> None:
     parser.add_argument(
         "--all-cities",
         action="store_true",
-        help="Automatically consolidate all completed city scales in /scratch/global/crcosta/omni_opinion/local_nomedia.",
+        help="Automatically consolidate all completed city scales in /scratch/global/crcosta/omni_opinion/local_nomedia and trad_media.",
+    )
+    parser.add_argument(
+        "--all-trad-media",
+        action="store_true",
+        help="Consolidate all completed traditional media vehicle group runs (M=0,1,2,3,4).",
     )
     parser.add_argument(
         "--scratch-base",
@@ -119,9 +186,20 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.all_cities:
+        out_dir = Path(args.scratch_base).parent / "consolidated"
         consolidate_all_city_scales(
             scratch_base=args.scratch_base,
-            output_dir=Path(args.scratch_base).parent / "consolidated",
+            output_dir=out_dir,
+        )
+        consolidate_all_trad_media_groups(
+            scratch_root=Path(args.scratch_base).parent,
+            output_dir=out_dir,
+        )
+    elif args.all_trad_media:
+        out_dir = Path(args.scratch_base).parent / "consolidated"
+        consolidate_all_trad_media_groups(
+            scratch_root=Path(args.scratch_base).parent,
+            output_dir=out_dir,
         )
     else:
         scale_label = Path(args.input_dir).name
@@ -135,3 +213,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

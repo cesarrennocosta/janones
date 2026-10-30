@@ -216,9 +216,69 @@ def compute_issue_alignment_and_dimensionality(opinions: np.ndarray) -> dict[str
     return result
 
 
+def compute_media_center_of_mass_metrics(
+    opinions: np.ndarray,
+    group_centers: np.ndarray | None = None,
+) -> dict[str, float]:
+    """Quantify how traditional media (TV, Radio, Press) shifts public opinion toward the
+    press center of mass (DellaVigna & Kaplan, 2007; Gentzkow & Shapiro, 2006).
+
+    Computes:
+    - pop_cm_d{k}: Population opinion center of mass along dimension k.
+    - pop_cm_norm: Euclidean displacement ||bar{x}(t)||_2 of population mean from neutral origin 0.
+    - media_cm_distance: Euclidean distance ||bar{x}(t) - bar{m}||_2 to the overall press center of mass.
+    - shift_toward_media_cm: Directional projection (bar{x}(t) . bar{m}) / ||bar{m}||_2 measuring shift
+      in the direction of the press center of mass (positive = pulled toward press CM).
+    - mean_dist_to_closest_vehicle: Mean normalized distance of agents to their closest vehicle group CM.
+    """
+    n_agents, n_dims = opinions.shape
+    inv_sqrt_d = 1.0 / math.sqrt(float(max(1, n_dims)))
+    pop_cm = np.mean(opinions, axis=0) if n_agents > 0 else np.zeros(n_dims, dtype=np.float64)
+    pop_cm_norm = float(np.linalg.norm(pop_cm)) * inv_sqrt_d
+
+    res: dict[str, float] = {
+        "pop_cm_norm": pop_cm_norm,
+    }
+    for d in range(n_dims):
+        res[f"pop_cm_d{d}"] = float(pop_cm[d])
+
+    if group_centers is None or len(group_centers) == 0:
+        res["media_cm_distance"] = pop_cm_norm
+        res["shift_toward_media_cm"] = 0.0
+        res["mean_dist_to_closest_vehicle"] = float(
+            np.mean(np.linalg.norm(opinions, axis=1)) * inv_sqrt_d
+        )
+        return res
+
+    centers = np.asarray(group_centers, dtype=np.float64)
+    if centers.ndim == 1:
+        centers = centers.reshape(1, -1)
+
+    media_cm = np.mean(centers, axis=0)
+    media_cm_norm = float(np.linalg.norm(media_cm))
+    res["media_cm_distance"] = float(np.linalg.norm(pop_cm - media_cm)) * inv_sqrt_d
+
+    if media_cm_norm > 1e-8:
+        # Directional projection along the press center-of-mass unit vector, normalized by sqrt(d)
+        res["shift_toward_media_cm"] = (
+            float(np.dot(pop_cm, media_cm) / media_cm_norm) * inv_sqrt_d
+        )
+    else:
+        res["shift_toward_media_cm"] = 0.0
+
+    # Compute each agent's distance to their closest vehicle group center of mass
+    # opinions: (N, d), centers: (M, d) -> diffs: (N, M)
+    min_dists = np.full(n_agents, 1e9, dtype=np.float64)
+    for g in range(centers.shape[0]):
+        d_g = np.linalg.norm(opinions - centers[g, None, :], axis=1) * inv_sqrt_d
+        min_dists = np.minimum(min_dists, d_g)
+    res["mean_dist_to_closest_vehicle"] = float(np.mean(min_dists))
+    return res
+
+
 class AnalyticsEngine:
     """Unified analytics engine extracting multidimensional polarization, cluster counts,
-    issue alignment correlations, network segregation, and vote metrics.
+    issue alignment correlations, press center-of-mass pull, network segregation, and vote metrics.
     """
 
     def __init__(self, er_alpha: float = 1.3, er_bins: int = 4) -> None:
@@ -232,8 +292,9 @@ class AnalyticsEngine:
         graph_engine,
         electoral_result: dict,
         media_stats: dict | None = None,
+        news_pool=None,
     ) -> dict:
-        """Compute all aggregate scalar, clustering, correlation, and candidate metrics for a step."""
+        """Compute all aggregate scalar, clustering, correlation, press CM, and candidate metrics for a step."""
         from src.metrics.network_metrics import compute_ideological_segregation
 
         cluster_pol = compute_clustering_and_esteban_ray(
@@ -247,8 +308,23 @@ class AnalyticsEngine:
             agent_state.opinions, graph_engine.composite_csr
         )
 
+        group_centers = None
+        n_vehicle_groups = 0
+        if (
+            news_pool is not None
+            and getattr(news_pool, "traditional_ecosystem", None) is not None
+        ):
+            trad_eco = news_pool.traditional_ecosystem
+            group_centers = trad_eco.group_centers
+            n_vehicle_groups = int(trad_eco.n_groups)
+
+        cm_metrics = compute_media_center_of_mass_metrics(
+            agent_state.opinions, group_centers=group_centers
+        )
+
         record = {
             "step": int(step),
+            "n_vehicle_groups": int(n_vehicle_groups),
             "esteban_ray": float(cluster_pol["esteban_ray"]),
             "sarle_bimodality": float(sarle_bc),
             "dispersion_ratio_vs_random": float(alignment["dispersion_ratio_vs_random"]),
@@ -259,6 +335,10 @@ class AnalyticsEngine:
             "max_issue_correlation": float(alignment["max_issue_correlation"]),
             "effective_dimensionality": float(alignment["effective_dimensionality"]),
             "ideological_segregation": float(segregation),
+            "pop_cm_norm": float(cm_metrics["pop_cm_norm"]),
+            "media_cm_distance": float(cm_metrics["media_cm_distance"]),
+            "shift_toward_media_cm": float(cm_metrics["shift_toward_media_cm"]),
+            "mean_dist_to_closest_vehicle": float(cm_metrics["mean_dist_to_closest_vehicle"]),
             "mean_uncertainty": float(np.mean(agent_state.uncertainty)),
             "mean_opinion_norm": float(np.mean(np.linalg.norm(agent_state.opinions, axis=1))),
             "abstention_rate": float(electoral_result["abstention_rate"]),
@@ -266,10 +346,19 @@ class AnalyticsEngine:
             "popular_winner": int(electoral_result["popular_winner"]),
             "district_winner": int(electoral_result["district_winner"]),
             "electoral_discrepancy": float(electoral_result["electoral_discrepancy"]),
-            "broadcast_reached": float(media_stats["broadcast_reached"]) if media_stats else 0.0,
-            "feed_engaged": float(media_stats["feed_engaged"]) if media_stats else 0.0,
-            "whatsapp_cascades": float(media_stats["whatsapp_cascades"]) if media_stats else 0.0,
+            "broadcast_reached": float(media_stats.get("broadcast_reached", 0.0)) if media_stats else 0.0,
+            "tv_reached": float(media_stats.get("tv_reached", 0.0)) if media_stats else 0.0,
+            "radio_reached": float(media_stats.get("radio_reached", 0.0)) if media_stats else 0.0,
+            "press_reached": float(media_stats.get("press_reached", 0.0)) if media_stats else 0.0,
+            "facts_count": float(media_stats.get("facts_count", 0.0)) if media_stats else 0.0,
+            "published_notices": float(media_stats.get("published_notices", 0.0)) if media_stats else 0.0,
+            "feed_engaged": float(media_stats.get("feed_engaged", 0.0)) if media_stats else 0.0,
+            "whatsapp_cascades": float(media_stats.get("whatsapp_cascades", 0.0)) if media_stats else 0.0,
         }
+
+        for k, v in cm_metrics.items():
+            if k.startswith("pop_cm_d"):
+                record[k] = float(v)
 
         # Add pairwise dimension correlations (corr_d0_d1, corr_d0_d2, ...)
         for k, v in alignment.items():
@@ -285,3 +374,4 @@ class AnalyticsEngine:
             record[f"seats_cand_{k}"] = int(dist_seats[k])
 
         return record
+
