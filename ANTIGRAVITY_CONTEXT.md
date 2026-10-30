@@ -10,15 +10,15 @@ This document serves as the comprehensive architectural, mathematical, and opera
 - **Workspace Root:** `/Users/rennocosta/janones`
 - **Remote Git Repository:** `ssh://git@projetos.imd.ufrn.br:4422/cesarrennocosta/janones.git`
 - **Primary Branch:** `main`
-- **Python Environment & Auto-Execution Setup (`.venv` & `requirements.txt`):**
-  - Always create and use a local `.venv` inside `/Users/rennocosta/janones/.venv` so Antigravity can execute Python inside the workspace sandbox without prompting for user permission:
+- **Python Environment & Package Management (`uv` + `pyproject.toml` + `.python-version` + `uv.lock`):**
+  - The repository uses **`uv`** (`~/.local/bin/uv`) with [`.python-version`](file:///Users/rennocosta/janones/.python-version) (`3.11`), [`pyproject.toml`](file:///Users/rennocosta/janones/pyproject.toml), and the cross-platform lockfile [`uv.lock`](file:///Users/rennocosta/janones/uv.lock).
+  - On any machine or cluster login node (`service0`), running `uv sync` automatically downloads standalone CPython 3.11 (bypassing older system Python 3.6), creates `.venv`, and installs all locked dependencies + editable `omni-opinion`:
     ```bash
-    python3 -m venv .venv
-    .venv/bin/pip install -r requirements.txt
-    .venv/bin/pip install -e .
+    export PATH="$HOME/.local/bin:$PATH"
+    uv sync
+    uv run pytest
     ```
-  - All project dependencies are tracked in both [`requirements.txt`](file:///Users/rennocosta/janones/requirements.txt) and [`pyproject.toml`](file:///Users/rennocosta/janones/pyproject.toml) for reproducible deployment on GitLab and the NPAD/IMD cluster.
-  - Run tests via `.venv/bin/pytest` (or `/Users/rennocosta/miniconda3/bin/pytest` if using the host Conda environment).
+  - [`requirements.txt`](file:///Users/rennocosta/janones/requirements.txt) is also maintained as a fallback.
 
 ### Resolving Remote Git Push Issues (`fetch first` or `remote: GitLab: 401 Unauthorized (pre-receive hook declined)`)
 1. **Why `git push --force` triggers `remote: GitLab: 401 Unauthorized (pre-receive hook declined)`:**

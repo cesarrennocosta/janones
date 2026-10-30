@@ -101,11 +101,20 @@ omni_opinion/
 
 ---
 
-## 3. Installation & Testing
+## 3. Installation & Testing (Modern `uv` + `pyproject.toml` + `uv.lock`)
+
+This repository uses [**`uv`**](https://docs.astral.sh/uv/) with `.python-version` (`3.11`) and `uv.lock` for deterministic, cross-platform package and Python version management on both macOS and Linux HPC clusters (even when the login node's system Python is older):
 
 ```bash
-pip install -e .
-pytest
+# 1. Install uv once (if not already installed on the host/cluster)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+
+# 2. Provision Python 3.11, create .venv, and install all locked packages in seconds
+uv sync
+
+# 3. Run the test suite
+uv run pytest
 ```
 
 ---

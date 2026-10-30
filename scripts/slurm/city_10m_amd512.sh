@@ -25,6 +25,10 @@ export OMP_NUM_THREADS=32
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 
+export PATH="$HOME/.local/bin:$PATH"
+if [ ! -f ".venv/bin/activate" ] && command -v uv >/dev/null 2>&1; then
+    uv sync --frozen
+fi
 if [ -f ".venv/bin/activate" ]; then
     # shellcheck disable=SC1091
     source .venv/bin/activate

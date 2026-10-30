@@ -38,7 +38,12 @@ echo "Numba Threads      : ${NUMBA_NUM_THREADS}"
 echo "Output Directory   : ${OUTPUT_DIR}"
 echo "============================================================"
 
-# Activate virtual environment if present
+export PATH="$HOME/.local/bin:$PATH"
+
+# Activate or provision virtual environment via uv
+if [ ! -f ".venv/bin/activate" ] && command -v uv >/dev/null 2>&1; then
+    uv sync --frozen
+fi
 if [ -f ".venv/bin/activate" ]; then
     # shellcheck disable=SC1091
     source .venv/bin/activate
