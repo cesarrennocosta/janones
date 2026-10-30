@@ -32,13 +32,13 @@ def main() -> None:
     parser.add_argument(
         "--input-dir",
         type=str,
-        default="outputs/slurm_runs",
+        default="/scratch/global/crcosta/omni_opinion/slurm_runs",
         help="Directory containing metrics_task_*.parquet shards.",
     )
     parser.add_argument(
         "--output-file",
         type=str,
-        default="outputs/consolidated_metrics.parquet",
+        default="/scratch/global/crcosta/omni_opinion/consolidated_metrics.parquet",
         help="Output path for consolidated Apache Parquet table.",
     )
     args = parser.parse_args()

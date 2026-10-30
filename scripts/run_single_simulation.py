@@ -57,8 +57,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="outputs/slurm_runs",
-        help="Directory to write HDF5 trajectories and Parquet metrics.",
+        default="/scratch/global/crcosta/omni_opinion/slurm_runs",
+        help="Directory to write HDF5 trajectories, checkpoints, and Parquet metrics.",
     )
     parser.add_argument(
         "--base-seed",

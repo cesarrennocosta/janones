@@ -24,7 +24,8 @@ export OPENBLAS_NUM_THREADS=1
 
 TASK_ID="${SLURM_ARRAY_TASK_ID:-0}"
 JOB_ID="${SLURM_ARRAY_JOB_ID:-local}"
-OUTPUT_DIR="${SCRATCH_OUTPUT_DIR:-outputs/slurm_job_${JOB_ID}}"
+SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
+OUTPUT_DIR="${SCRATCH_OUTPUT_DIR:-${SCRATCH_BASE}/slurm_job_${JOB_ID}}"
 BASE_SEED="${OMNI_BASE_SEED:-20261029}"
 
 mkdir -p "${OUTPUT_DIR}"

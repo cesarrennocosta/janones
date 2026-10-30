@@ -54,6 +54,7 @@ slurm-*.err
 results/
 outputs/
 checkpoints/
+scratch/
 
 # IDE & OS
 .vscode/

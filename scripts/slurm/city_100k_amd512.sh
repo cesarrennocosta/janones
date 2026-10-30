@@ -30,7 +30,8 @@ if [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 fi
 
-OUTPUT_DIR="outputs/local_nomedia/medium_100k"
+SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
+OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/medium_100k"
 mkdir -p "${OUTPUT_DIR}"
 
 BLOCK_ID="${SLURM_ARRAY_TASK_ID:-0}"

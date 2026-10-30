@@ -152,7 +152,9 @@ Whenever the user asks to generate SLURM submission scripts or run experiments o
 - **`gpu-8-v100` (2 nodes):** 2 × Intel Xeon E5-2683 v4, 512 GB DDR4, 8 × NVIDIA Tesla V100-SXM2 16 GB.
 - **`fpga-3-u50` (1 node):** 2 × AMD EPYC 7713 (128 cores), 512 GB DDR4, 3 × Xilinx Alveo U50.
 - **Login Node (`service0`):** 2 × Intel Xeon Silver 4114 (2.20 GHz), 192 GB DDR4.
-- **Parallel Storage:** **BeeGFS** parallel filesystem (60 TB total capacity).
+- **Parallel Storage (BeeGFS) & Global Scratch Directory:**
+  - BeeGFS parallel filesystem (60 TB total capacity).
+  - **Mandatory Simulation Output / Scratch Path:** Always write temporary simulation data, HDF5 trajectories, checkpoints, and Parquet shards to a subfolder inside **`/scratch/global/crcosta/omni_opinion/`** (e.g. `/scratch/global/crcosta/omni_opinion/local_nomedia/small_10k`) so binary outputs stay on the high-speed parallel scratch filesystem and are **never committed to Git**.
 
 ---
 
@@ -179,11 +181,15 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 
+SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
+OUTPUT_DIR="${SCRATCH_BASE}/intel128_b20"
+mkdir -p "${OUTPUT_DIR}"
+
 # Run 64 parallel task replicas across the 64 hardware threads of the intel-128 node
 for TASK_OFFSET in $(seq 0 63); do
     srun --ntasks=1 --nodes=1 --exclusive python3 scripts/run_single_simulation.py \
         --config configs/base_simulation.yaml \
-        --output-dir outputs/intel128_b20 \
+        --output-dir "${OUTPUT_DIR}" \
         --task-id "${TASK_OFFSET}" &
 done
 wait
@@ -211,11 +217,15 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 
+SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
+OUTPUT_DIR="${SCRATCH_BASE}/amd512_b20"
+mkdir -p "${OUTPUT_DIR}"
+
 # Run 128 parallel task replicas across the 128 physical cores of the amd-512 node
 for TASK_OFFSET in $(seq 0 127); do
     srun --ntasks=1 --nodes=1 --exclusive python3 scripts/run_single_simulation.py \
         --config configs/base_simulation.yaml \
-        --output-dir outputs/amd512_b20 \
+        --output-dir "${OUTPUT_DIR}" \
         --task-id "${TASK_OFFSET}" &
 done
 wait

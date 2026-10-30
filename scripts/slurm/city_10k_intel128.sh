@@ -28,7 +28,8 @@ if [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 fi
 
-OUTPUT_DIR="outputs/local_nomedia/small_10k"
+SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
+OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/small_10k"
 mkdir -p "${OUTPUT_DIR}"
 
 for SEED_ID in $(seq 0 100); do
