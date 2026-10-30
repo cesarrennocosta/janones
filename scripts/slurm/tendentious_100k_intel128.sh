@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=td100ki
-#SBATCH --output=slurm_tendentious_medium_100k_t800_intel128_%A_%a.out
-#SBATCH --error=slurm_tendentious_medium_100k_t800_intel128_%A_%a.err
+#SBATCH --output=slurm_tendentious_medium_100k_t1500_intel128_%A_%a.out
+#SBATCH --error=slurm_tendentious_medium_100k_t1500_intel128_%A_%a.err
 #SBATCH --nodes=1
 #SBATCH --exclusive
 #SBATCH --mem=0
@@ -12,7 +12,7 @@
 #SBATCH --signal=B:USR1@120
 
 # ==============================================================================
-# Media Tendentiousness Sweep (M=1) & Asymmetric Duopoly (M=2) | N = 100,000 | 800 Steps
+# Media Tendentiousness Sweep (M=1) & Asymmetric Duopoly (M=2) | N = 100,000 | 1500 Steps
 # Partition: intel-128 (Array 0..27 = 7 scenarios x 4 blocks of 8 seeds = 32 seeds/scenario):
 #   Scenario 0: M=1, tau=0.10 (Low tendentiousness - fact-centered)
 #   Scenario 1: M=1, tau=0.35 (Moderate tendentiousness)
@@ -103,7 +103,7 @@ for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
     python3 scripts/run_single_simulation.py \
         --config configs/traditional_media_cities.yaml \
         --n-agents 100000 \
-        --n-steps 800 \
+        --n-steps 1500 \
         --checkpoint-interval 50 \
         --init-mode uniform_random \
         --traditional-media-only \

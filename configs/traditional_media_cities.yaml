@@ -33,7 +33,7 @@
 simulation:
   n_agents: 100000
   n_dims: 4
-  n_steps: 800
+  n_steps: 1500
   snapshot_interval: 50
   checkpoint_interval: 50
   n_candidates: 3

@@ -53,6 +53,8 @@ class HDF5TrajectoryWriter:
                     return -1
                 last_step = int(chk.attrs["last_completed_step"])
                 if last_step < 0:
+                    last_step = int(h5f.attrs.get("n_steps", -1))
+                if last_step < 0:
                     return -1
                 agent_state.opinions[:] = chk["opinions"][:]
                 agent_state.uncertainty[:] = chk["uncertainty"][:]
@@ -213,10 +215,14 @@ class HDF5TrajectoryWriter:
         self._opinion_buffer.clear()
         self._uncertainty_buffer.clear()
 
-    def write_final_state(self, agent_state, news_pool=None) -> None:
+    def write_final_state(
+        self, agent_state, news_pool=None, final_step: int | None = None
+    ) -> None:
         """Flush remaining trajectory steps and write final electoral & news entity states."""
         self.flush()
         with h5py.File(self.filepath, "a") as h5f:
+            if final_step is not None:
+                h5f.attrs["n_steps"] = int(final_step)
             final_grp = h5f.require_group("final_state")
             for name, arr in [
                 ("opinions", agent_state.opinions),

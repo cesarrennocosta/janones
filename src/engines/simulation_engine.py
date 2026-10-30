@@ -194,6 +194,35 @@ class SimulationEngine:
             if resumed_step >= 0 and prev_history:
                 start_step = resumed_step + 1
                 history = prev_history
+                if start_step <= self.n_steps:
+                    # Advance RNG streams & warm up traditional news cycle up to resumed_step
+                    self.rng_dynamics.bit_generator.advance(resumed_step)
+                    self.rng_electoral.bit_generator.advance(resumed_step)
+                    if (
+                        self.enable_traditional_media
+                        and self.news_pool is not None
+                        and self.news_pool.traditional_ecosystem is not None
+                    ):
+                        warmup_start = max(1, resumed_step - 15)
+                        if warmup_start > 1:
+                            self.rng_media.bit_generator.advance(warmup_start - 1)
+                        for s_idx in range(warmup_start, resumed_step + 1):
+                            self.news_pool.traditional_ecosystem.step_facts_and_news_cycle(
+                                s_idx, self.rng_media
+                            )
+                else:
+                    last_electoral = self.electoral_engine.evaluate_election(
+                        self.agent_state, self.rng_electoral
+                    )
+                    return {
+                        "task_id": self.task_id,
+                        "preempted": False,
+                        "final_metrics": history[-1],
+                        "electoral_summary": last_electoral,
+                        "history": history,
+                        "hdf5_path": self.storage.hdf5_path,
+                        "parquet_path": self.storage.parquet_path,
+                    }
             else:
                 self.storage.initialize(
                     self.agent_state,
@@ -281,7 +310,7 @@ class SimulationEngine:
         parquet_path = None
         if self.storage is not None and not self._preempt_requested:
             hdf5_path, parquet_path = self.storage.finalize(
-                self.agent_state, news_pool=self.news_pool
+                self.agent_state, news_pool=self.news_pool, final_step=self.n_steps
             )
         elif self.storage is not None:
             hdf5_path = self.storage.hdf5_path

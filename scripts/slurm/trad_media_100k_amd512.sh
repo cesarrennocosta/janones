@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=tm100ka
-#SBATCH --output=slurm_trad_media_medium_100k_g0_4_t800_amd512_%A_%a.out
-#SBATCH --error=slurm_trad_media_medium_100k_g0_4_t800_amd512_%A_%a.err
+#SBATCH --output=slurm_trad_media_medium_100k_g0_4_t1500_amd512_%A_%a.out
+#SBATCH --error=slurm_trad_media_medium_100k_g0_4_t1500_amd512_%A_%a.err
 #SBATCH --nodes=1
 #SBATCH --exclusive
 #SBATCH --mem=0
@@ -13,7 +13,7 @@
 
 # ==============================================================================
 # Traditional Media (TV, Radio, Press) | Medium City (N = 100,000) | M = 0, 1, 2, 3, 4
-# Horizon: 800 steps (full damped convergence) | 32 seeds per M (Seeds 0..31)
+# Horizon: 1500 steps (full damped convergence) | 32 seeds per M (Seeds 0..31)
 # Partition: amd-512 (Array 0..9 = 5 group configs x 2 blocks of 16 seeds)
 # ==============================================================================
 
@@ -51,7 +51,7 @@ for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
     python3 scripts/run_single_simulation.py \
         --config configs/traditional_media_cities.yaml \
         --n-agents 100000 \
-        --n-steps 800 \
+        --n-steps 1500 \
         --checkpoint-interval 50 \
         --init-mode uniform_random \
         --traditional-media-only \

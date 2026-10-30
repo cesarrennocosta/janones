@@ -84,11 +84,13 @@ class HPCStorage:
         self.parquet_writer = ParquetMetricsWriter(filepath=self.parquet_path)
 
     def try_resume_checkpoint(self, agent_state) -> tuple[int, list[dict]]:
-        """Attempt to resume from an existing mid-simulation checkpoint on disk."""
+        """Attempt to resume from an existing mid-simulation or finalized checkpoint on disk."""
         last_step = self.hdf5_writer.load_checkpoint_if_exists(agent_state)
         if last_step >= 0:
             history = list(self.parquet_writer.load_existing_up_to_step(last_step))
-            return last_step, history
+            if history:
+                actual_last = int(history[-1].get("step", last_step))
+                return actual_last, history
         return -1, []
 
     def initialize(self, agent_state, metadata: dict | None = None) -> None:
@@ -109,8 +111,12 @@ class HPCStorage:
             self.hdf5_writer.save_checkpoint(step, agent_state)
             self.parquet_writer.flush()
 
-    def finalize(self, agent_state, news_pool=None) -> tuple[Path, Path]:
+    def finalize(
+        self, agent_state, news_pool=None, final_step: int | None = None
+    ) -> tuple[Path, Path]:
         self.hdf5_writer.save_checkpoint(-1, agent_state)
-        self.hdf5_writer.write_final_state(agent_state, news_pool=news_pool)
+        self.hdf5_writer.write_final_state(
+            agent_state, news_pool=news_pool, final_step=final_step
+        )
         self.parquet_writer.flush()
         return self.hdf5_path, self.parquet_path
