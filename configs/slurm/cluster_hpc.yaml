@@ -1,0 +1,12 @@
+# SLURM HPC Cluster Execution Parameters
+slurm:
+  job_name: "omni_opinion_array"
+  partition: "cpu_hpc"
+  nodes: 1
+  cpus_per_task: 8
+  mem_per_cpu: "2G"
+  time_limit: "04:00:00"
+  max_array_tasks: 1000
+  max_concurrent_tasks: 100
+  base_seed: 20261029
+  scratch_output_dir: "outputs/slurm_runs"

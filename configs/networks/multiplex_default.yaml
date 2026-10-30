@@ -1,0 +1,18 @@
+# Multiplex 5-layer interpersonal network and group topologies
+networks:
+  layer_weights:
+    family: 0.38
+    work_school: 0.22
+    church_community: 0.18
+    friends: 0.15
+    weak_ties: 0.07
+  family_clique_size: 4
+  work_school_degree: 8
+  church_degree: 10
+  friends_k: 6
+  friends_rewire_p: 0.15
+  weak_ties_degree: 3
+  influencer_fraction: 0.02
+  whatsapp_max_group_size: 256
+  whatsapp_mean_group_size: 32
+  whatsapp_groups_per_agent: 3

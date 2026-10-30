@@ -1,0 +1,10 @@
+# Competitive Media Ecosystem Platform Profiles
+media:
+  n_broadcast: 3
+  broadcast_strength: 0.05
+  beta: 2.0
+  emotional_boost: 1.5
+  feed_strength: 0.07
+  misinfo_fraction: 0.25
+  whatsapp_trust: 0.85
+  whatsapp_forward_prob: 0.25
