@@ -55,6 +55,7 @@ results/
 outputs/
 checkpoints/
 scratch/
+data/results/
 
 # IDE & OS
 .vscode/
