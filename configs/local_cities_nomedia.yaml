@@ -1,0 +1,46 @@
+# Local Connections Only (No Media) — Empirical Brazilian Demographics & Urban Topology
+# Random initial parameter distribution across seeds 0..100
+simulation:
+  n_agents: 10000
+  n_dims: 4
+  n_steps: 100
+  snapshot_interval: 10
+  checkpoint_interval: 10
+  dt: 0.15
+  noise_std: 0.01
+  base_epsilon: 0.45
+  base_assimilation_bias: 1.25
+  n_candidates: 3
+  n_districts: 10
+  n_news_items: 10
+  er_alpha: 1.3
+  er_bins: 4
+  init_mode: "uniform_random"
+  age_distribution: "ibge_2022"
+
+networks:
+  # Empirical weights calibrated to daily interpersonal time-use & trust
+  layer_weights:
+    family: 0.36           # IBGE Censo 2022: Household (mean 2.79 residents)
+    work_school: 0.26      # INEP Censo Escolar 2023 (25-30/class) & MTE RAIS (<19 coworkers)
+    church_community: 0.14 # Local neighborhood & religious community clusters
+    friends: 0.14          # Small-world friendship circle (Watts-Strogatz)
+    weak_ties: 0.10        # IBGE Censo 2022: Public transit commuting (24.4%) & urban encounters
+  family_clique_size: 2.79
+  work_school_degree: 10
+  church_degree: 8
+  friends_k: 6
+  friends_rewire_p: 0.15
+  weak_ties_degree: 4
+
+media:
+  enabled: false
+
+electoral:
+  indifference_threshold: -1.65
+  rationality_lambda: 4.0
+  noise_scale: 0.12
+
+io:
+  hdf5_compression: "lzf"
+  buffer_size: 10

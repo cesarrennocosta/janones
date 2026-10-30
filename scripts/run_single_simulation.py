@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a single OmniOpinion stochastic simulation task (SLURM array compatible)."""
+"""Run a single OmniOpinion stochastic simulation task (SLURM array & multi-scale city compatible)."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def load_merged_config(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Execute a single OmniOpinion simulation instance (HPC / SLURM Array task)."
+        description="Execute a single OmniOpinion simulation instance (HPC / SLURM task)."
     )
     parser.add_argument(
         "--config",
@@ -63,26 +63,44 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--base-seed",
         type=int,
-        default=20261029,
+        default=20261030,
         help="Master entropy seed for numpy.random.SeedSequence.",
     )
     parser.add_argument(
         "--task-id",
         type=int,
         default=None,
-        help="Explicit task ID (overrides SLURM_ARRAY_TASK_ID environment variable).",
+        help="Explicit seed / task ID (0..100, overrides SLURM_ARRAY_TASK_ID).",
     )
     parser.add_argument(
         "--n-agents",
         type=int,
         default=None,
-        help="Override number of agents N.",
+        help="Override number of agents N (e.g. 10000, 100000, 1000000, 10000000).",
     )
     parser.add_argument(
         "--n-steps",
         type=int,
         default=None,
         help="Override number of timesteps.",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=None,
+        help="Save mid-simulation checkpoint every K steps for preempt_strict recovery.",
+    )
+    parser.add_argument(
+        "--init-mode",
+        type=str,
+        choices=["uniform_random", "correlated"],
+        default=None,
+        help="Parameter initialization mode ('uniform_random' for pure random initial conditions).",
+    )
+    parser.add_argument(
+        "--no-media",
+        action="store_true",
+        help="Disable all media platforms (run pure local interpersonal connections only).",
     )
     parser.add_argument(
         "--beta",
@@ -108,12 +126,14 @@ def main() -> None:
         sim_cfg["n_agents"] = args.n_agents
     if args.n_steps is not None:
         sim_cfg["n_steps"] = args.n_steps
+    if args.checkpoint_interval is not None:
+        sim_cfg["checkpoint_interval"] = args.checkpoint_interval
+    if args.init_mode is not None:
+        sim_cfg["init_mode"] = args.init_mode
+    if args.no_media:
+        media_cfg["enabled"] = False
     if args.beta is not None:
         media_cfg["beta"] = args.beta
-    elif "SLURM_ARRAY_TASK_ID" in os.environ:
-        # Optional parameter sweep across SLURM tasks: vary beta smoothly across ensemble
-        sweep_betas = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0]
-        media_cfg["beta"] = sweep_betas[task_id % len(sweep_betas)]
 
     engine = SimulationEngine(
         config=cfg,
@@ -124,13 +144,15 @@ def main() -> None:
     result = engine.run()
 
     final_m = result["final_metrics"]
+    status = "PREEMPTED (Checkpoint Saved)" if result.get("preempted") else "COMPLETED"
     print(
-        f"[OmniOpinion Task {task_id:04d}] Completed {engine.n_steps} steps | "
-        f"Esteban-Ray P_ER={final_m['esteban_ray']:.4f} | "
-        f"Sarle BC={final_m['sarle_bimodality']:.4f} | "
-        f"Abstention={final_m['abstention_rate']:.2%} | "
-        f"Popular Winner={final_m['popular_winner']} | "
-        f"District Winner={final_m['district_winner']}"
+        f"[OmniOpinion Task {task_id:04d} | N={engine.n_agents} | {status}] "
+        f"Step={final_m['step']} | "
+        f"P_ER={final_m['esteban_ray']:.4f} | "
+        f"DispVsRand={final_m['dispersion_ratio_vs_random']:.3f} | "
+        f"Clusters(IPR)={final_m['effective_clusters_ipr']:.2f} | "
+        f"IssueCorr={final_m['mean_issue_correlation']:.3f} | "
+        f"EffDim={final_m['effective_dimensionality']:.2f}"
     )
 
 
