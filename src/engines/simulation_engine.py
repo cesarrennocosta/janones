@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import signal
 import numpy as np
 
 from src.core.agent_state import AgentStateEngine
@@ -19,8 +20,10 @@ class SimulationEngine:
     """High-level coordinator uniting AgentStateEngine, GraphEngine, DynamicsKernel,
     MediaEngine, ElectoralEngine, AnalyticsEngine, and HPCStorage.
 
-    Uses `numpy.random.SeedSequence` to derive statistically independent RNG streams
-    for each SLURM array task (`SLURM_ARRAY_TASK_ID`).
+    Supports:
+    - Pure local-connection mode (`enable_media=False`) or full media ecosystem (`enable_media=True`).
+    - Uniform random (`init_mode="uniform_random"`) or correlated initialization.
+    - Mid-simulation checkpointing and automatic preemption recovery (`--qos=preempt_strict`).
     """
 
     def __init__(
@@ -45,13 +48,19 @@ class SimulationEngine:
         self.rng_electoral = np.random.default_rng(child_seeds[4])
 
         sim_cfg = self.config.get("simulation", {})
+        media_cfg = self.config.get("media", {})
+
         self.n_agents = int(sim_cfg.get("n_agents", 1000))
         self.n_dims = int(sim_cfg.get("n_dims", 4))
         self.n_steps = int(sim_cfg.get("n_steps", 50))
         self.snapshot_interval = max(1, int(sim_cfg.get("snapshot_interval", 5)))
+        self.checkpoint_interval = max(1, int(sim_cfg.get("checkpoint_interval", 10)))
         self.n_candidates = int(sim_cfg.get("n_candidates", 3))
         self.n_districts = int(sim_cfg.get("n_districts", 10))
         self.n_news_items = int(sim_cfg.get("n_news_items", 40))
+        self.init_mode = str(sim_cfg.get("init_mode", "correlated"))
+        self.age_distribution = str(sim_cfg.get("age_distribution", "ibge_2022"))
+        self.enable_media = bool(media_cfg.get("enabled", True))
 
         # 1. Initialize AgentStateEngine
         self.agent_state = AgentStateEngine.initialize(
@@ -62,6 +71,8 @@ class SimulationEngine:
             seed=self.rng_agents,
             base_epsilon=float(sim_cfg.get("base_epsilon", 0.45)),
             base_assimilation_bias=float(sim_cfg.get("base_assimilation_bias", 1.2)),
+            init_mode=self.init_mode,
+            age_distribution=self.age_distribution,
         )
 
         # 2. Initialize Multiplex GraphEngine
@@ -70,26 +81,28 @@ class SimulationEngine:
             agent_state=self.agent_state,
             config=net_cfg,
             seed=self.rng_network,
+            enable_media_networks=self.enable_media,
         )
 
-        # 3. Initialize NewsEntityPool
-        media_cfg = self.config.get("media", {})
-        inf_opinions = self.agent_state.opinions[self.graph_engine.influencer_ids]
-        self.news_pool = NewsEntityPool.initialize(
-            n_items=self.n_news_items,
-            n_dims=self.n_dims,
-            influencer_ids=self.graph_engine.influencer_ids,
-            influencer_opinions=inf_opinions,
-            n_broadcast=int(media_cfg.get("n_broadcast", 3)),
-            misinfo_fraction=float(media_cfg.get("misinfo_fraction", 0.25)),
-            seed=self.rng_media,
-        )
+        # 3. Initialize NewsEntityPool (if media enabled)
+        self.news_pool: NewsEntityPool | None = None
+        if self.enable_media:
+            inf_opinions = self.agent_state.opinions[self.graph_engine.influencer_ids]
+            self.news_pool = NewsEntityPool.initialize(
+                n_items=self.n_news_items,
+                n_dims=self.n_dims,
+                influencer_ids=self.graph_engine.influencer_ids,
+                influencer_opinions=inf_opinions,
+                n_broadcast=int(media_cfg.get("n_broadcast", 3)),
+                misinfo_fraction=float(media_cfg.get("misinfo_fraction", 0.25)),
+                seed=self.rng_media,
+            )
 
         # 4. Initialize Kernels & Engines
         self.dynamics_kernel = DynamicsKernel(
             dt=float(sim_cfg.get("dt", 0.15)),
             noise_std=float(sim_cfg.get("noise_std", 0.01)),
-            media_strength=float(media_cfg.get("feed_strength", 0.07)),
+            media_strength=float(media_cfg.get("feed_strength", 0.07)) if self.enable_media else 0.0,
         )
         self.media_engine = MediaEngine(
             beta=float(media_cfg.get("beta", 2.0)),
@@ -115,44 +128,78 @@ class SimulationEngine:
         self.storage: HPCStorage | None = None
         if self.output_dir is not None:
             io_cfg = self.config.get("io", {})
+            # For N >= 1,000,000, default to saving checkpoints + initial/final states to conserve BeeGFS quota unless explicitly enabled
+            default_save_traj = self.n_agents <= 500_000
+            save_full_traj = bool(io_cfg.get("save_full_trajectory", default_save_traj))
             self.storage = HPCStorage(
                 output_dir=self.output_dir,
                 task_id=self.task_id,
                 n_agents=self.n_agents,
                 n_dims=self.n_dims,
-                hdf5_compression=str(io_cfg.get("hdf5_compression", "gzip")),
+                hdf5_compression=str(io_cfg.get("hdf5_compression", "lzf" if self.n_agents >= 100_000 else "gzip")),
                 buffer_size=int(io_cfg.get("buffer_size", 10)),
+                save_full_trajectory=save_full_traj,
             )
+
+        self._preempt_requested = False
+
+    def _install_signal_handlers(self) -> None:
+        """Catch SIGUSR1 / SIGTERM from SLURM preemption to save checkpoint cleanly before exit."""
+        def _handler(signum, frame):
+            self._preempt_requested = True
+
+        for sig in (signal.SIGTERM, getattr(signal, "SIGUSR1", signal.SIGTERM)):
+            try:
+                signal.signal(sig, _handler)
+            except (ValueError, OSError):
+                pass
 
     def run(self) -> dict:
-        """Execute the full simulation loop, recording trajectories and metrics to HPC storage."""
-        if self.storage is not None:
-            self.storage.initialize(
-                self.agent_state,
-                metadata={
-                    "base_seed": self.base_seed,
-                    "task_id": self.task_id,
-                    "n_agents": self.n_agents,
-                    "n_dims": self.n_dims,
-                    "n_steps": self.n_steps,
-                },
-            )
+        """Execute the simulation loop with automatic checkpoint resume and preemption protection."""
+        self._install_signal_handlers()
 
+        start_step = 0
         history: list[dict] = []
         last_electoral: dict = {}
 
-        for step in range(self.n_steps + 1):
+        if self.storage is not None:
+            resumed_step, prev_history = self.storage.try_resume_checkpoint(self.agent_state)
+            if resumed_step >= 0 and prev_history:
+                start_step = resumed_step + 1
+                history = prev_history
+            else:
+                self.storage.initialize(
+                    self.agent_state,
+                    metadata={
+                        "base_seed": self.base_seed,
+                        "task_id": self.task_id,
+                        "n_agents": self.n_agents,
+                        "n_dims": self.n_dims,
+                        "n_steps": self.n_steps,
+                        "init_mode": self.init_mode,
+                        "enable_media": int(self.enable_media),
+                    },
+                )
+
+        for step in range(start_step, self.n_steps + 1):
             if step > 0:
                 self.dynamics_kernel.step_interpersonal(
                     self.agent_state, self.graph_engine, self.rng_dynamics
                 )
-                media_stats = self.media_engine.step_all_platforms(
-                    self.agent_state,
-                    self.graph_engine,
-                    self.news_pool,
-                    self.rng_media,
-                    step_idx=step,
-                )
+                if self.enable_media and self.news_pool is not None:
+                    media_stats = self.media_engine.step_all_platforms(
+                        self.agent_state,
+                        self.graph_engine,
+                        self.news_pool,
+                        self.rng_media,
+                        step_idx=step,
+                    )
+                else:
+                    media_stats = {
+                        "broadcast_reached": 0.0,
+                        "feed_engaged": 0.0,
+                        "whatsapp_cascades": 0.0,
+                    }
             else:
                 media_stats = {
                     "broadcast_reached": 0.0,
@@ -171,26 +218,39 @@ class SimulationEngine:
                 media_stats=media_stats,
             )
             step_metrics["task_id"] = self.task_id
+            step_metrics["n_agents"] = self.n_agents
             history.append(step_metrics)
 
             if self.storage is not None:
                 save_traj = (step % self.snapshot_interval == 0) or (step == self.n_steps)
+                save_chk = (
+                    (step > 0 and step % self.checkpoint_interval == 0)
+                    or self._preempt_requested
+                )
                 self.storage.record_step(
                     step=step,
                     agent_state=self.agent_state,
                     metrics=step_metrics,
                     save_trajectory=save_traj,
+                    save_checkpoint=save_chk,
                 )
+
+            if self._preempt_requested:
+                break
 
         hdf5_path = None
         parquet_path = None
-        if self.storage is not None:
+        if self.storage is not None and not self._preempt_requested:
             hdf5_path, parquet_path = self.storage.finalize(
                 self.agent_state, news_pool=self.news_pool
             )
+        elif self.storage is not None:
+            hdf5_path = self.storage.hdf5_path
+            parquet_path = self.storage.parquet_path
 
         return {
             "task_id": self.task_id,
+            "preempted": self._preempt_requested,
             "final_metrics": history[-1],
             "electoral_summary": last_electoral,
             "history": history,

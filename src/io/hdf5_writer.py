@@ -1,4 +1,4 @@
-"""HDF5TrajectoryWriter: Buffered HDF5 writer with compression (gzip/lzf) for Lustre/GPFS filesystems."""
+"""HDF5TrajectoryWriter: Buffered HDF5 writer with compression and preemption-safe checkpointing."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ import numpy as np
 
 
 class HDF5TrajectoryWriter:
-    """In-memory buffered HDF5 writer for agent opinion trajectories and static agent/network arrays.
+    """In-memory buffered HDF5 writer for agent opinion trajectories, static attributes,
+    and mid-simulation preemption checkpoints (`--qos=preempt_strict`).
 
     Strictly avoids generating small CSV/JSON files per round or per agent.
     """
@@ -20,6 +21,7 @@ class HDF5TrajectoryWriter:
         n_dims: int,
         compression: str = "gzip",
         buffer_size: int = 10,
+        save_full_trajectory: bool = True,
     ) -> None:
         self.filepath = Path(filepath)
         self.filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -27,11 +29,54 @@ class HDF5TrajectoryWriter:
         self.n_dims = int(n_dims)
         self.compression = compression if compression in ("gzip", "lzf") else "gzip"
         self.buffer_size = max(1, int(buffer_size))
+        self.save_full_trajectory = bool(save_full_trajectory)
 
         self._step_buffer: list[int] = []
         self._opinion_buffer: list[np.ndarray] = []
         self._uncertainty_buffer: list[np.ndarray] = []
         self._initialized = False
+
+    def load_checkpoint_if_exists(self, agent_state) -> int:
+        """Check if a valid mid-simulation checkpoint exists in the HDF5 file.
+        If found, restore mutable agent state in-place and return the completed step index.
+        Otherwise return -1.
+        """
+        if not self.filepath.exists():
+            return -1
+
+        try:
+            with h5py.File(self.filepath, "r") as h5f:
+                if "checkpoint" not in h5f:
+                    return -1
+                chk = h5f["checkpoint"]
+                if "last_completed_step" not in chk.attrs:
+                    return -1
+                last_step = int(chk.attrs["last_completed_step"])
+                agent_state.opinions[:] = chk["opinions"][:]
+                agent_state.uncertainty[:] = chk["uncertainty"][:]
+                agent_state.exposure_count[:] = chk["exposure_count"][:]
+                agent_state.engagement_rate[:] = chk["engagement_rate"][:]
+                self._initialized = True
+                return last_step
+        except Exception:
+            return -1
+
+    def save_checkpoint(self, step: int, agent_state) -> None:
+        """Save current mutable agent state in HDF5 `/checkpoint` group for preemption recovery."""
+        self.flush()
+        with h5py.File(self.filepath, "a") as h5f:
+            chk = h5f.require_group("checkpoint")
+            for name, arr in [
+                ("opinions", agent_state.opinions),
+                ("uncertainty", agent_state.uncertainty),
+                ("exposure_count", agent_state.exposure_count),
+                ("engagement_rate", agent_state.engagement_rate),
+            ]:
+                if name in chk:
+                    chk[name][...] = arr
+                else:
+                    chk.create_dataset(name, data=arr, compression=self.compression)
+            chk.attrs["last_completed_step"] = int(step)
 
     def write_static_metadata(self, agent_state, metadata: dict | None = None) -> None:
         """Write fixed agent attributes, cognitive coupling matrix, and simulation metadata once."""
@@ -53,41 +98,40 @@ class HDF5TrajectoryWriter:
                 ("is_influencer", agent_state.is_influencer),
                 ("coupling_matrix", agent_state.coupling_matrix),
             ]:
-                if name in static_grp:
-                    del static_grp[name]
-                static_grp.create_dataset(
-                    name,
-                    data=arr,
-                    compression=self.compression,
-                )
+                if name not in static_grp:
+                    static_grp.create_dataset(
+                        name,
+                        data=arr,
+                        compression=self.compression,
+                    )
 
-            # Initialize extendable trajectory datasets
-            traj_grp = h5f.require_group("trajectories")
-            if "steps" not in traj_grp:
-                traj_grp.create_dataset(
-                    "steps",
-                    shape=(0,),
-                    maxshape=(None,),
-                    dtype=np.int32,
-                    chunks=(max(1, self.buffer_size),),
-                    compression=self.compression,
-                )
-                traj_grp.create_dataset(
-                    "opinions",
-                    shape=(0, self.n_agents, self.n_dims),
-                    maxshape=(None, self.n_agents, self.n_dims),
-                    dtype=np.float32,
-                    chunks=(1, self.n_agents, self.n_dims),
-                    compression=self.compression,
-                )
-                traj_grp.create_dataset(
-                    "uncertainty",
-                    shape=(0, self.n_agents),
-                    maxshape=(None, self.n_agents),
-                    dtype=np.float32,
-                    chunks=(1, self.n_agents),
-                    compression=self.compression,
-                )
+            if self.save_full_trajectory:
+                traj_grp = h5f.require_group("trajectories")
+                if "steps" not in traj_grp:
+                    traj_grp.create_dataset(
+                        "steps",
+                        shape=(0,),
+                        maxshape=(None,),
+                        dtype=np.int32,
+                        chunks=(max(1, self.buffer_size),),
+                        compression=self.compression,
+                    )
+                    traj_grp.create_dataset(
+                        "opinions",
+                        shape=(0, self.n_agents, self.n_dims),
+                        maxshape=(None, self.n_agents, self.n_dims),
+                        dtype=np.float32,
+                        chunks=(1, self.n_agents, self.n_dims),
+                        compression=self.compression,
+                    )
+                    traj_grp.create_dataset(
+                        "uncertainty",
+                        shape=(0, self.n_agents),
+                        maxshape=(None, self.n_agents),
+                        dtype=np.float32,
+                        chunks=(1, self.n_agents),
+                        compression=self.compression,
+                    )
         self._initialized = True
 
     def append_step(
@@ -97,6 +141,9 @@ class HDF5TrajectoryWriter:
         uncertainty: np.ndarray,
     ) -> None:
         """Buffer a trajectory snapshot in memory and flush to HDF5 when buffer is full."""
+        if not self.save_full_trajectory:
+            return
+
         self._step_buffer.append(int(step))
         self._opinion_buffer.append(opinions.astype(np.float32, copy=True))
         self._uncertainty_buffer.append(uncertainty.astype(np.float32, copy=True))
@@ -106,7 +153,7 @@ class HDF5TrajectoryWriter:
 
     def flush(self) -> None:
         """Flush in-memory trajectory buffers to the HDF5 file on disk."""
-        if not self._step_buffer:
+        if not self._step_buffer or not self.save_full_trajectory:
             return
 
         n_new = len(self._step_buffer)
