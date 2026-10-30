@@ -54,47 +54,56 @@ Choice probabilities $P(v_i = k)$ follow a Multinomial Logit formulation. Agents
 
 ```text
 omni_opinion/
+├── ANTIGRAVITY_CONTEXT.md          # Complete architectural, mathematical, & HPC cluster reference
 ├── configs/
 │   ├── base_simulation.yaml
+│   ├── local_cities_nomedia.yaml   # Empirical Brazilian interpersonal baseline (N=10k..10M, 100 steps)
+│   ├── traditional_media_cities.yaml # Traditional media (TV, Radio, Press) @ N=100k, 1500 steps
 │   ├── networks/
 │   │   └── multiplex_default.yaml
 │   ├── media/
 │   │   └── platform_profiles.yaml
 │   └── slurm/
 │       └── cluster_hpc.yaml
+├── notebooks/
+│   ├── analyze_local_cities.ipynb      # Multi-scale city baseline analysis (10k, 100k, 1M, 10M)
+│   └── analyze_traditional_media.ipynb # Traditional media (M=0..4) & tendentiousness analysis
 ├── scripts/
 │   ├── run_single_simulation.py
+│   ├── postprocess_results.py
 │   ├── submit_slurm_array.sh
-│   └── postprocess_results.py
+│   └── slurm/
+│       ├── city_10k_{intel128,amd512}.sh
+│       ├── city_100k_{intel128,amd512}.sh
+│       ├── city_1m_{intel128,amd512}.sh
+│       ├── city_10m_{intel128,amd512}.sh
+│       ├── trad_media_100k_{intel128,amd512}.sh
+│       ├── tendentious_100k_{intel128,amd512}.sh
+│       └── consolidate_results.sh
 ├── src/
-│   ├── __init__.py
 │   ├── core/
-│   │   ├── __init__.py
-│   │   ├── agent_state.py
-│   │   ├── multiplex_network.py
-│   │   └── news_entity.py
+│   │   ├── agent_state.py          # IBGE 2022 demographics, FJ anchors, coupling matrix C
+│   │   ├── multiplex_network.py    # 5-layer CSR interpersonal graph + social/WA graphs
+│   │   └── news_entity.py          # TraditionalMediaEcosystem (TV, Radio, Press) & NewsEntityPool
 │   ├── kernels/
-│   │   ├── __init__.py
-│   │   ├── opinion_updates.py      # Numba @njit(parallel=True, fastmath=True)
-│   │   ├── recommendation_algos.py # Closed-loop beta-biased recommendation
+│   │   ├── opinion_updates.py      # Numba @njit(parallel=True, fastmath=True) FJ/RA/BA kernels
+│   │   ├── recommendation_algos.py # Traditional media exposure & beta-biased feed curation
 │   │   └── whatsapp_cascades.py    # Viral stochastic group cascade kernel
 │   ├── engines/
-│   │   ├── __init__.py
-│   │   ├── simulation_engine.py
+│   │   ├── simulation_engine.py    # Orchestrator with preemption & horizon-extension resume
 │   │   ├── media_engine.py
 │   │   └── electoral_engine.py
 │   ├── metrics/
-│   │   ├── __init__.py
-│   │   ├── polarization.py         # Multidimensional Esteban-Ray & Sarle bimodality
+│   │   ├── polarization.py         # O(N) Esteban-Ray, Sarle BC, IPR/Entropy clusters, PR(Sigma)
 │   │   └── network_metrics.py
 │   └── io/
-│       ├── __init__.py
 │       ├── hdf5_writer.py
 │       └── parquet_writer.py
 ├── tests/
 │   ├── test_kernels.py
 │   ├── test_multiplex.py
-│   └── test_electoral.py
+│   ├── test_electoral.py
+│   └── test_traditional_media.py
 ├── pyproject.toml
 └── README.md
 ```
@@ -103,7 +112,7 @@ omni_opinion/
 
 ## 3. Installation & Testing (Modern `uv` + `pyproject.toml` + `uv.lock`)
 
-This repository uses [**`uv`**](https://docs.astral.sh/uv/) with `.python-version` (`3.11`) and `uv.lock` for deterministic, cross-platform package and Python version management on both macOS and Linux HPC clusters (even when the login node's system Python is older):
+This repository uses [**`uv`**](https://docs.astral.sh/uv/) with `.python-version` (`3.11`) and `uv.lock` for deterministic, cross-platform package and Python version management on both macOS and Linux HPC clusters:
 
 ```bash
 # 1. Install uv once (if not already installed on the host/cluster)
@@ -113,32 +122,56 @@ export PATH="$HOME/.local/bin:$PATH"
 # 2. Provision Python 3.11, create .venv, and install all locked packages in seconds
 uv sync
 
-# 3. Run the test suite
-uv run pytest
+# 3. Run the full unit test suite
+uv run pytest -v
 ```
 
 ---
 
-## 4. Running Simulations & SLURM Job Arrays
+## 4. Running Simulations, SLURM Job Arrays, & Analysis Notebooks
 
-### Single Simulation Run
+### A. Single Simulation Run (Local or Traditional Media)
 ```bash
+# Pure interpersonal baseline (no media)
 python3 scripts/run_single_simulation.py \
-    --config configs/base_simulation.yaml \
-    --network-config configs/networks/multiplex_default.yaml \
-    --media-config configs/media/platform_profiles.yaml \
-    --output-dir outputs/local_run \
+    --config configs/local_cities_nomedia.yaml \
+    --n-agents 100000 \
+    --n-steps 100 \
+    --init-mode uniform_random \
+    --no-media \
+    --output-dir outputs/local_100k \
+    --task-id 0
+
+# Traditional Media (M=1..4 vehicle groups, 1500 steps, configurable tendentiousness)
+python3 scripts/run_single_simulation.py \
+    --config configs/traditional_media_cities.yaml \
+    --n-agents 100000 \
+    --n-steps 1500 \
+    --init-mode uniform_random \
+    --traditional-media-only \
+    --n-vehicle-groups 2 \
+    --tendentiousness "0.95,0.10" \
+    --symmetric-duopoly \
+    --output-dir outputs/trad_2g_asym \
     --task-id 0
 ```
 
-### Submitting 1,000 Tasks on SLURM
+### B. Submitting SLURM Suites on NPAD (`intel-128` & `amd-512`)
 ```bash
-sbatch scripts/submit_slurm_array.sh
+# Traditional Media (M = 0..4, N = 100k, 1500 steps)
+sbatch scripts/slurm/trad_media_100k_intel128.sh
+sbatch scripts/slurm/trad_media_100k_amd512.sh
+
+# Media Tendentiousness Sweep & Asymmetric Duopoly (N = 100k, 1500 steps)
+sbatch scripts/slurm/tendentious_100k_intel128.sh
+sbatch scripts/slurm/tendentious_100k_amd512.sh
+
+# Consolidate all Parquet shards on the cluster
+sbatch scripts/slurm/consolidate_results.sh
 ```
 
-### Consolidating Parquet Metric Shards
+### C. Executing Analysis Notebooks
 ```bash
-python3 scripts/postprocess_results.py \
-    --input-dir outputs/slurm_job_12345 \
-    --output-file outputs/consolidated_metrics.parquet
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/analyze_local_cities.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/analyze_traditional_media.ipynb
 ```

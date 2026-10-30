@@ -152,13 +152,32 @@ Whenever the user asks to generate SLURM submission scripts or run experiments o
 - **`gpu-4-a100` (1 node):** 2 × AMD EPYC 7713 (128 cores), 512 GB DDR4, 4 × NVIDIA A100 80 GB NVLink.
 - **`gpu-8-v100` (2 nodes):** 2 × Intel Xeon E5-2683 v4, 512 GB DDR4, 8 × NVIDIA Tesla V100-SXM2 16 GB.
 - **`fpga-3-u50` (1 node):** 2 × AMD EPYC 7713 (128 cores), 512 GB DDR4, 3 × Xilinx Alveo U50.
-- **Login Node (`service0`) & SSH Access:**
+- **Login Node (`service0`), SSH Port `4422`, & Git / Rsync Rules:**
   - Hardware: 2 × Intel Xeon Silver 4114 (2.20 GHz), 192 GB DDR4.
-  - **SSH Command:** `ssh -p4422 crcosta@sc2.npad.ufrn.br`
-  - **Rsync Download Command (from MacBook):**
+  - **SSH Command:** `ssh -p 4422 crcosta@sc2.npad.ufrn.br`
+  - **Git Pull on `service0` (bypassing occasional HTTP/2 empty replies from `projetos.imd.ufrn.br`):**
     ```bash
-    rsync -avzP -e "ssh -p 4422" crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/consolidated/ data/results/
-    rsync -avzP -e "ssh -p 4422" crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/local_nomedia/small_10k/trajectory_task_0000.h5 data/results/
+    cd ~/janones
+    git -c http.version=HTTP/1.1 pull origin main
+    ```
+  - **Rsync Commands (from MacBook — ALWAYS include `-e "ssh -p 4422"` and QUOTE remote wildcards for `zsh`):**
+    ```bash
+    # Sync code/configs/scripts to cluster (fallback if GitLab is unreachable)
+    rsync -avzP -e "ssh -p 4422" \
+      /Users/rennocosta/janones/configs \
+      /Users/rennocosta/janones/scripts \
+      /Users/rennocosta/janones/src \
+      crcosta@sc2.npad.ufrn.br:~/janones/
+
+    # Pull consolidated Parquet files from cluster to MacBook (quote remote *.parquet for zsh!)
+    rsync -avzP -e "ssh -p 4422" \
+      "crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/consolidated/*.parquet" \
+      /Users/rennocosta/janones/data/results/
+
+    # Pull sample 10k HDF5 trajectory for spatial/PCA plots
+    rsync -avzP -e "ssh -p 4422" \
+      "crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/local_nomedia/small_10k/trajectory_task_0000.h5" \
+      /Users/rennocosta/janones/data/results/
     ```
 - **Parallel Storage (BeeGFS) & Global Scratch Directory:**
   - BeeGFS parallel filesystem (60 TB total capacity).
@@ -269,6 +288,7 @@ To quantify how opinions evolve from a **purely uniform random initial distribut
 1. **Multidimensional Polarization ($P_{ER}$):**
    - **Reference:** Esteban, J., & Ray, D. (1994). *"On the Measurement of Polarization."* **Econometrica**, 62(4), 819–851.
    - **Metric:** `esteban_ray` ($P_{ER} = \kappa \sum_i \sum_j \pi_i^{1+\alpha} \pi_j \|\mathbf{y}_i - \mathbf{y}_j\|_2$).
+   - **Performance Optimization:** `compute_clustering_and_esteban_ray` uses an $O(N)$ `np.bincount` implementation whenever `n_bins_per_dim ** n_dims <= 4096` (default $4^4 = 256$), avoiding $O(N \log N)$ sorting and speeding up per-step metric calculation by $\sim 8\times$ for $N \ge 100,000$.
 2. **Distance from Uniform Random Baseline (Dispersion Ratio):**
    - **Reference:** Bramson, A., et al. (2016). *"Disambiguation of social polarization concepts and measures."* **The Journal of Mathematical Sociology**, 40(2), 80–111.
    - **Metric:** `dispersion_ratio_vs_random` = $\frac{1}{d}\sum_{m=1}^d \text{Var}(x_{\cdot, m}) / (1/3)$, where $1/3$ is the exact analytical variance of $\mathcal{U}(-1, 1)$. Equals **$1.0$** at $t=0$ (uniform random), approaches **$0.0$** under global consensus, and exceeds **$1.0$** under extreme bimodal polarization.
@@ -293,8 +313,8 @@ To quantify how opinions evolve from a **purely uniform random initial distribut
 
 ---
 
-### C. Multi-Scale City SLURM Scripts (`scripts/slurm/`, Seeds $0\dots 100$)
-All scripts run $101$ independent seeds (`0..100`) with `--init-mode uniform_random --no-media`, `--qos=preempt_strict`, and automatic checkpoint recovery:
+### C. Multi-Scale City SLURM Scripts (`scripts/slurm/`, Seeds $0\dots 100$, `100` Steps)
+All no-media interpersonal city simulations converge within **`100` simulation steps** across all 4 population scales (`10k`, `100k`, `1M`, `10M`) and have been completed and consolidated into `data/results/all_cities_metrics.parquet`:
 
 | City Scale | Population ($N$) | `intel-128` Script (`--job-name`) | `amd-512` Script (`--job-name`) | Node & Thread Packing |
 | :--- | :---: | :--- | :--- | :--- |
@@ -339,34 +359,48 @@ Built directly on top of the local interpersonal baseline ($M = 0$), the model i
      - **DellaVigna, S., & Kaplan, E. (2007).** *"The Fox News Effect: Media Bias and Voting."* **The Quarterly Journal of Economics**, 122(3), 1187–1234.
    - **Mechanism:**
      - Exogenous real-world **facts** arrive via a Poisson process with mean `fact_rate` ($\lambda_{\text{fact}} = 1.5$/step), each with latent opinion valence $\mathbf{f}_k \in [-1, 1]^d$ and salience $I_k \in [0.55, 1.0]$.
-     - When a fact is favorable to vehicle group $g$'s center of mass $\mathbf{m}_g$ (measured by $A_{k,g} = \exp(-\|\mathbf{f}_k - \mathbf{m}_g\|_2 / (\sqrt{d}\,\sigma_{\text{gate}}))$), each modality $v \in \{\text{TV}, \text{Radio}, \text{Press}\}$ in group $g$ covers it with probability $\nu_v (0.35 + 0.65 A_{k,g})$ and produces a **slanted notice** pulled toward $\mathbf{m}_g$:
-       $$\mathbf{y}_{k,g,v} = \text{clip}\!\big((1 - \eta_v)\mathbf{f}_k + \eta_v \mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \; -1, \; 1\big)$$
+     - When a fact occurs, each modality $v \in \{\text{TV}, \text{Radio}, \text{Press}\}$ in group $g$ evaluates gatekeeping favorability modulated by its tendentiousness $\tau_g \in [0, 1]$ ($A_{k,g} = \exp(-\|\mathbf{f}_k - \mathbf{m}_g\|_2 / (\sqrt{d}\,\sigma_{\text{gate}}))$, effective favorability $(1 - \tau_g)\cdot 0.70 + \tau_g(0.25 + 0.75 A_{k,g})$) and produces a **slanted notice** pulled toward $\mathbf{m}_g$:
+       $$\mathbf{y}_{k,g,v} = \text{clip}\!\big((1 - \eta_{g,v})\mathbf{f}_k + \eta_{g,v} \mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \; -1, \; 1\big), \quad \eta_{g,v} = \text{clip}(\tau_g \mu_v, 0, 1)$$
 2. **Modality Publication Lag ($\tau_v$), Frequency ($\nu_v$), and Temporal Decay ($\exp(-\delta_v \Delta t)$):**
    - **References:**
      - **Wu, F., & Huberman, B. A. (2007).** *"Novelty and collective attention."* **PNAS**, 104(45), 17599–17601 (Exponential decay of news novelty/attention).
      - **Leskovec, J., Backstrom, L., & Kleinberg, J. (2009).** *"Meme-tracking and the dynamics of the news cycle."* **ACM SIGKDD**, 497–506 (Publication lag between rapid broadcast/radio alerts, prime-time TV synthesis, and print press editions).
      - **McCombs, M. E., & Shaw, D. L. (1972).** *"The Agenda-Setting Function of Mass Media."* **Public Opinion Quarterly**, 36(2), 176–187.
    - **Modality Parameters:**
-     - **Radio (`radio`):** Lag $\tau_{\text{radio}} = 0$ steps (live bulletin), period $= 1$ step, pub prob $= 0.92$, slant pull $\eta_{\text{radio}} = 0.58$, fast decay $\delta_{\text{radio}} = 0.45\text{/step}$, credibility $\gamma_{\text{radio}} = 0.62$.
-     - **Television (`tv`):** Lag $\tau_{\text{tv}} = 1$ step (*telejornal* cycle), period $= 1$ step, pub prob $= 0.85$, slant pull $\eta_{\text{tv}} = 0.68$, medium decay $\delta_{\text{tv}} = 0.30\text{/step}$, credibility $\gamma_{\text{tv}} = 0.75$.
-     - **Written Press (`press`):** Lag $\tau_{\text{press}} = 2$ steps (editorial/print lag), period $= 2$ steps, pub prob $= 0.75$, slant pull $\eta_{\text{press}} = 0.78$, slow decay $\delta_{\text{press}} = 0.18\text{/step}$, credibility $\gamma_{\text{press}} = 0.82$.
+     - **Radio (`radio`):** Lag $\tau_{\text{radio}} = 0$ steps (live bulletin), period $= 1$ step, pub prob $= 0.92$, slant multiplier $\mu_{\text{radio}} = 0.90$, fast decay $\delta_{\text{radio}} = 0.45\text{/step}$, credibility $\gamma_{\text{radio}} = 0.62$.
+     - **Television (`tv`):** Lag $\tau_{\text{tv}} = 1$ step (*telejornal* cycle), period $= 1$ step, pub prob $= 0.85$, slant multiplier $\mu_{\text{tv}} = 1.00$, medium decay $\delta_{\text{tv}} = 0.30\text{/step}$, credibility $\gamma_{\text{tv}} = 0.75$.
+     - **Written Press (`press`):** Lag $\tau_{\text{press}} = 2$ steps (editorial/print lag), period $= 2$ steps, pub prob $= 0.75$, slant multiplier $\mu_{\text{press}} = 1.10$, slow decay $\delta_{\text{press}} = 0.18\text{/step}$, credibility $\gamma_{\text{press}} = 0.82$.
 
-### D. Canonical Vehicle Group Configurations ($M = 1, 2, 3, 4$), Tendentiousness ($\tau_g$), & SLURM Scripts
-- **$M = 0$ (`no_media`):** Local interpersonal baseline (`configs/local_cities_nomedia.yaml`).
-- **$M = 1$ (`1_group`):** Hegemonic conglomerate at $\mathbf{m}_1 = (+0.55, +0.55, +0.55, +0.55)$.
-- **$M = 2$ (`2_groups`):** Asymmetric duopoly at $\mathbf{m}_1 = +0.60$, $\mathbf{m}_2 = -0.25$ (or symmetric opposite centers $\mathbf{m}_1 = +0.55, \mathbf{m}_2 = -0.55$ via `--symmetric-duopoly`).
-- **$M = 3$ (`3_groups`):** Tripolar ecosystem at $\mathbf{m}_1 = +0.65$, $\mathbf{m}_2 = +0.15$, $\mathbf{m}_3 = -0.50$.
-- **$M = 4$ (`4_groups`):** Four-quadrant ideological ecosystem across economic and moral axes.
-- **Tendentiousness Level (`group_tendentiousness`, $\tau_g \in [0, 1]$, `--tendentiousness`):**
-  - Controls both the editorial framing pull $\eta_{g,v} = \text{clip}(\tau_g \mu_v, 0, 1)$ between the raw fact $\mathbf{f}_k$ and the outlet's center of mass $\mathbf{m}_g$, and gatekeeping selectivity for favorable facts (Puglisi & Snyder, 2015; Mullainathan & Shleifer, 2005; Gentzkow & Shapiro, 2006).
-  - **1-Media Group Sweep ($M=1$):** Tests $\tau_1 \in \{0.10, 0.35, 0.65, 0.95\}$ to measure how tendentiousness controls population centering around $\mathbf{m}_1$.
-  - **2-Media Group Asymmetric Tendentiousness ($M=2$, `--symmetric-duopoly`):** Compares symmetric low (`0.15,0.15`), symmetric high (`0.90,0.90`), and **asymmetric (`0.95,0.10`)** where Group 1 ($+0.55$) is much more tendentious than Group 2 ($-0.55$), skewing the population opinion distribution toward Group 1.
-- **SLURM Scripts (`scripts/slurm/`):**
-  - Small City ($10\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_10k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_intel128.sh) (`tm10k_i`) and [`scripts/slurm/trad_media_10k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_amd512.sh) (`tm10k_a`).
-  - Medium City ($100\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_intel128.sh) (`tm100ki`) and [`scripts/slurm/trad_media_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_amd512.sh) (`tm100ka`).
-  - Tendentiousness Sweep & Asymmetric Duopoly ($10\text{k}$, 7 scenarios $\times$ 101 seeds): [`scripts/slurm/tendentious_10k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_10k_intel128.sh) (`td10k_i`) and [`scripts/slurm/tendentious_10k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_10k_amd512.sh) (`td10k_a`).
-  - Analysis Notebook: [`notebooks/analyze_traditional_media.ipynb`](file:///Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb).
+### D. Reference Population Scale (`100k`), Damped Convergence Horizon (`1500` Steps), & SLURM Scripts
+- **Reference Population Scale (`N = 100,000`, `medium_100k`):**
+  - Cross-scale comparisons (`fig_trad3_scale_invariance_10k_vs_100k.png`) confirmed that `100k` (`medium_100k`) exhibits identical macro-trajectories to `10k` (`small_10k`) with significantly lower finite-size variance, making **`100k` (`N = 100,000`)** the standard reference scale for all press and media experiments.
+- **Damped (*Amortecido*) Convergence Horizon (`N_STEPS = 1500`):**
+  - Unlike no-media interpersonal runs (which converge within `100` steps), traditional broadcast/press media continuously injects slanted notices that pull agents against their Friedkin-Johnsen innate anchors (with plastic anchor drift `0.008` in `assimilate_media_kernel_jit`).
+  - Because damped (*amortecido*) metrics such as `shift_toward_media_cm`, `dist_to_g0_mean`, and 2-group asymmetric `pop_cm_d0` / `frac_closer_to_g0` still had positive slope at step `800`, all press configurations and SLURM scripts are configured for **`1500` simulation steps (`--n-steps 1500`)** with **`32` seeds per scenario (`Seeds 0..31`)**.
+- **Seamless Checkpoint Horizon Extension (`800 -> 1500` steps):**
+  - [`HDF5TrajectoryWriter.load_checkpoint_if_exists`](file:///Users/rennocosta/janones/src/io/hdf5_writer.py#L39-L68) and [`HPCStorage.try_resume_checkpoint`](file:///Users/rennocosta/janones/src/io/parquet_writer.py#L86-L95) restore `/checkpoint` (`opinions`, `uncertainty`, `exposure_count`, `engagement_rate`, `innate_beliefs`) both from mid-run preempted checkpoints and from previously finalized runs (`last_completed_step == -1`, falling back to `h5f.attrs["n_steps"]`), allowing `SimulationEngine.run()` to automatically resume at step `801` and compute only steps `801..1500` when extending existing cluster runs.
+- **Active Press SLURM Scripts (`scripts/slurm/`):**
+  - **Medium City ($N = 100,000$), $M \in \{0, 1, 2, 3, 4\}$, $1500$ steps, $32$ seeds/group:**
+    - [`scripts/slurm/trad_media_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_intel128.sh) (`tm100ki`, array `0-19`)
+    - [`scripts/slurm/trad_media_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_amd512.sh) (`tm100ka`, array `0-9`)
+  - **Tendentiousness Sweep ($M=1$, $\tau \in \{0.10, 0.35, 0.65, 0.95\}$) & Asymmetric Duopoly ($M=2$, `0.15,0.15`, `0.90,0.90`, `0.95,0.10`), $N = 100,000$, $1500$ steps, $32$ seeds/scenario:**
+    - [`scripts/slurm/tendentious_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_100k_intel128.sh) (`td100ki`, array `0-27`)
+    - [`scripts/slurm/tendentious_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_100k_amd512.sh) (`td100ka`, array `0-13`)
 
+---
 
+## 8. Current Datasets, Notebooks, & Handoff for Next Features
 
+### A. Consolidated Datasets in `/Users/rennocosta/janones/data/results/`
+- `all_cities_metrics.parquet`: Complete multi-scale no-media interpersonal baseline across all 4 city scales (`small_10k`, `medium_100k`, `large_1m`, and `metropolis_10m`), $100$ steps.
+- `all_trad_media_metrics.parquet`: Consolidated traditional media dataset across $M \in \{0, 1, 2, 3, 4\}$ (`medium_100k` reference + `small_10k` scale-invariance comparison).
+- `all_tendentiousness_metrics.parquet`: Consolidated 7-scenario media tendentiousness sweep ($M=1$) and symmetric/asymmetric duopoly ($M=2$) dataset at $N = 100,000$.
+- `trajectory_task_0000.h5`: Full $10\text{k}$ spatial/opinion trajectory snapshot for PCA and bivariate density visualization.
 
+### B. Executing Analysis Notebooks & Regenerating Figures (`figures/`)
+Both analysis notebooks have valid `nbformat` cell IDs, raw-string LaTeX labels (`r'...'`), and can be executed end-to-end via `uv`:
+```bash
+uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_local_cities.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb
+```
+Generated figures are written to `/Users/rennocosta/janones/figures/` (`fig1_*.png`–`fig5_*.png` and `fig_trad1_*.png`–`fig_trad5_*.png`).
