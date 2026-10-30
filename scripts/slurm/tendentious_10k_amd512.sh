@@ -1,33 +1,26 @@
 #!/bin/bash
-#SBATCH --job-name=td10k_a
-#SBATCH --output=slurm_tendentious_small_10k_s0_100_amd512_%A_%a.out
-#SBATCH --error=slurm_tendentious_small_10k_s0_100_amd512_%A_%a.err
+#SBATCH --job-name=td100ka
+#SBATCH --output=slurm_tendentious_medium_100k_t800_amd512_%A_%a.out
+#SBATCH --error=slurm_tendentious_medium_100k_t800_amd512_%A_%a.err
 #SBATCH --nodes=1
 #SBATCH --exclusive
 #SBATCH --mem=0
-#SBATCH --array=0-6
-#SBATCH --time=00-12:00
+#SBATCH --array=0-13
+#SBATCH --time=00-23:59
 #SBATCH --partition=amd-512
 #SBATCH --qos=preempt_strict
 #SBATCH --signal=B:USR1@120
 
 # ==============================================================================
-# Media Tendentiousness Sweep (M=1) & Asymmetric Duopoly (M=2) | N = 10,000
-# Partition: amd-512 (7 array tasks x 101 seeds each):
-#   0: M=1, tau=0.10 (Low tendentiousness - fact-centered)
-#   1: M=1, tau=0.35 (Moderate tendentiousness)
-#   2: M=1, tau=0.65 (High tendentiousness)
-#   3: M=1, tau=0.95 (Extreme tendentiousness - media-CM-centered)
-#   4: M=2, tau=0.15,0.15 (Symmetric low-tendentiousness duopoly)
-#   5: M=2, tau=0.90,0.90 (Symmetric high-tendentiousness duopoly)
-#   6: M=2, tau=0.95,0.10 (Asymmetric duopoly: Group 1 much more tendentious than Group 2)
+# Media Tendentiousness Sweep (M=1) & Asymmetric Duopoly (M=2) | N = 100,000 | 800 Steps
+# Partition: amd-512 (Array 0..13 = 7 scenarios x 2 blocks of 16 seeds = 32 seeds/scenario)
 # ==============================================================================
 
 set -euo pipefail
 trap 'echo "[SLURM] Preemption signal received, waiting for child tasks to flush checkpoints..."; wait' USR1 TERM
 
-export NUMBA_NUM_THREADS=1
-export OMP_NUM_THREADS=1
+export NUMBA_NUM_THREADS=8
+export OMP_NUM_THREADS=8
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 
@@ -40,7 +33,9 @@ if [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 fi
 
-SCENARIO_ID="${SLURM_ARRAY_TASK_ID:-0}"
+TASK_IDX="${SLURM_ARRAY_TASK_ID:-0}"
+SCENARIO_ID=$(( TASK_IDX / 2 ))
+BLOCK_ID=$(( TASK_IDX % 2 ))
 EXTRA_FLAGS=()
 
 case "${SCENARIO_ID}" in
@@ -94,13 +89,15 @@ mkdir -p "${OUTPUT_DIR}"
 
 python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
 
-RUNNING=0
-for SEED_ID in $(seq 0 100); do
+START_SEED=$(( BLOCK_ID * 16 ))
+END_SEED=$(( START_SEED + 15 ))
+
+for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
     python3 scripts/run_single_simulation.py \
         --config configs/traditional_media_cities.yaml \
-        --n-agents 10000 \
-        --n-steps 100 \
-        --checkpoint-interval 10 \
+        --n-agents 100000 \
+        --n-steps 800 \
+        --checkpoint-interval 50 \
         --init-mode uniform_random \
         --traditional-media-only \
         --n-vehicle-groups "${M_GROUPS}" \
@@ -108,11 +105,6 @@ for SEED_ID in $(seq 0 100); do
         "${EXTRA_FLAGS[@]}" \
         --output-dir "${OUTPUT_DIR}" \
         --task-id "${SEED_ID}" &
-    RUNNING=$(( RUNNING + 1 ))
-    if [ "${RUNNING}" -ge 64 ]; then
-        wait -n 2>/dev/null || wait
-        RUNNING=$(( RUNNING - 1 ))
-    fi
 done
 
 wait
