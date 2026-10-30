@@ -151,7 +151,14 @@ Whenever the user asks to generate SLURM submission scripts or run experiments o
 - **`gpu-4-a100` (1 node):** 2 × AMD EPYC 7713 (128 cores), 512 GB DDR4, 4 × NVIDIA A100 80 GB NVLink.
 - **`gpu-8-v100` (2 nodes):** 2 × Intel Xeon E5-2683 v4, 512 GB DDR4, 8 × NVIDIA Tesla V100-SXM2 16 GB.
 - **`fpga-3-u50` (1 node):** 2 × AMD EPYC 7713 (128 cores), 512 GB DDR4, 3 × Xilinx Alveo U50.
-- **Login Node (`service0`):** 2 × Intel Xeon Silver 4114 (2.20 GHz), 192 GB DDR4.
+- **Login Node (`service0`) & SSH Access:**
+  - Hardware: 2 × Intel Xeon Silver 4114 (2.20 GHz), 192 GB DDR4.
+  - **SSH Command:** `ssh -p4422 crcosta@sc2.npad.ufrn.br`
+  - **Rsync Download Command (from MacBook):**
+    ```bash
+    rsync -avzP -e "ssh -p 4422" crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/consolidated/ data/results/
+    rsync -avzP -e "ssh -p 4422" crcosta@sc2.npad.ufrn.br:/scratch/global/crcosta/omni_opinion/local_nomedia/small_10k/trajectory_task_0000.h5 data/results/
+    ```
 - **Parallel Storage (BeeGFS) & Global Scratch Directory:**
   - BeeGFS parallel filesystem (60 TB total capacity).
   - **Mandatory Simulation Output / Scratch Path:** Always write temporary simulation data, HDF5 trajectories, checkpoints, and Parquet shards to a subfolder inside **`/scratch/global/crcosta/omni_opinion/`** (e.g. `/scratch/global/crcosta/omni_opinion/local_nomedia/small_10k`) so binary outputs stay on the high-speed parallel scratch filesystem and are **never committed to Git**.
