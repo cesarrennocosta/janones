@@ -97,3 +97,36 @@ def test_end_to_end_simulation_and_hpc_storage(tmp_path: Path):
     assert table.num_rows == 7  # steps 0..6 inclusive
     assert "esteban_ray" in table.column_names
     assert "abstention_rate" in table.column_names
+    assert "effective_clusters_ipr" in table.column_names
+    assert "mean_issue_correlation" in table.column_names
+    assert "dispersion_ratio_vs_random" in table.column_names
+
+
+def test_local_nomedia_random_init_and_checkpoint_resume(tmp_path: Path):
+    cfg = {
+        "simulation": {
+            "n_agents": 300,
+            "n_dims": 4,
+            "n_steps": 4,
+            "snapshot_interval": 2,
+            "checkpoint_interval": 2,
+            "init_mode": "uniform_random",
+            "age_distribution": "ibge_2022",
+        },
+        "media": {
+            "enabled": False,
+        },
+    }
+    sim1 = SimulationEngine(config=cfg, base_seed=2026, task_id=3, output_dir=tmp_path)
+    res1 = sim1.run()
+    m0 = res1["history"][0]
+    m_end = res1["final_metrics"]
+
+    # At step 0 with uniform_random, dispersion ratio should be close to 1.0 and correlations low
+    assert 0.80 <= m0["dispersion_ratio_vs_random"] <= 1.20
+    assert m0["effective_clusters_ipr"] > 10.0
+    assert m_end["broadcast_reached"] == 0.0
+    assert m_end["feed_engaged"] == 0.0
+    assert m_end["whatsapp_cascades"] == 0.0
+    assert "corr_d0_d1" in m_end
+
