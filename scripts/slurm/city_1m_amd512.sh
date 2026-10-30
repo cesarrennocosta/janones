@@ -5,6 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=16
+#SBATCH --mem=0
 #SBATCH --array=0-12
 #SBATCH --time=00-23:59
 #SBATCH --partition=amd-512
@@ -13,8 +14,8 @@
 
 # ==============================================================================
 # Large City (N = 1,000,000) | Local Connections Only (No Media) | Seeds 0..100
-# Partition: amd-512 (512GB RAM, 128 physical cores -> 8 tasks x 16 Numba threads/node)
-# Array 0..12 (13 nodes): each node runs 8 seeds concurrently (~15GB RAM/task)
+# Partition: amd-512 (512GB RAM via --mem=0, 128 cores -> 8 tasks x 16 threads)
+# Array 0..12 (13 nodes): each node runs 8 seeds concurrently
 # ==============================================================================
 
 set -euo pipefail
@@ -46,8 +47,7 @@ if [ "${END_SEED}" -gt 100 ]; then
 fi
 
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
-    srun --ntasks=1 --nodes=1 --cpus-per-task=16 --exclusive \
-        python3 scripts/run_single_simulation.py \
+    python3 scripts/run_single_simulation.py \
         --config configs/local_cities_nomedia.yaml \
         --n-agents 1000000 \
         --n-steps 100 \

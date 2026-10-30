@@ -4,6 +4,7 @@
 #SBATCH --error=slurm_city_small_10k_nomedia_s0_100_amd512_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
+#SBATCH --mem=0
 #SBATCH --time=00-23:59
 #SBATCH --partition=amd-512
 #SBATCH --qos=preempt_strict
@@ -11,7 +12,7 @@
 
 # ==============================================================================
 # Small City (N = 10,000) | Local Connections Only (No Media) | Seeds 0..100
-# Partition: amd-512 (1 node x 128 physical cores = 128 parallel slots)
+# Partition: amd-512 (1 node x 128 physical cores, 512GB RAM via --mem=0)
 # Runs all 101 seeds (0..100) simultaneously on a single AMD EPYC 7713 node
 # ==============================================================================
 
@@ -36,9 +37,11 @@ SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
 OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/small_10k"
 mkdir -p "${OUTPUT_DIR}"
 
+# Pre-compile Numba JIT cache once before spawning 101 parallel seeds
+python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
+
 for SEED_ID in $(seq 0 100); do
-    srun --ntasks=1 --nodes=1 --cpus-per-task=1 --exclusive \
-        python3 scripts/run_single_simulation.py \
+    python3 scripts/run_single_simulation.py \
         --config configs/local_cities_nomedia.yaml \
         --n-agents 10000 \
         --n-steps 100 \

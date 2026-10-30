@@ -124,8 +124,9 @@ Whenever the user asks to generate SLURM submission scripts or run experiments o
    - The `#SBATCH --job-name` **must be short and informative (strictly 5 to 7 characters)** encoding key parameters (e.g., `b20_t10`, `f07_r1`, `op_b25`), while `--output` and `--error` carry the descriptive full experiment name (e.g., `slurm_omni_b20_n10k_t100.out`).
 3. **Mandatory QoS (`preempt_strict`):**
    - Always include `#SBATCH --qos=preempt_strict` in the SLURM header.
-4. **Node & Thread Optimization:**
+4. **Node, Thread & Memory (`#SBATCH --mem=0`) Optimization:**
    - Optimize `--nodes`, `--ntasks-per-node`, and `--cpus-per-task` (`NUMBA_NUM_THREADS`) for the target partition's physical core/thread topology so all cores on allocated nodes are saturated without oversubscription.
+   - **CRITICAL (`#SBATCH --mem=0`):** The NPAD/IMD cluster enforces a tiny default `DefMemPerCPU` cgroup limit when `--mem` is omitted, causing `srun: error: Out Of Memory (oom-kill)` on sub-steps! **Always include `#SBATCH --mem=0`** in every SLURM header to grant the job access to the entire node's physical RAM (`128 GB` on `intel-128`, `512 GB` on `amd-512`), and spawn single-node background tasks directly (`python3 ... &`) rather than wrapping each background process in `srun --exclusive` (which subdivides the cgroup memory limit by 128).
 5. **Preemption-Safe Checkpointing:**
    - Every SLURM run must flush intermediate HDF5/Parquet buffers periodically during execution and check for existing checkpoint files before starting from step 0.
 
@@ -175,6 +176,7 @@ Whenever the user asks to generate SLURM submission scripts or run experiments o
 #SBATCH --error=slurm_omni_intel128_b20_n10k_t100.err
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
+#SBATCH --mem=0
 #SBATCH --time=00-23:59
 #SBATCH --partition=intel-128
 #SBATCH --qos=preempt_strict
@@ -194,14 +196,13 @@ mkdir -p "${OUTPUT_DIR}"
 
 # Run 64 parallel task replicas across the 64 hardware threads of the intel-128 node
 for TASK_OFFSET in $(seq 0 63); do
-    srun --ntasks=1 --nodes=1 --exclusive python3 scripts/run_single_simulation.py \
+    python3 scripts/run_single_simulation.py \
         --config configs/base_simulation.yaml \
         --output-dir "${OUTPUT_DIR}" \
         --task-id "${TASK_OFFSET}" &
 done
 wait
 ```
-*(Note: For fewer, larger multi-threaded simulations per node on `intel-128`, use e.g. `--ntasks-per-node=8` and `--cpus-per-task=8` with `export NUMBA_NUM_THREADS=8`).*
 
 #### Template 2: `amd-512` (128 physical cores / 256 threads per node)
 ```bash
@@ -211,6 +212,7 @@ wait
 #SBATCH --error=slurm_omni_amd512_b20_n10k_t100.err
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
+#SBATCH --mem=0
 #SBATCH --time=00-23:59
 #SBATCH --partition=amd-512
 #SBATCH --qos=preempt_strict
@@ -230,7 +232,7 @@ mkdir -p "${OUTPUT_DIR}"
 
 # Run 128 parallel task replicas across the 128 physical cores of the amd-512 node
 for TASK_OFFSET in $(seq 0 127); do
-    srun --ntasks=1 --nodes=1 --exclusive python3 scripts/run_single_simulation.py \
+    python3 scripts/run_single_simulation.py \
         --config configs/base_simulation.yaml \
         --output-dir "${OUTPUT_DIR}" \
         --task-id "${TASK_OFFSET}" &

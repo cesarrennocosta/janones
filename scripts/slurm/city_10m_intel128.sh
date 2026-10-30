@@ -5,6 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=64
+#SBATCH --mem=0
 #SBATCH --array=0-100%25
 #SBATCH --time=00-23:59
 #SBATCH --partition=intel-128
@@ -13,8 +14,8 @@
 
 # ==============================================================================
 # Metropolis (N = 10,000,000) | Local Connections Only (No Media) | Seeds 0..100
-# Partition: intel-128 (128GB RAM, 64 threads -> 1 full-node task x 64 threads)
-# Array 0..100%25: each seed uses 1 dedicated node (~85-100GB peak RAM)
+# Partition: intel-128 (128GB RAM via --mem=0, 64 threads -> 1 full-node task)
+# Array 0..100%25: each seed uses 1 dedicated node
 # ==============================================================================
 
 set -euo pipefail
@@ -40,8 +41,7 @@ mkdir -p "${OUTPUT_DIR}"
 
 SEED_ID="${SLURM_ARRAY_TASK_ID:-0}"
 
-srun --ntasks=1 --nodes=1 --cpus-per-task=64 --exclusive \
-    python3 scripts/run_single_simulation.py \
+python3 scripts/run_single_simulation.py \
     --config configs/local_cities_nomedia.yaml \
     --n-agents 10000000 \
     --n-steps 100 \

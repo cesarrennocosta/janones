@@ -5,6 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --cpus-per-task=4
+#SBATCH --mem=0
 #SBATCH --array=0-6
 #SBATCH --time=00-23:59
 #SBATCH --partition=intel-128
@@ -13,7 +14,7 @@
 
 # ==============================================================================
 # Medium City (N = 100,000) | Local Connections Only (No Media) | Seeds 0..100
-# Partition: intel-128 (64 hardware threads / node -> 16 tasks x 4 Numba threads)
+# Partition: intel-128 (128GB RAM via --mem=0, 64 threads -> 16 tasks x 4 threads)
 # Array 0..6 (7 nodes total): each array task runs 16 seeds concurrently
 # ==============================================================================
 
@@ -46,8 +47,7 @@ if [ "${END_SEED}" -gt 100 ]; then
 fi
 
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
-    srun --ntasks=1 --nodes=1 --cpus-per-task=4 --exclusive \
-        python3 scripts/run_single_simulation.py \
+    python3 scripts/run_single_simulation.py \
         --config configs/local_cities_nomedia.yaml \
         --n-agents 100000 \
         --n-steps 100 \

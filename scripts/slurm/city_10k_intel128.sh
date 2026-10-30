@@ -4,6 +4,7 @@
 #SBATCH --error=slurm_city_small_10k_nomedia_s0_100_intel128_%A_%a.err
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=64
+#SBATCH --mem=0
 #SBATCH --time=00-23:59
 #SBATCH --partition=intel-128
 #SBATCH --qos=preempt_strict
@@ -12,7 +13,7 @@
 # ==============================================================================
 # Small City (N = 10,000) | Local Connections Only (No Media) | Seeds 0..100
 # Partition: intel-128 (2 nodes x 64 hardware threads = 128 parallel slots)
-# Runs all 101 seeds (0..100) concurrently across 2 nodes with checkpointing
+# Uses --mem=0 to allocate full 128GB RAM per node without 128MB/task cgroup OOM
 # ==============================================================================
 
 set -euo pipefail
@@ -36,8 +37,11 @@ SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
 OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/small_10k"
 mkdir -p "${OUTPUT_DIR}"
 
+# Pre-compile Numba JIT cache in a single process before spawning parallel workers
+python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
+
 for SEED_ID in $(seq 0 100); do
-    srun --ntasks=1 --nodes=1 --cpus-per-task=1 --exclusive \
+    srun --ntasks=1 --nodes=1 --cpus-per-task=1 --mem=1800M --exclusive \
         python3 scripts/run_single_simulation.py \
         --config configs/local_cities_nomedia.yaml \
         --n-agents 10000 \
