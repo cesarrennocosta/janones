@@ -76,6 +76,7 @@ class MediaEngine:
                 u_draws = np.ascontiguousarray(rng.random((n_agents, 6), dtype=np.float64))
                 tv_reached, radio_reached, press_reached = traditional_media_exposure_kernel_jit(
                     agent_state.opinions,
+                    agent_state.innate_beliefs,
                     agent_state.uncertainty,
                     agent_state.age,
                     agent_state.ses,

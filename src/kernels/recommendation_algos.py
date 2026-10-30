@@ -132,6 +132,7 @@ def broadcast_exposure_kernel_jit(
 @njit(parallel=True, fastmath=True)
 def traditional_media_exposure_kernel_jit(
     opinions: np.ndarray,
+    innate_beliefs: np.ndarray,
     uncertainty: np.ndarray,
     age: np.ndarray,
     ses: np.ndarray,
@@ -266,7 +267,7 @@ def traditional_media_exposure_kernel_jit(
 
                     gamma_v = vehicle_credibility[chosen_v]
                     # Institutional credibility widens effective confidence bound (McCombs & Shaw, 1972)
-                    eff_eps = epsilon[i] * (1.0 + 0.70 * gamma_v)
+                    eff_eps = epsilon[i] * (1.0 + 1.10 * gamma_v)
 
                     if dist_chosen <= eff_eps:
                         overlap = 1.0 - (dist_chosen / (eff_eps + 1e-12))
@@ -276,11 +277,13 @@ def traditional_media_exposure_kernel_jit(
                         conf_boost = math.exp(
                             0.25 * assimilation_bias[i] * (0.5 - dist_chosen)
                         )
+                        # Institutional broadcast/press persuades across age cohorts (with mild inertia moderation)
+                        eff_susc = 0.35 + 0.65 * susceptibility[i]
                         pull = (
                             broadcast_strength
                             * gamma_v
-                            * susceptibility[i]
-                            * overlap
+                            * eff_susc
+                            * (0.35 + 0.65 * overlap)
                             * salience_mod
                             * conf_boost
                         )
@@ -308,6 +311,15 @@ def traditional_media_exposure_kernel_jit(
                     val = -1.0
                 opinions[i, d1] = val
 
+                # Agenda-setting & cultivation (McCombs & Shaw, 1972; DellaVigna & Kaplan, 2007):
+                # Repeated traditional media exposure gradually internalizes into reference beliefs s_i
+                s_val = innate_beliefs[i, d1] + 0.35 * coupled
+                if s_val > 1.0:
+                    s_val = 1.0
+                elif s_val < -1.0:
+                    s_val = -1.0
+                innate_beliefs[i, d1] = s_val
+
             # Repeated institutional media exposure slightly reduces attitudinal uncertainty
             u_new = uncertainty[i] * (1.0 - 0.008 * float(agent_exposed))
             if u_new < 0.05:
@@ -315,4 +327,5 @@ def traditional_media_exposure_kernel_jit(
             uncertainty[i] = u_new
 
     return tv_reached, radio_reached, press_reached
+
 

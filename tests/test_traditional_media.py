@@ -49,7 +49,7 @@ def test_vehicle_groups_1_to_4_opinion_shift_and_polarization() -> None:
         "simulation": {
             "n_agents": 400,
             "n_dims": 4,
-            "n_steps": 15,
+            "n_steps": 20,
             "init_mode": "uniform_random",
         },
         "media": {
@@ -68,7 +68,7 @@ def test_vehicle_groups_1_to_4_opinion_shift_and_polarization() -> None:
             "simulation": {
                 "n_agents": 400,
                 "n_dims": 4,
-                "n_steps": 15,
+                "n_steps": 20,
                 "init_mode": "uniform_random",
             },
             "media": {
