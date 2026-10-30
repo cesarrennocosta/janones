@@ -3,8 +3,7 @@
 #SBATCH --output=slurm_city_metropolis_10m_nomedia_s0_100_intel128_%A_%a.out
 #SBATCH --error=slurm_city_metropolis_10m_nomedia_s0_100_intel128_%A_%a.err
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=64
+#SBATCH --exclusive
 #SBATCH --mem=0
 #SBATCH --array=0-100%25
 #SBATCH --time=00-23:59
@@ -14,7 +13,7 @@
 
 # ==============================================================================
 # Metropolis (N = 10,000,000) | Local Connections Only (No Media) | Seeds 0..100
-# Partition: intel-128 (128GB RAM via --mem=0, 64 threads -> 1 full-node task)
+# Partition: intel-128 (128GB RAM via --mem=0, full node via --exclusive)
 # Array 0..100%25: each seed uses 1 dedicated node
 # ==============================================================================
 
@@ -38,6 +37,8 @@ fi
 SCRATCH_BASE="${SCRATCH_BASE:-/scratch/global/crcosta/omni_opinion}"
 OUTPUT_DIR="${SCRATCH_BASE}/local_nomedia/metropolis_10m"
 mkdir -p "${OUTPUT_DIR}"
+
+python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
 
 SEED_ID="${SLURM_ARRAY_TASK_ID:-0}"
 
