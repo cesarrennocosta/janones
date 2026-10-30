@@ -219,16 +219,22 @@ def compute_issue_alignment_and_dimensionality(opinions: np.ndarray) -> dict[str
 def compute_media_center_of_mass_metrics(
     opinions: np.ndarray,
     group_centers: np.ndarray | None = None,
+    group_tendentiousness: np.ndarray | None = None,
 ) -> dict[str, float]:
-    """Quantify how traditional media (TV, Radio, Press) shifts public opinion toward the
-    press center of mass (DellaVigna & Kaplan, 2007; Gentzkow & Shapiro, 2006).
+    """Quantify how traditional media (TV, Radio, Press) and its tendentiousness level tau_g
+    shift public opinion toward the media center of mass and reshape the population opinion distribution
+    (DellaVigna & Kaplan, 2007; Gentzkow & Shapiro, 2006, 2010; Mullainathan & Shleifer, 2005).
 
     Computes:
     - pop_cm_d{k}: Population opinion center of mass along dimension k.
-    - pop_cm_norm: Euclidean displacement ||bar{x}(t)||_2 of population mean from neutral origin 0.
-    - media_cm_distance: Euclidean distance ||bar{x}(t) - bar{m}||_2 to the overall press center of mass.
-    - shift_toward_media_cm: Directional projection (bar{x}(t) . bar{m}) / ||bar{m}||_2 measuring shift
-      in the direction of the press center of mass (positive = pulled toward press CM).
+    - pop_cm_norm: Euclidean displacement ||bar{x}(t)||_2 / sqrt(d) from neutral origin 0.
+    - pop_skewness: Mean standardized skewness across dimensions (captures asymmetric distribution skew).
+    - frac_positive_d0: Share of population with positive attitude x_{i,0} > 0.0.
+    - media_cm_distance: Euclidean distance ||bar{x}(t) - bar{m}||_2 / sqrt(d) to press center of mass.
+    - shift_toward_media_cm: Directional projection (bar{x}(t) . bar{m}) / (||bar{m}||_2 * sqrt(d)).
+    - dist_to_g0_mean: Mean normalized distance of agents to Group 1 center of mass m_0.
+    - dist_to_g1_mean: Mean normalized distance of agents to Group 2 center of mass m_1 (if M >= 2).
+    - frac_closer_to_g0: Fraction of population closer to Group 1 (m_0) than to any other vehicle group.
     - mean_dist_to_closest_vehicle: Mean normalized distance of agents to their closest vehicle group CM.
     """
     n_agents, n_dims = opinions.shape
@@ -236,8 +242,25 @@ def compute_media_center_of_mass_metrics(
     pop_cm = np.mean(opinions, axis=0) if n_agents > 0 else np.zeros(n_dims, dtype=np.float64)
     pop_cm_norm = float(np.linalg.norm(pop_cm)) * inv_sqrt_d
 
+    # Population distribution skewness & positive hemisphere share
+    skews = []
+    for d in range(n_dims):
+        centered = opinions[:, d] - pop_cm[d]
+        m2 = float(np.mean(centered ** 2))
+        if m2 > 1e-12:
+            m3 = float(np.mean(centered ** 3))
+            skews.append(m3 / (m2 ** 1.5))
+    pop_skewness = float(np.mean(skews)) if skews else 0.0
+    frac_positive_d0 = float(np.mean(opinions[:, 0] > 0.0)) if n_agents > 0 else 0.5
+
     res: dict[str, float] = {
         "pop_cm_norm": pop_cm_norm,
+        "pop_skewness": pop_skewness,
+        "frac_positive_d0": frac_positive_d0,
+        "mean_tendentiousness": 0.0,
+        "tendentiousness_g0": 0.0,
+        "tendentiousness_g1": 0.0,
+        "tendentiousness_asymmetry": 0.0,
     }
     for d in range(n_dims):
         res[f"pop_cm_d{d}"] = float(pop_cm[d])
@@ -245,34 +268,62 @@ def compute_media_center_of_mass_metrics(
     if group_centers is None or len(group_centers) == 0:
         res["media_cm_distance"] = pop_cm_norm
         res["shift_toward_media_cm"] = 0.0
-        res["mean_dist_to_closest_vehicle"] = float(
-            np.mean(np.linalg.norm(opinions, axis=1)) * inv_sqrt_d
-        )
+        res["dist_to_g0_mean"] = float(np.mean(np.linalg.norm(opinions, axis=1)) * inv_sqrt_d)
+        res["dist_to_g1_mean"] = res["dist_to_g0_mean"]
+        res["frac_closer_to_g0"] = frac_positive_d0
+        res["mean_dist_to_closest_vehicle"] = res["dist_to_g0_mean"]
         return res
 
     centers = np.asarray(group_centers, dtype=np.float64)
     if centers.ndim == 1:
         centers = centers.reshape(1, -1)
+    n_groups = centers.shape[0]
 
-    media_cm = np.mean(centers, axis=0)
+    if group_tendentiousness is not None and len(group_tendentiousness) > 0:
+        t_arr = np.asarray(group_tendentiousness, dtype=np.float64).ravel()
+        res["mean_tendentiousness"] = float(np.mean(t_arr))
+        res["tendentiousness_g0"] = float(t_arr[0])
+        res["tendentiousness_g1"] = float(t_arr[1]) if len(t_arr) >= 2 else float(t_arr[0])
+        res["tendentiousness_asymmetry"] = (
+            float(abs(t_arr[0] - t_arr[1])) if len(t_arr) >= 2 else 0.0
+        )
+        t_sum = float(np.sum(t_arr[:n_groups]))
+        if t_sum > 1e-8:
+            media_cm = np.sum(centers * t_arr[:n_groups, None], axis=0) / t_sum
+        else:
+            media_cm = np.mean(centers, axis=0)
+    else:
+        media_cm = np.mean(centers, axis=0)
+
     media_cm_norm = float(np.linalg.norm(media_cm))
     res["media_cm_distance"] = float(np.linalg.norm(pop_cm - media_cm)) * inv_sqrt_d
 
     if media_cm_norm > 1e-8:
-        # Directional projection along the press center-of-mass unit vector, normalized by sqrt(d)
         res["shift_toward_media_cm"] = (
             float(np.dot(pop_cm, media_cm) / media_cm_norm) * inv_sqrt_d
         )
     else:
-        res["shift_toward_media_cm"] = 0.0
+        # Fallback to Group 1 center direction if unweighted/weighted centers cancel out
+        g0_norm = float(np.linalg.norm(centers[0]))
+        if g0_norm > 1e-8:
+            res["shift_toward_media_cm"] = (
+                float(np.dot(pop_cm, centers[0]) / g0_norm) * inv_sqrt_d
+            )
+        else:
+            res["shift_toward_media_cm"] = 0.0
 
-    # Compute each agent's distance to their closest vehicle group center of mass
-    # opinions: (N, d), centers: (M, d) -> diffs: (N, M)
-    min_dists = np.full(n_agents, 1e9, dtype=np.float64)
-    for g in range(centers.shape[0]):
-        d_g = np.linalg.norm(opinions - centers[g, None, :], axis=1) * inv_sqrt_d
-        min_dists = np.minimum(min_dists, d_g)
-    res["mean_dist_to_closest_vehicle"] = float(np.mean(min_dists))
+    # Compute agent distances to each vehicle group center of mass
+    all_dists = np.empty((n_agents, n_groups), dtype=np.float64)
+    for g in range(n_groups):
+        all_dists[:, g] = np.linalg.norm(opinions - centers[g, None, :], axis=1) * inv_sqrt_d
+
+    res["dist_to_g0_mean"] = float(np.mean(all_dists[:, 0]))
+    res["dist_to_g1_mean"] = (
+        float(np.mean(all_dists[:, 1])) if n_groups >= 2 else res["dist_to_g0_mean"]
+    )
+    closest_group = np.argmin(all_dists, axis=1)
+    res["frac_closer_to_g0"] = float(np.mean(closest_group == 0)) if n_groups >= 2 else frac_positive_d0
+    res["mean_dist_to_closest_vehicle"] = float(np.mean(np.min(all_dists, axis=1)))
     return res
 
 
@@ -309,6 +360,7 @@ class AnalyticsEngine:
         )
 
         group_centers = None
+        group_tendentiousness = None
         n_vehicle_groups = 0
         if (
             news_pool is not None
@@ -316,15 +368,22 @@ class AnalyticsEngine:
         ):
             trad_eco = news_pool.traditional_ecosystem
             group_centers = trad_eco.group_centers
+            group_tendentiousness = trad_eco.group_tendentiousness
             n_vehicle_groups = int(trad_eco.n_groups)
 
         cm_metrics = compute_media_center_of_mass_metrics(
-            agent_state.opinions, group_centers=group_centers
+            agent_state.opinions,
+            group_centers=group_centers,
+            group_tendentiousness=group_tendentiousness,
         )
 
         record = {
             "step": int(step),
             "n_vehicle_groups": int(n_vehicle_groups),
+            "mean_tendentiousness": float(cm_metrics["mean_tendentiousness"]),
+            "tendentiousness_g0": float(cm_metrics["tendentiousness_g0"]),
+            "tendentiousness_g1": float(cm_metrics["tendentiousness_g1"]),
+            "tendentiousness_asymmetry": float(cm_metrics["tendentiousness_asymmetry"]),
             "esteban_ray": float(cluster_pol["esteban_ray"]),
             "sarle_bimodality": float(sarle_bc),
             "dispersion_ratio_vs_random": float(alignment["dispersion_ratio_vs_random"]),
@@ -336,8 +395,13 @@ class AnalyticsEngine:
             "effective_dimensionality": float(alignment["effective_dimensionality"]),
             "ideological_segregation": float(segregation),
             "pop_cm_norm": float(cm_metrics["pop_cm_norm"]),
+            "pop_skewness": float(cm_metrics["pop_skewness"]),
+            "frac_positive_d0": float(cm_metrics["frac_positive_d0"]),
             "media_cm_distance": float(cm_metrics["media_cm_distance"]),
             "shift_toward_media_cm": float(cm_metrics["shift_toward_media_cm"]),
+            "dist_to_g0_mean": float(cm_metrics["dist_to_g0_mean"]),
+            "dist_to_g1_mean": float(cm_metrics["dist_to_g1_mean"]),
+            "frac_closer_to_g0": float(cm_metrics["frac_closer_to_g0"]),
             "mean_dist_to_closest_vehicle": float(cm_metrics["mean_dist_to_closest_vehicle"]),
             "mean_uncertainty": float(np.mean(agent_state.uncertainty)),
             "mean_opinion_norm": float(np.mean(np.linalg.norm(agent_state.opinions, axis=1))),
@@ -374,4 +438,5 @@ class AnalyticsEngine:
             record[f"seats_cand_{k}"] = int(dist_seats[k])
 
         return record
+
 

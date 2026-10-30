@@ -91,3 +91,77 @@ def test_vehicle_groups_1_to_4_opinion_shift_and_polarization() -> None:
     # M=1 has center of mass at +0.55: population opinion must shift positively toward the press center of mass
     assert results_m[1]["shift_toward_media_cm"] > 0.05
     assert results_m[1]["pop_cm_d0"] > cm_0 + 0.05
+
+
+def test_tendentiousness_1group_and_asymmetric_2groups() -> None:
+    """Verify:
+    1. In M=1, higher tendentiousness (0.95 vs 0.10) centers the population much closer to the media positioning.
+    2. In M=2 with symmetric centers (+0.55 vs -0.55), asymmetric tendentiousness ([0.95, 0.10]) skews the
+       population opinion distribution toward the more tendentious group (+0.55).
+    """
+    # 1. M=1: Low tendentiousness (0.10) vs High tendentiousness (0.95)
+    cfg_1g_low = {
+        "simulation": {"n_agents": 400, "n_dims": 4, "n_steps": 25, "init_mode": "uniform_random"},
+        "media": {
+            "enabled": True,
+            "traditional_enabled": True,
+            "social_enabled": False,
+            "n_vehicle_groups": 1,
+            "group_tendentiousness": 0.10,
+            "fact_rate": 2.0,
+            "broadcast_strength": 0.14,
+        },
+    }
+    cfg_1g_high = {
+        "simulation": {"n_agents": 400, "n_dims": 4, "n_steps": 25, "init_mode": "uniform_random"},
+        "media": {
+            "enabled": True,
+            "traditional_enabled": True,
+            "social_enabled": False,
+            "n_vehicle_groups": 1,
+            "group_tendentiousness": 0.95,
+            "fact_rate": 2.0,
+            "broadcast_strength": 0.14,
+        },
+    }
+    m_low = SimulationEngine(config=cfg_1g_low, base_seed=999, task_id=0).run()["final_metrics"]
+    m_high = SimulationEngine(config=cfg_1g_high, base_seed=999, task_id=0).run()["final_metrics"]
+
+    assert m_high["shift_toward_media_cm"] > m_low["shift_toward_media_cm"] + 0.04
+    assert m_high["dist_to_g0_mean"] < m_low["dist_to_g0_mean"]
+
+    # 2. M=2: Symmetric centers (+0.55 and -0.55) with Asymmetric Tendentiousness ([0.95, 0.10])
+    sym_centers = [[0.55, 0.55, 0.55, 0.55], [-0.55, -0.55, -0.55, -0.55]]
+    cfg_2g_sym = {
+        "simulation": {"n_agents": 400, "n_dims": 4, "n_steps": 25, "init_mode": "uniform_random"},
+        "media": {
+            "enabled": True,
+            "traditional_enabled": True,
+            "social_enabled": False,
+            "n_vehicle_groups": 2,
+            "vehicle_group_centers": sym_centers,
+            "group_tendentiousness": [0.50, 0.50],
+            "fact_rate": 2.0,
+            "broadcast_strength": 0.14,
+        },
+    }
+    cfg_2g_asym = {
+        "simulation": {"n_agents": 400, "n_dims": 4, "n_steps": 25, "init_mode": "uniform_random"},
+        "media": {
+            "enabled": True,
+            "traditional_enabled": True,
+            "social_enabled": False,
+            "n_vehicle_groups": 2,
+            "vehicle_group_centers": sym_centers,
+            "group_tendentiousness": [0.95, 0.10],
+            "fact_rate": 2.0,
+            "broadcast_strength": 0.14,
+        },
+    }
+    m_2g_sym = SimulationEngine(config=cfg_2g_sym, base_seed=999, task_id=0).run()["final_metrics"]
+    m_2g_asym = SimulationEngine(config=cfg_2g_asym, base_seed=999, task_id=0).run()["final_metrics"]
+
+    # The asymmetric scenario must pull the population mean and share toward Group 1 (+0.55)
+    assert m_2g_asym["pop_cm_d0"] > m_2g_sym["pop_cm_d0"] + 0.04
+    assert m_2g_asym["frac_closer_to_g0"] > m_2g_sym["frac_closer_to_g0"]
+

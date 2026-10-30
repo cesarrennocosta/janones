@@ -114,6 +114,17 @@ def parse_args() -> argparse.Namespace:
         help="Number of traditional media vehicle groups M in {0, 1, 2, 3, 4} (each operating TV, Radio, and Press).",
     )
     parser.add_argument(
+        "--tendentiousness",
+        type=str,
+        default=None,
+        help="Tendentiousness level tau in [0, 1] as a scalar (e.g. '0.15', '0.90') or comma-separated per-group list (e.g. '0.90,0.15').",
+    )
+    parser.add_argument(
+        "--symmetric-duopoly",
+        action="store_true",
+        help="Place 2 vehicle groups at symmetric opposite centers (+0.55 and -0.55) to isolate asymmetric tendentiousness effects.",
+    )
+    parser.add_argument(
         "--fact-rate",
         type=float,
         default=None,
@@ -168,6 +179,15 @@ def main() -> None:
             media_cfg["enabled"] = True
         else:
             media_cfg["traditional_enabled"] = False
+    if args.tendentiousness is not None:
+        parts = [float(x.strip()) for x in args.tendentiousness.split(",") if x.strip()]
+        media_cfg["group_tendentiousness"] = parts[0] if len(parts) == 1 else parts
+    if args.symmetric_duopoly:
+        n_dims = int(sim_cfg.get("n_dims", 4))
+        media_cfg["vehicle_group_centers"] = [
+            [0.55] * n_dims,
+            [-0.55] * n_dims,
+        ]
     if args.fact_rate is not None:
         media_cfg["fact_rate"] = args.fact_rate
     if args.broadcast_strength is not None:
@@ -186,16 +206,17 @@ def main() -> None:
     final_m = result["final_metrics"]
     status = "PREEMPTED (Checkpoint Saved)" if result.get("preempted") else "COMPLETED"
     print(
-        f"[OmniOpinion Task {task_id:04d} | N={engine.n_agents} | M={engine.n_vehicle_groups} | {status}] "
+        f"[OmniOpinion Task {task_id:04d} | N={engine.n_agents} | M={engine.n_vehicle_groups} | "
+        f"Tend=({final_m.get('tendentiousness_g0', 0.0):.2f},{final_m.get('tendentiousness_g1', 0.0):.2f}) | {status}] "
         f"Step={final_m['step']} | "
         f"P_ER={final_m['esteban_ray']:.4f} | "
         f"ShiftCM={final_m.get('shift_toward_media_cm', 0.0):+.3f} | "
-        f"DispVsRand={final_m['dispersion_ratio_vs_random']:.3f} | "
-        f"Clusters(IPR)={final_m['effective_clusters_ipr']:.2f} | "
-        f"IssueCorr={final_m['mean_issue_correlation']:.3f}"
+        f"DistG0={final_m.get('dist_to_g0_mean', 0.0):.3f} | "
+        f"FracG0={final_m.get('frac_closer_to_g0', 0.5):.3f}"
     )
 
 
 if __name__ == "__main__":
     main()
+
 

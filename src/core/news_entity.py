@@ -99,20 +99,24 @@ class TraditionalMediaEcosystem:
     1. Broadcast TV (`tv`, modality 0): lag = 1 step, high credibility (0.75), medium decay (0.30).
     2. Radio (`radio`, modality 1): lag = 0 steps (live bulletin), medium credibility (0.62), fast decay (0.45).
     3. Written Press (`press`, modality 2): lag = 2 steps (print/editorial cycle), period = 2 steps,
-       high credibility (0.82), strong center-of-mass slant (0.75), slow decay (0.18).
+       high credibility (0.82), slow decay (0.18).
 
-    Dynamics of Fact-Driven News Generation (Mullainathan & Shleifer 2005; Wu & Huberman 2007):
-    - Exogenous facts arrive at rate `fact_rate` (mean facts per step) with latent valence f_k in [-1, 1]^d.
-    - When a fact is favorable (closer to a group's center of mass m_g), the group covers it with higher
-      probability and higher salience S_{k,g,v}, framing the notice closer to m_g:
-          y_{k,g,v} = (1 - eta_v) * f_k + eta_v * m_g + xi
-    - Each vehicle publishes the notice after its modality lag tau_v and at its reporting frequency nu_v.
-    - Published notices decay exponentially over time at rate exp(-delta_v * dt).
+    Tendentiousness Level (`group_tendentiousness`, tau_g in [0, 1]):
+    - Controls how strongly vehicle group g pulls exogenous facts f_k toward its own editorial
+      center of mass m_g vs. reporting the fact close to its raw opinion impact f_k
+      (Mullainathan & Shleifer, 2005; Gentzkow & Shapiro, 2006, 2010; Puglisi & Snyder, 2015):
+          y_{k,g,v} = (1 - eta_{g,v}) * f_k + eta_{g,v} * m_g + xi
+      where eta_{g,v} = clip(tau_g * modality_slant_factor_v, 0.0, 1.0).
+    - Low tendentiousness (tau_g -> 0, e.g. 0.10): notices stay close to the raw fact f_k, and facts
+      are covered with low ideological selectivity.
+    - High tendentiousness (tau_g -> 1, e.g. 0.90): notices are spun tightly around the media outlet's
+      center of mass m_g, and gatekeeping strongly favors facts aligned with m_g.
     """
 
     n_groups: int
     n_dims: int
     group_centers: np.ndarray            # float64, shape (M, d)
+    group_tendentiousness: np.ndarray    # float64, shape (M,), tau_g in [0, 1]
     ecosystem_center: np.ndarray         # float64, shape (d,)
 
     # Flattened vehicle arrays of length V = 3 * M
@@ -120,10 +124,11 @@ class TraditionalMediaEcosystem:
     vehicle_group_id: np.ndarray         # int32, shape (V,)
     vehicle_modality: np.ndarray         # int32, shape (V,) in {0=TV, 1=Radio, 2=Press}
     vehicle_centers: np.ndarray          # float64, shape (V, d)
+    vehicle_tendentiousness: np.ndarray  # float64, shape (V,), tau_g in [0, 1]
     vehicle_lag: np.ndarray              # int32, shape (V,)
     vehicle_period: np.ndarray           # int32, shape (V,)
     vehicle_pub_prob: np.ndarray         # float64, shape (V,)
-    vehicle_slant_pull: np.ndarray       # float64, shape (V,)
+    vehicle_slant_pull: np.ndarray       # float64, shape (V,), effective eta_{g,v} in [0, 1]
     vehicle_decay_rate: np.ndarray       # float64, shape (V,)
     vehicle_credibility: np.ndarray      # float64, shape (V,)
 
@@ -148,12 +153,13 @@ class TraditionalMediaEcosystem:
         n_groups: int,
         n_dims: int,
         group_centers: np.ndarray | list | None = None,
+        group_tendentiousness: float | list[float] | np.ndarray | None = None,
         fact_rate: float = 1.5,
         gatekeeping_sigma: float = 0.85,
         framing_noise_std: float = 0.05,
         seed: int | np.random.Generator | None = None,
     ) -> "TraditionalMediaEcosystem":
-        """Build M vehicle groups (each with TV, Radio, and Press) and seed initial step-0 notices."""
+        """Build M vehicle groups (each with TV, Radio, and Press) with configurable tendentiousness."""
         n_groups = max(0, int(n_groups))
         if group_centers is not None:
             centers = np.ascontiguousarray(np.asarray(group_centers, dtype=np.float64))
@@ -162,8 +168,32 @@ class TraditionalMediaEcosystem:
         else:
             centers = default_vehicle_group_centers(n_groups, n_dims)
 
+        # Resolve per-group tendentiousness tau_g in [0, 1] (default = 0.65)
+        if n_groups == 0:
+            tend_arr = np.zeros(0, dtype=np.float64)
+        elif group_tendentiousness is None:
+            tend_arr = np.full(n_groups, 0.65, dtype=np.float64)
+        elif np.ndim(group_tendentiousness) == 0:
+            tend_arr = np.full(n_groups, float(group_tendentiousness), dtype=np.float64)
+        else:
+            raw_t = np.asarray(group_tendentiousness, dtype=np.float64).ravel()
+            if len(raw_t) < n_groups:
+                padded = np.full(n_groups, float(raw_t[-1]), dtype=np.float64)
+                padded[: len(raw_t)] = raw_t
+                tend_arr = padded
+            else:
+                tend_arr = raw_t[:n_groups].copy()
+        tend_arr = np.ascontiguousarray(np.clip(tend_arr, 0.0, 1.0), dtype=np.float64)
+
         if n_groups > 0:
-            ecosystem_center = np.ascontiguousarray(np.mean(centers, axis=0), dtype=np.float64)
+            # Tendentiousness-weighted and unweighted ecosystem centers
+            w_sum = float(np.sum(tend_arr))
+            if w_sum > 1e-8:
+                ecosystem_center = np.ascontiguousarray(
+                    np.sum(centers * tend_arr[:, None], axis=0) / w_sum, dtype=np.float64
+                )
+            else:
+                ecosystem_center = np.ascontiguousarray(np.mean(centers, axis=0), dtype=np.float64)
         else:
             ecosystem_center = np.zeros(n_dims, dtype=np.float64)
 
@@ -171,6 +201,7 @@ class TraditionalMediaEcosystem:
         vehicle_group_id = np.zeros(n_vehicles, dtype=np.int32)
         vehicle_modality = np.zeros(n_vehicles, dtype=np.int32)
         vehicle_centers = np.zeros((n_vehicles, n_dims), dtype=np.float64)
+        vehicle_tendentiousness = np.zeros(n_vehicles, dtype=np.float64)
         vehicle_lag = np.zeros(n_vehicles, dtype=np.int32)
         vehicle_period = np.ones(n_vehicles, dtype=np.int32)
         vehicle_pub_prob = np.zeros(n_vehicles, dtype=np.float64)
@@ -179,31 +210,33 @@ class TraditionalMediaEcosystem:
         vehicle_credibility = np.zeros(n_vehicles, dtype=np.float64)
 
         # Modality specifications (TV=0, Radio=1, Press=2) based on Leskovec et al. (2009) & Wu & Huberman (2007)
-        # Radio: lag=0, period=1, pub_prob=0.92, slant_pull=0.58, decay=0.45, credibility=0.62
-        # TV:    lag=1, period=1, pub_prob=0.85, slant_pull=0.68, decay=0.30, credibility=0.75
-        # Press: lag=2, period=2, pub_prob=0.75, slant_pull=0.78, decay=0.18, credibility=0.82
+        # slant_mult scales the group's tendentiousness tau_g: Radio (0.90), TV (1.00), Press (1.10)
         mod_specs = (
-            (MODALITY_TV, 1, 1, 0.85, 0.68, 0.30, 0.75),
-            (MODALITY_RADIO, 0, 1, 0.92, 0.58, 0.45, 0.62),
-            (MODALITY_PRESS, 2, 2, 0.75, 0.78, 0.18, 0.82),
+            (MODALITY_TV, 1, 1, 0.85, 1.00, 0.30, 0.75),
+            (MODALITY_RADIO, 0, 1, 0.92, 0.90, 0.45, 0.62),
+            (MODALITY_PRESS, 2, 2, 0.75, 1.10, 0.18, 0.82),
         )
 
         for g in range(n_groups):
-            for mod_id, lag, period, pub_p, slant, decay, cred in mod_specs:
+            tau_g = float(tend_arr[g])
+            for mod_id, lag, period, pub_p, slant_mult, decay, cred in mod_specs:
                 v_idx = g * 3 + mod_id
                 vehicle_group_id[v_idx] = g
                 vehicle_modality[v_idx] = mod_id
                 vehicle_centers[v_idx, :] = centers[g, :]
+                vehicle_tendentiousness[v_idx] = tau_g
                 vehicle_lag[v_idx] = lag
                 vehicle_period[v_idx] = period
                 vehicle_pub_prob[v_idx] = pub_p
-                vehicle_slant_pull[v_idx] = slant
+                vehicle_slant_pull[v_idx] = float(np.clip(tau_g * slant_mult, 0.0, 1.0))
                 vehicle_decay_rate[v_idx] = decay
                 vehicle_credibility[v_idx] = cred
 
-        # Initialize active notice state at editorial center of mass with baseline intensity
+        # Initialize active notice state: scaled by tendentiousness tau_g toward center of mass
         active_intensity = np.full(n_vehicles, 0.50, dtype=np.float64)
-        active_framing = np.ascontiguousarray(vehicle_centers.copy(), dtype=np.float64)
+        active_framing = np.ascontiguousarray(
+            vehicle_centers * vehicle_slant_pull[:, None], dtype=np.float64
+        )
         active_weighted_sum = np.ascontiguousarray(
             active_framing * active_intensity[:, None], dtype=np.float64
         )
@@ -212,11 +245,13 @@ class TraditionalMediaEcosystem:
             n_groups=n_groups,
             n_dims=n_dims,
             group_centers=centers,
+            group_tendentiousness=tend_arr,
             ecosystem_center=ecosystem_center,
             n_vehicles=n_vehicles,
             vehicle_group_id=vehicle_group_id,
             vehicle_modality=vehicle_modality,
             vehicle_centers=np.ascontiguousarray(vehicle_centers, dtype=np.float64),
+            vehicle_tendentiousness=np.ascontiguousarray(vehicle_tendentiousness, dtype=np.float64),
             vehicle_lag=vehicle_lag,
             vehicle_period=vehicle_period,
             vehicle_pub_prob=vehicle_pub_prob,
@@ -240,9 +275,11 @@ class TraditionalMediaEcosystem:
         """Advance the news cycle by one timestep:
         1. Exponentially decay all active notices for each vehicle v: exp(-delta_v).
         2. Generate new exogenous facts (Poisson arrival with mean `fact_rate`).
-        3. For each fact, each vehicle evaluates gatekeeping favorability toward its center of mass m_g,
-           produces a slanted notice closer to m_g, and schedules it with publication lag tau_v.
-        4. Publish all notices whose scheduled publication step `t_pub <= step_idx` and aligned with `vehicle_period`.
+        3. For each fact, each vehicle evaluates gatekeeping favorability modulated by its
+           tendentiousness tau_g, frames the notice with pull eta_{g,v} = clip(tau_g * mult_v, 0, 1)
+           toward its center of mass m_g (so low tau_g stays close to the raw fact f_k, while high
+           tau_g pulls strongly to m_g), and schedules it with publication lag tau_v.
+        4. Publish all notices whose scheduled publication step `t_pub <= step_idx`.
         """
         if self.n_vehicles == 0:
             self.last_step_facts_count = 0
@@ -260,26 +297,31 @@ class TraditionalMediaEcosystem:
         inv_sqrt_d = 1.0 / math.sqrt(float(self.n_dims))
 
         for _ in range(n_facts):
-            # Objective fact valence vector f_k in [-1, 1]^d and intrinsic salience I_k in [0.5, 1.0]
+            # Objective fact valence vector f_k in [-1, 1]^d and intrinsic salience I_k in [0.55, 1.0]
             fact_vec = rng.uniform(-1.0, 1.0, size=self.n_dims)
             fact_salience = float(rng.uniform(0.55, 1.0))
 
             for v_idx in range(self.n_vehicles):
                 center_v = self.vehicle_centers[v_idx]
+                tau_v = self.vehicle_tendentiousness[v_idx]
                 dist_f = float(np.linalg.norm(fact_vec - center_v)) * inv_sqrt_d
 
-                # Gatekeeping favorability: facts favorable to the vehicle's center of mass have higher coverage & salience
-                favorability = math.exp(-dist_f / max(self.gatekeeping_sigma, 1e-6))
-                cov_prob = self.vehicle_pub_prob[v_idx] * (0.35 + 0.65 * favorability)
+                # Gatekeeping favorability:
+                # - Low tendentiousness (tau_v -> 0): covers facts objectively regardless of ideological alignment.
+                # - High tendentiousness (tau_v -> 1): selectively amplifies facts aligned with center_v.
+                raw_fav = math.exp(-dist_f / max(self.gatekeeping_sigma, 1e-6))
+                eff_favorability = (1.0 - tau_v) * 0.70 + tau_v * (0.25 + 0.75 * raw_fav)
+                cov_prob = self.vehicle_pub_prob[v_idx] * eff_favorability
 
                 if rng.random() < cov_prob:
                     eta = self.vehicle_slant_pull[v_idx]
                     noise = rng.normal(0.0, self.framing_noise_std, size=self.n_dims)
-                    # Notice framed closer to the vehicle's center of mass (Mullainathan & Shleifer, 2005)
+                    # Notice framed between the raw fact f_k (1 - eta) and the vehicle center of mass m_g (eta)
                     notice_vec = np.clip((1.0 - eta) * fact_vec + eta * center_v + noise, -1.0, 1.0)
-                    notice_salience = fact_salience * (0.40 + 0.60 * favorability)
+                    # Tendentious outlets also inject stronger partisan salience when framing their notices
+                    notice_salience = fact_salience * eff_favorability * (0.75 + 0.50 * tau_v)
 
-                    # Schedule publication after modality lag tau_v and aligned to publication cadence period
+                    # Schedule publication after modality lag and aligned to publication cadence period
                     raw_pub_step = step_idx + int(self.vehicle_lag[v_idx])
                     period = int(self.vehicle_period[v_idx])
                     if period > 1 and (raw_pub_step % period != 0):
@@ -308,7 +350,9 @@ class TraditionalMediaEcosystem:
                     self.active_weighted_sum[v_idx, :] / w, -1.0, 1.0
                 )
             else:
-                self.active_framing[v_idx, :] = self.vehicle_centers[v_idx, :]
+                self.active_framing[v_idx, :] = (
+                    self.vehicle_centers[v_idx, :] * self.vehicle_slant_pull[v_idx]
+                )
 
         return {
             "facts_count": n_facts,
@@ -318,16 +362,7 @@ class TraditionalMediaEcosystem:
 
 @dataclass
 class NewsEntityPool:
-    """Contiguous pool of active news/content items, traditional media vehicle groups, and broadcast channels.
-
-    Attributes of each news item n in {0, ..., M-1}:
-    - framing (y_n in [-1, 1]^d): Thematic framing vector across d latent issues.
-    - sensationalism (e_n in [0, 1]): Emotional appeal / clickbait index.
-    - veracity (v_n in [0, 1]): Factual veracity level (low values represent deliberate misinformation).
-    - creator_id (int32): Influencer agent ID (or -1 for institutional media).
-    - popularity (float64): Bidirectional feedback counter incremented by reads/likes/shares.
-    - viral_cascades (int64): Number of WhatsApp group forwards triggered by this item.
-    """
+    """Contiguous pool of active news/content items, traditional media vehicle groups, and broadcast channels."""
 
     n_items: int
     n_dims: int
@@ -356,6 +391,7 @@ class NewsEntityPool:
         seed: int | np.random.SeedSequence | np.random.Generator = 42,
         n_vehicle_groups: int | None = None,
         vehicle_group_centers: np.ndarray | list | None = None,
+        group_tendentiousness: float | list[float] | np.ndarray | None = None,
         fact_rate: float = 1.5,
         gatekeeping_sigma: float = 0.85,
     ) -> "NewsEntityPool":
@@ -401,6 +437,7 @@ class NewsEntityPool:
             n_groups=eff_groups,
             n_dims=n_dims,
             group_centers=vehicle_group_centers,
+            group_tendentiousness=group_tendentiousness,
             fact_rate=fact_rate,
             gatekeeping_sigma=gatekeeping_sigma,
             seed=rng,
@@ -459,4 +496,5 @@ class NewsEntityPool:
             1.0,
         )
         self.popularity[lowest_idx] = np.mean(self.popularity) * 0.5 + 1.0
+
 

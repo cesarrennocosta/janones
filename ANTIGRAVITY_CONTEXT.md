@@ -351,16 +351,22 @@ Built directly on top of the local interpersonal baseline ($M = 0$), the model i
      - **Television (`tv`):** Lag $\tau_{\text{tv}} = 1$ step (*telejornal* cycle), period $= 1$ step, pub prob $= 0.85$, slant pull $\eta_{\text{tv}} = 0.68$, medium decay $\delta_{\text{tv}} = 0.30\text{/step}$, credibility $\gamma_{\text{tv}} = 0.75$.
      - **Written Press (`press`):** Lag $\tau_{\text{press}} = 2$ steps (editorial/print lag), period $= 2$ steps, pub prob $= 0.75$, slant pull $\eta_{\text{press}} = 0.78$, slow decay $\delta_{\text{press}} = 0.18\text{/step}$, credibility $\gamma_{\text{press}} = 0.82$.
 
-### D. Canonical Vehicle Group Configurations ($M = 1, 2, 3, 4$) & SLURM Scripts
+### D. Canonical Vehicle Group Configurations ($M = 1, 2, 3, 4$), Tendentiousness ($\tau_g$), & SLURM Scripts
 - **$M = 0$ (`no_media`):** Local interpersonal baseline (`configs/local_cities_nomedia.yaml`).
 - **$M = 1$ (`1_group`):** Hegemonic conglomerate at $\mathbf{m}_1 = (+0.55, +0.55, +0.55, +0.55)$.
-- **$M = 2$ (`2_groups`):** Asymmetric duopoly at $\mathbf{m}_1 = +0.60$, $\mathbf{m}_2 = -0.25$ (net center of mass $\bar{\mathbf{m}} = +0.175$).
-- **$M = 3$ (`3_groups`):** Tripolar ecosystem at $\mathbf{m}_1 = +0.65$, $\mathbf{m}_2 = +0.15$, $\mathbf{m}_3 = -0.50$ (net center of mass $\bar{\mathbf{m}} = +0.10$).
+- **$M = 2$ (`2_groups`):** Asymmetric duopoly at $\mathbf{m}_1 = +0.60$, $\mathbf{m}_2 = -0.25$ (or symmetric opposite centers $\mathbf{m}_1 = +0.55, \mathbf{m}_2 = -0.55$ via `--symmetric-duopoly`).
+- **$M = 3$ (`3_groups`):** Tripolar ecosystem at $\mathbf{m}_1 = +0.65$, $\mathbf{m}_2 = +0.15$, $\mathbf{m}_3 = -0.50$.
 - **$M = 4$ (`4_groups`):** Four-quadrant ideological ecosystem across economic and moral axes.
+- **Tendentiousness Level (`group_tendentiousness`, $\tau_g \in [0, 1]$, `--tendentiousness`):**
+  - Controls both the editorial framing pull $\eta_{g,v} = \text{clip}(\tau_g \mu_v, 0, 1)$ between the raw fact $\mathbf{f}_k$ and the outlet's center of mass $\mathbf{m}_g$, and gatekeeping selectivity for favorable facts (Puglisi & Snyder, 2015; Mullainathan & Shleifer, 2005; Gentzkow & Shapiro, 2006).
+  - **1-Media Group Sweep ($M=1$):** Tests $\tau_1 \in \{0.10, 0.35, 0.65, 0.95\}$ to measure how tendentiousness controls population centering around $\mathbf{m}_1$.
+  - **2-Media Group Asymmetric Tendentiousness ($M=2$, `--symmetric-duopoly`):** Compares symmetric low (`0.15,0.15`), symmetric high (`0.90,0.90`), and **asymmetric (`0.95,0.10`)** where Group 1 ($+0.55$) is much more tendentious than Group 2 ($-0.55$), skewing the population opinion distribution toward Group 1.
 - **SLURM Scripts (`scripts/slurm/`):**
   - Small City ($10\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_10k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_intel128.sh) (`tm10k_i`) and [`scripts/slurm/trad_media_10k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_10k_amd512.sh) (`tm10k_a`).
   - Medium City ($100\text{k}$, $M=1..4$, 101 seeds each): [`scripts/slurm/trad_media_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_intel128.sh) (`tm100ki`) and [`scripts/slurm/trad_media_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/trad_media_100k_amd512.sh) (`tm100ka`).
+  - Tendentiousness Sweep & Asymmetric Duopoly ($10\text{k}$, 7 scenarios $\times$ 101 seeds): [`scripts/slurm/tendentious_10k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_10k_intel128.sh) (`td10k_i`) and [`scripts/slurm/tendentious_10k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/tendentious_10k_amd512.sh) (`td10k_a`).
   - Analysis Notebook: [`notebooks/analyze_traditional_media.ipynb`](file:///Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb).
+
 
 
 

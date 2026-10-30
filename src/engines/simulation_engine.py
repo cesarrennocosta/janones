@@ -113,6 +113,7 @@ class SimulationEngine:
                 seed=self.rng_media,
                 n_vehicle_groups=self.n_vehicle_groups,
                 vehicle_group_centers=media_cfg.get("vehicle_group_centers", None),
+                group_tendentiousness=media_cfg.get("group_tendentiousness", 0.65),
                 fact_rate=float(media_cfg.get("fact_rate", 1.5)),
                 gatekeeping_sigma=float(media_cfg.get("gatekeeping_sigma", 0.85)),
             )

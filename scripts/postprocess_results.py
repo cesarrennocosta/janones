@@ -151,6 +151,56 @@ def consolidate_all_trad_media_groups(
     return written_files
 
 
+def consolidate_all_tendentiousness_scenarios(
+    scratch_root: str | Path = "/scratch/global/crcosta/omni_opinion",
+    output_dir: str | Path = "/scratch/global/crcosta/omni_opinion/consolidated",
+) -> list[Path]:
+    """Scan all completed tendentiousness scenario directories (`tendentious/*`)
+    and build `all_tendentiousness_metrics.parquet`.
+    """
+    root_path = Path(scratch_root)
+    tend_base = root_path / "tendentious"
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written_files: list[Path] = []
+    all_tables = []
+
+    if not tend_base.exists():
+        return written_files
+
+    for scen_dir in sorted(tend_base.iterdir()):
+        if not scen_dir.is_dir():
+            continue
+        shards = sorted(scen_dir.glob("metrics_task_*.parquet"))
+        if not shards:
+            continue
+        scen_name = scen_dir.name
+        out_file = out_dir / f"consolidated_tend_{scen_name}.parquet"
+        consolidate_parquet_shard_files(scen_dir, out_file, city_scale_label="small_10k")
+        tbl = pq.read_table(out_file)
+        if "scenario_name" not in tbl.column_names:
+            tbl = tbl.append_column(
+                "scenario_name",
+                pa.array([scen_name] * tbl.num_rows, type=pa.string()),
+            )
+        pq.write_table(tbl, out_file, compression="zstd")
+        written_files.append(out_file)
+        all_tables.append(tbl)
+        print(f"[OK] Consolidated {len(shards)} seeds for tendentiousness scenario {scen_name} -> {out_file}")
+
+    if all_tables:
+        master_file = out_dir / "all_tendentiousness_metrics.parquet"
+        master_tbl = pa.concat_tables(all_tables, promote_options="default")
+        pq.write_table(master_tbl, master_file, compression="zstd")
+        written_files.append(master_file)
+        print(
+            f"[OK] Master tendentiousness table written -> {master_file} ({master_tbl.num_rows} rows)"
+        )
+
+    return written_files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Consolidate SLURM Parquet metric outputs into compact summary tables for local download."
@@ -158,12 +208,12 @@ def main() -> None:
     parser.add_argument(
         "--all-cities",
         action="store_true",
-        help="Automatically consolidate all completed city scales in /scratch/global/crcosta/omni_opinion/local_nomedia and trad_media.",
+        help="Automatically consolidate all completed city scales in /scratch/global/crcosta/omni_opinion/local_nomedia, trad_media, and tendentious.",
     )
     parser.add_argument(
         "--all-trad-media",
         action="store_true",
-        help="Consolidate all completed traditional media vehicle group runs (M=0,1,2,3,4).",
+        help="Consolidate all completed traditional media vehicle group runs (M=0,1,2,3,4) and tendentiousness scenarios.",
     )
     parser.add_argument(
         "--scratch-base",
@@ -195,9 +245,17 @@ def main() -> None:
             scratch_root=Path(args.scratch_base).parent,
             output_dir=out_dir,
         )
+        consolidate_all_tendentiousness_scenarios(
+            scratch_root=Path(args.scratch_base).parent,
+            output_dir=out_dir,
+        )
     elif args.all_trad_media:
         out_dir = Path(args.scratch_base).parent / "consolidated"
         consolidate_all_trad_media_groups(
+            scratch_root=Path(args.scratch_base).parent,
+            output_dir=out_dir,
+        )
+        consolidate_all_tendentiousness_scenarios(
             scratch_root=Path(args.scratch_base).parent,
             output_dir=out_dir,
         )
@@ -213,4 +271,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
