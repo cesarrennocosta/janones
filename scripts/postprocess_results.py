@@ -106,7 +106,8 @@ def consolidate_all_trad_media_groups(
     all_tables = []
 
     for scale_name in CITY_SCALES:
-        base_dir = nomedia_base / scale_name
+        g0_trad_dir = trad_base / f"{scale_name}_g0"
+        base_dir = g0_trad_dir if (g0_trad_dir.exists() and list(g0_trad_dir.glob("metrics_task_*.parquet"))) else (nomedia_base / scale_name)
         if base_dir.exists() and list(base_dir.glob("metrics_task_*.parquet")):
             out_0 = out_dir / f"consolidated_{scale_name}_g0.parquet"
             consolidate_parquet_shard_files(base_dir, out_0, city_scale_label=scale_name)
@@ -115,7 +116,10 @@ def consolidate_all_trad_media_groups(
                 tbl_0 = tbl_0.append_column(
                     "n_vehicle_groups", pa.array([0] * tbl_0.num_rows, type=pa.int64())
                 )
+            pq.write_table(tbl_0, out_0, compression="zstd")
+            written_files.append(out_0)
             all_tables.append(tbl_0)
+            print(f"[OK] Consolidated {len(list(base_dir.glob('metrics_task_*.parquet')))} seeds for {scale_name} (M=0 baseline) -> {out_0}")
 
         for m_groups in (1, 2, 3, 4):
             g_dir = trad_base / f"{scale_name}_g{m_groups}"
@@ -177,7 +181,7 @@ def consolidate_all_tendentiousness_scenarios(
             continue
         scen_name = scen_dir.name
         out_file = out_dir / f"consolidated_tend_{scen_name}.parquet"
-        consolidate_parquet_shard_files(scen_dir, out_file, city_scale_label="small_10k")
+        consolidate_parquet_shard_files(scen_dir, out_file, city_scale_label="medium_100k")
         tbl = pq.read_table(out_file)
         if "scenario_name" not in tbl.column_names:
             tbl = tbl.append_column(

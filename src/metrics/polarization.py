@@ -85,32 +85,50 @@ def compute_clustering_and_esteban_ray(
 
     multipliers = n_bins_per_dim ** np.arange(n_dims, dtype=np.int64)
     keys = scaled @ multipliers
+    total_possible_bins = int(n_bins_per_dim ** n_dims)
 
-    unique_keys, inverse_idx, counts = np.unique(keys, return_inverse=True, return_counts=True)
-    n_groups = len(unique_keys)
+    if total_possible_bins <= 4096:
+        full_counts = np.bincount(keys, minlength=total_possible_bins)
+        non_empty = full_counts > 0
+        counts = full_counts[non_empty]
+        n_groups = len(counts)
+        masses = np.ascontiguousarray(counts.astype(np.float64) / float(n_agents))
 
-    masses = np.ascontiguousarray(counts.astype(np.float64) / float(n_agents))
+        sum_sq = float(np.sum(masses * masses))
+        n_eff_ipr = 1.0 / max(sum_sq, 1e-12)
+        shannon_h = -float(np.sum(masses * np.log(masses)))
+        n_eff_entropy = math.exp(shannon_h)
+        occupied_major = int(np.sum(masses >= 0.01))
 
-    # Inverse Participation Ratio (Herfindahl-Hirschman effective number of clusters)
-    sum_sq = float(np.sum(masses * masses))
-    n_eff_ipr = 1.0 / max(sum_sq, 1e-12)
-
-    # Exponential Shannon Entropy cluster count
-    valid_m = masses[masses > 0.0]
-    shannon_h = -float(np.sum(valid_m * np.log(valid_m)))
-    n_eff_entropy = math.exp(shannon_h)
-
-    # Occupied major clusters (>= 1% of population)
-    occupied_major = int(np.sum(masses >= 0.01))
-
-    if n_groups <= 1:
-        p_er = 0.0
+        if n_groups <= 1:
+            p_er = 0.0
+        else:
+            centers = np.zeros((n_groups, n_dims), dtype=np.float64)
+            for d in range(n_dims):
+                bin_sums = np.bincount(keys, weights=opinions[:, d], minlength=total_possible_bins)
+                centers[:, d] = bin_sums[non_empty] / counts
+            centers = np.ascontiguousarray(centers, dtype=np.float64)
+            p_er = float(_esteban_ray_binned_jit(centers, masses, float(alpha), float(kappa)))
     else:
-        centers = np.zeros((n_groups, n_dims), dtype=np.float64)
-        for d in range(n_dims):
-            centers[:, d] = np.bincount(inverse_idx, weights=opinions[:, d], minlength=n_groups) / counts
-        centers = np.ascontiguousarray(centers, dtype=np.float64)
-        p_er = float(_esteban_ray_binned_jit(centers, masses, float(alpha), float(kappa)))
+        unique_keys, inverse_idx, counts = np.unique(keys, return_inverse=True, return_counts=True)
+        n_groups = len(unique_keys)
+        masses = np.ascontiguousarray(counts.astype(np.float64) / float(n_agents))
+
+        sum_sq = float(np.sum(masses * masses))
+        n_eff_ipr = 1.0 / max(sum_sq, 1e-12)
+        valid_m = masses[masses > 0.0]
+        shannon_h = -float(np.sum(valid_m * np.log(valid_m)))
+        n_eff_entropy = math.exp(shannon_h)
+        occupied_major = int(np.sum(masses >= 0.01))
+
+        if n_groups <= 1:
+            p_er = 0.0
+        else:
+            centers = np.zeros((n_groups, n_dims), dtype=np.float64)
+            for d in range(n_dims):
+                centers[:, d] = np.bincount(inverse_idx, weights=opinions[:, d], minlength=n_groups) / counts
+            centers = np.ascontiguousarray(centers, dtype=np.float64)
+            p_er = float(_esteban_ray_binned_jit(centers, masses, float(alpha), float(kappa)))
 
     return {
         "esteban_ray": p_er,

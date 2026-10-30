@@ -52,10 +52,14 @@ class HDF5TrajectoryWriter:
                 if "last_completed_step" not in chk.attrs:
                     return -1
                 last_step = int(chk.attrs["last_completed_step"])
+                if last_step < 0:
+                    return -1
                 agent_state.opinions[:] = chk["opinions"][:]
                 agent_state.uncertainty[:] = chk["uncertainty"][:]
                 agent_state.exposure_count[:] = chk["exposure_count"][:]
                 agent_state.engagement_rate[:] = chk["engagement_rate"][:]
+                if "innate_beliefs" in chk:
+                    agent_state.innate_beliefs[:] = chk["innate_beliefs"][:]
                 self._initialized = True
                 return last_step
         except Exception:
@@ -71,6 +75,7 @@ class HDF5TrajectoryWriter:
                 ("uncertainty", agent_state.uncertainty),
                 ("exposure_count", agent_state.exposure_count),
                 ("engagement_rate", agent_state.engagement_rate),
+                ("innate_beliefs", agent_state.innate_beliefs),
             ]:
                 if name in chk:
                     chk[name][...] = arr
@@ -80,7 +85,7 @@ class HDF5TrajectoryWriter:
 
     def write_static_metadata(self, agent_state, metadata: dict | None = None) -> None:
         """Write fixed agent attributes, cognitive coupling matrix, and simulation metadata once."""
-        with h5py.File(self.filepath, "a") as h5f:
+        with h5py.File(self.filepath, "w") as h5f:
             if metadata:
                 for k, v in metadata.items():
                     h5f.attrs[str(k)] = v

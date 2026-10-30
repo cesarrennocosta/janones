@@ -31,11 +31,11 @@
 # ==============================================================================
 
 simulation:
-  n_agents: 10000
+  n_agents: 100000
   n_dims: 4
-  n_steps: 100
-  snapshot_interval: 5
-  checkpoint_interval: 10
+  n_steps: 800
+  snapshot_interval: 50
+  checkpoint_interval: 50
   n_candidates: 3
   n_districts: 10
   n_news_items: 1
@@ -83,6 +83,6 @@ electoral:
   noise_scale: 0.12
 
 io:
-  hdf5_compression: "gzip"
-  buffer_size: 10
-  save_full_trajectory: true
+  hdf5_compression: "lzf"
+  buffer_size: 25
+  save_full_trajectory: false
