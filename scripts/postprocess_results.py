@@ -21,6 +21,7 @@ def consolidate_parquet_shard_files(
     input_dir: str | Path,
     output_file: str | Path,
     city_scale_label: str | None = None,
+    max_seeds: int | None = None,
 ) -> Path:
     """Read all `metrics_task_*.parquet` files in `input_dir` and write a consolidated ZSTD Parquet dataset."""
     in_path = Path(input_dir)
@@ -34,6 +35,8 @@ def consolidate_parquet_shard_files(
     tables = []
     skipped = 0
     for f in shard_files:
+        if max_seeds is not None and len(tables) >= max_seeds:
+            break
         try:
             tbl = pq.read_table(f)
         except Exception:
@@ -225,6 +228,7 @@ def consolidate_scenario_suite(
     suite_prefix: str,
     master_filename: str,
     city_scale_label: str = "medium_100k",
+    max_seeds: int | None = 32,
 ) -> list[Path]:
     """Generic consolidator for multi-scenario suites (`social_media`, `extreme_imposed`,
     `extreme_imposed_1500runs`, `sync_dictation_100k`).
@@ -247,7 +251,12 @@ def consolidate_scenario_suite(
             continue
         scen_name = scen_dir.name
         out_file = out_dir / f"consolidated_{suite_prefix}_{scen_name}.parquet"
-        consolidate_parquet_shard_files(scen_dir, out_file, city_scale_label=city_scale_label)
+        consolidate_parquet_shard_files(
+            scen_dir,
+            out_file,
+            city_scale_label=city_scale_label,
+            max_seeds=max_seeds,
+        )
         tbl = pq.read_table(out_file)
         if "scenario_name" not in tbl.column_names:
             tbl = tbl.append_column(
@@ -257,7 +266,8 @@ def consolidate_scenario_suite(
         pq.write_table(tbl, out_file, compression="zstd")
         written_files.append(out_file)
         all_tables.append(tbl)
-        print(f"[OK] Consolidated {len(shards)} seeds for {suite_prefix}/{scen_name} -> {out_file}")
+        n_consolidated = len(set(tbl["task_id"].to_pylist())) if "task_id" in tbl.column_names else len(shards)
+        print(f"[OK] Consolidated {n_consolidated} seeds (1500 steps) for {suite_prefix}/{scen_name} -> {out_file}")
 
     if all_tables:
         master_file = out_dir / master_filename
@@ -326,23 +336,22 @@ def main() -> None:
             suite_prefix="socmed",
             master_filename="all_social_media_metrics.parquet",
         )
+        ext_dir = root_dir / "extreme_imposed"
+        if not ext_dir.exists() or not list(ext_dir.glob("*/*.parquet")):
+            ext_dir = root_dir / "extreme_imposed_1500runs"
         consolidate_scenario_suite(
-            suite_dir=root_dir / "extreme_imposed",
+            suite_dir=ext_dir,
             output_dir=out_dir,
             suite_prefix="extimp",
             master_filename="all_extreme_imposed_metrics.parquet",
-        )
-        consolidate_scenario_suite(
-            suite_dir=root_dir / "extreme_imposed_1500runs",
-            output_dir=out_dir,
-            suite_prefix="ext1500",
-            master_filename="all_extreme_imposed_1500runs_metrics.parquet",
+            max_seeds=32,
         )
         consolidate_scenario_suite(
             suite_dir=root_dir / "sync_dictation_100k",
             output_dir=out_dir,
             suite_prefix="syncdict",
             master_filename="all_sync_dictation_metrics.parquet",
+            max_seeds=32,
         )
     elif args.all_trad_media:
         out_dir = Path(args.scratch_base).parent / "consolidated"
