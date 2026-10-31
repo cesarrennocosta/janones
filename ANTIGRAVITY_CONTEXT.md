@@ -441,6 +441,7 @@ Grounded in **Bail et al. (2018, *PNAS*)**, **Rathje, Van Bavel, & van der Linde
   - `all_tendentiousness_metrics.parquet`: Consolidated 7-scenario media tendentiousness sweep ($M=1$) and symmetric/asymmetric duopoly ($M=2$) dataset at $N = 100,000$.
   - `all_social_media_metrics.parquet`: Consolidated 6-scenario social media comparison (Factual, Mixed, and Tendentious influencers **With** vs. **Without** the $M=3$ Brazilian Tripolar Traditional Press ecosystem).
   - `all_extreme_imposed_metrics.parquet`: Consolidated 6-scenario `extreme_imposed` dataset across `1500` steps (Baseline `1x`, Moderate Boost `3.5x/4x`, and High Boost `7x/8x`, **With** vs. **Without** the $M=3$ Tripolar Press).
+  - `all_sync_dictation_metrics.parquet`: Consolidated 6-scenario long-term ablation of synchronization tactics, influencer co-working, and intermedia fact/subject dictation across `1500` steps.
   - `trajectory_task_0000.h5`: Full $10\text{k}$ spatial/opinion trajectory snapshot for PCA and bivariate density visualization.
 
 ---
@@ -480,11 +481,35 @@ Implemented in [`AnalyticsEngine.compute_step_metrics`](file:///Users/rennocosta
    - [`scripts/slurm/extreme_imposed_1500runs_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_1500runs_intel128.sh) (`ex1500i`, array `0-149`, 60 runs/task = 9,000 total runs across 6 scenarios)
    - [`scripts/slurm/extreme_imposed_1500runs_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/extreme_imposed_1500runs_amd512.sh) (`ex1500a`, array `0-74`, 120 runs/task = 9,000 total runs across 6 scenarios)
 
-### D. Executing Analysis Notebooks & Regenerating Figures (`figures/`)
+---
+
+## 10. Long-Term Synchronization Tactics, Influencer Co-Working & Intermedia Fact/Subject Dictation
+
+### A. Literature-Grounded Mechanisms
+1. **Tendentious & Synchronized Focal-Fact Campaigns (`sync_tactics_enabled`, `--sync-tactics`):**
+   - **References:** **Pacheco et al. (2021, *ICWSM*)**, **Giglietto et al. (2020, *Information, Communication & Society*)**, **Pennycook, Cannon, & Rand (2018, *J. Exp. Psychol. Gen.*)**.
+   - **Mechanism:** In `NewsEntityPool.step_synchronized_fact_campaign`, `extreme_imposed` influencers coordinate around a specific focal fact $\mathbf{f}_{k^*}$ and its primary subject dimension $s_{k^*}$, aligning their posts tightly around $\mathbf{y}_{k^*}^{\text{sync}} = \text{clip}(0.86\mathbf{e}_{\text{imp}} + 0.14\mathbf{f}_{k^*}, -1, 1)$. Multi-source synchronized repetition widens bounded confidence by $1.25\times$, boosts assimilation pull by $1.22\times$, and accelerates long-term innate belief internalization (`cult_rate = 0.26`).
+2. **Influencer Co-Working & Cross-Network Funneling (`cowork_enabled`, `--cowork`):**
+   - **References:** **Lewis, R. (2018, *Alternative Influence*, Data & Society)**, **Ribeiro et al. (2020, *ACM FAT***)**, **Centola (2010, *Science*)**.
+   - **Mechanism:** In `influencer_network_broadcast_and_follower_dynamics_jit`, `extreme_imposed` influencers co-work (joint streams, guest collabs, cross-tags) with partner influencers $k_{\text{partner}}$, directly accessing a fraction (`cowork_reach_fraction = 0.50`) of $k_{\text{partner}}$'s follower network (`cowork_cross_exposures`) with co-host parasocial trust endorsement and cross-recruiting followers from the partner's audience (raising carrying capacity from $0.85 N$ to $1.35 N$).
+3. **Intermedia Dictation of Subjects & Facts to Traditional Media & Variable Fact Relevance/Longevity (`fact_dictation_enabled`, `--fact-dictation`):**
+   - **References:** **McCombs (2004/2014, *Setting the Agenda*)**, **Harder, Sevenans, & Van Aelst (2017, *Int. J. Press/Politics*)**, **Gilardi et al. (2022, *Political Communication*)**, **Marwick & Lewis (2017, *Media Manipulation and Disinformation Online*)**, **Downs (1972, *Issue-Attention Cycle*)**, **Hilgartner & Bosk (1988, *AJS*)**.
+   - **Mechanism:**
+     - Each fact $k$ has heterogeneous intrinsic relevance $r_k \in [0.25, 1.0]$ (`0.25 + 0.75 * Beta(1.6, 2.0)`) and longevity multiplier $L_k \ge 1.0$ (`eff_decay_rate = vehicle_decay_rate / L_k`), so more relevant facts naturally last longer.
+     - When the synchronized influencer network amplifies a focal fact $k^*$, it generates an endogenous push in public interest (`sync_network_interest_push`) that:
+       1. Forces traditional media vehicles ($M=3$: TV, Radio, Written Press) to notice and report on $k^*$ (`dictated_trad_share`), overriding ideological gatekeeping barriers;
+       2. Pulls traditional media framing partially toward the dictated subject angle (`fact_dictation_pull = 0.42`);
+       3. Extends the fact's longevity multiplier (`mean_fact_longevity`) in both social and traditional media so pushed facts dominate the news cycle for longer periods.
+
+### B. Supercomputer SLURM Scripts for Synchronization & Dictation
+- [`scripts/slurm/sync_dictation_100k_intel128.sh`](file:///Users/rennocosta/janones/scripts/slurm/sync_dictation_100k_intel128.sh) (`sy100ki`, array `0-23`, $N = 100,000$, $1500$ steps, $32$ seeds/scenario across 6 incremental ablation scenarios)
+- [`scripts/slurm/sync_dictation_100k_amd512.sh`](file:///Users/rennocosta/janones/scripts/slurm/sync_dictation_100k_amd512.sh) (`sy100ka`, array `0-11`, $N = 100,000$, $1500$ steps, $32$ seeds/scenario)
+
+### C. Executing Analysis Notebooks & Regenerating Figures (`figures/`)
 All three analysis notebooks have valid `nbformat` cell IDs, raw-string LaTeX labels (`r'...'`), and can be executed end-to-end via `uv`:
 ```bash
 uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_local_cities.ipynb
 uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_traditional_media.ipynb
 uv run jupyter nbconvert --to notebook --execute --inplace /Users/rennocosta/janones/notebooks/analyze_social_media.ipynb
 ```
-Generated figures are written to `/Users/rennocosta/janones/figures/` (`fig1_*.png`–`fig5_*.png`, `fig_trad1_*.png`–`fig_trad5_*.png`, and `fig_sm1_*.png`–`fig_sm3_*.png`).
+Generated figures are written to `/Users/rennocosta/janones/figures/` (`fig1_*.png`–`fig5_*.png`, `fig_trad1_*.png`–`fig_trad5_*.png`, and `fig_sm1_*.png`–`fig_sm4_*.png`).

@@ -32,8 +32,17 @@ def consolidate_parquet_shard_files(
         raise FileNotFoundError(f"No Parquet metric shards found in {in_path}")
 
     tables = []
+    skipped = 0
     for f in shard_files:
-        tbl = pq.read_table(f)
+        try:
+            tbl = pq.read_table(f)
+        except Exception:
+            try:
+                tbl = pq.ParquetFile(f).read()
+            except Exception as exc:
+                skipped += 1
+                print(f"[WARN] Skipping corrupted/incomplete shard {f}: {exc}")
+                continue
         if city_scale_label is not None and "city_scale" not in tbl.column_names:
             tbl = tbl.append_column(
                 "city_scale",
@@ -45,6 +54,11 @@ def consolidate_parquet_shard_files(
                 pa.array([CITY_SCALES[city_scale_label]] * tbl.num_rows, type=pa.int64()),
             )
         tables.append(tbl)
+
+    if not tables:
+        raise FileNotFoundError(f"No readable Parquet metric shards found in {in_path}")
+    if skipped > 0:
+        print(f"[INFO] Skipped {skipped} corrupted/incomplete shard(s) in {in_path}")
 
     combined = pa.concat_tables(tables, promote_options="default")
     pq.write_table(combined, out_path, compression="zstd")
