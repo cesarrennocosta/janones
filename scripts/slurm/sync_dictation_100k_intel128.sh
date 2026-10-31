@@ -64,58 +64,65 @@ echo "[$(date)] Starting sy100ki Task ${TASK_ID}: Scenario=${SCENARIO}, Seeds=${
 for SEED in $(seq ${SEED_START} ${SEED_END}); do
   case "${SCENARIO}" in
     unsync_nopress)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --social-media-only --extreme-imposed \
-        --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --social-media-only --extreme-imposed \
+          --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
     sync_cowork_nopress)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --social-media-only --extreme-imposed \
-        --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --sync-tactics --cowork \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --social-media-only --extreme-imposed \
+          --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --sync-tactics --cowork \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
     unsync_withpress_m3)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
-        --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
+          --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
     sync_only_withpress)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
-        --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --sync-tactics \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
+          --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --sync-tactics \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
     sync_cowork_withpress)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
-        --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --sync-tactics --cowork \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
+          --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --sync-tactics --cowork \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
     full_sync_cowork_dict)
-      uv run python scripts/run_single_simulation.py \
-        --config configs/extreme_imposed.yaml \
-        --n-agents 100000 --n-steps 1500 \
-        --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
-        --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
-        --sync-tactics --cowork --fact-dictation \
-        --task-id "${SEED}" --output-dir "${OUT_DIR}"
+      flock -n "${OUT_DIR}/.lock_seed_${SEED}" \
+        uv run python scripts/run_single_simulation.py \
+          --config configs/extreme_imposed.yaml \
+          --n-agents 100000 --n-steps 1500 --checkpoint-interval 50 \
+          --full-media-ecosystem --n-vehicle-groups 3 --tendentiousness "0.80,0.25,0.65" \
+          --extreme-imposed --extreme-reach-boost 3.5 --extreme-popularity-boost 4.0 \
+          --sync-tactics --cowork --fact-dictation \
+          --task-id "${SEED}" --output-dir "${OUT_DIR}" &
       ;;
   esac
 done
+wait
 
 echo "[$(date)] Completed sy100ki Task ${TASK_ID} (${SCENARIO})"

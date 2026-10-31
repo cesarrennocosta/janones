@@ -94,16 +94,17 @@ START_SEED=$(( BLOCK_ID * 25 ))
 END_SEED=$(( START_SEED + 24 ))
 
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
-    python3 scripts/run_single_simulation.py \
-        --config configs/social_media_ecosystem.yaml \
-        --n-agents 100000 \
-        --n-steps 1500 \
-        --checkpoint-interval 50 \
-        --init-mode uniform_random \
-        --influencer-tendentiousness "${INF_TEND}" \
-        "${MODE_FLAGS[@]}" \
-        --output-dir "${OUTPUT_DIR}" \
-        --task-id "${SEED_ID}" &
+    flock -n "${OUTPUT_DIR}/.lock_seed_${SEED_ID}" \
+        python3 scripts/run_single_simulation.py \
+            --config configs/social_media_ecosystem.yaml \
+            --n-agents 100000 \
+            --n-steps 1500 \
+            --checkpoint-interval 50 \
+            --init-mode uniform_random \
+            --influencer-tendentiousness "${INF_TEND}" \
+            "${MODE_FLAGS[@]}" \
+            --output-dir "${OUTPUT_DIR}" \
+            --task-id "${SEED_ID}" &
 done
 
 wait

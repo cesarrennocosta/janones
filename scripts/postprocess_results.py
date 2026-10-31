@@ -31,6 +31,9 @@ def consolidate_parquet_shard_files(
     shard_files = sorted(in_path.glob("metrics_task_*.parquet"))
     if not shard_files:
         raise FileNotFoundError(f"No Parquet metric shards found in {in_path}")
+    if max_seeds is not None and len(shard_files) > max_seeds:
+        # Prefer fully completed shards (largest row count / file size) first
+        shard_files = sorted(shard_files, key=lambda p: (-p.stat().st_size, p.name))
 
     tables = []
     skipped = 0

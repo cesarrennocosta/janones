@@ -90,20 +90,21 @@ mkdir -p "${OUTPUT_DIR}"
 
 python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
 
-START_SEED=$(( BLOCK_ID * 50 ))
+START_SEED=$(( (1 - BLOCK_ID) * 50 ))
 END_SEED=$(( START_SEED + 49 ))
 
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
-    python3 scripts/run_single_simulation.py \
-        --config configs/social_media_ecosystem.yaml \
-        --n-agents 100000 \
-        --n-steps 1500 \
-        --checkpoint-interval 50 \
-        --init-mode uniform_random \
-        --influencer-tendentiousness "${INF_TEND}" \
-        "${MODE_FLAGS[@]}" \
-        --output-dir "${OUTPUT_DIR}" \
-        --task-id "${SEED_ID}" &
+    flock -n "${OUTPUT_DIR}/.lock_seed_${SEED_ID}" \
+        python3 scripts/run_single_simulation.py \
+            --config configs/social_media_ecosystem.yaml \
+            --n-agents 100000 \
+            --n-steps 1500 \
+            --checkpoint-interval 50 \
+            --init-mode uniform_random \
+            --influencer-tendentiousness "${INF_TEND}" \
+            "${MODE_FLAGS[@]}" \
+            --output-dir "${OUTPUT_DIR}" \
+            --task-id "${SEED_ID}" &
 done
 
 wait
