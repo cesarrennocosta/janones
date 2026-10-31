@@ -370,6 +370,7 @@ class MediaEngine:
                     influencer_ids=graph_engine.influencer_ids,
                     replace_fraction=0.15,
                     rng=rng,
+                    step_idx=step_idx,
                 )
 
         # Compute aggregate influencer follower inequality (Gini), tendentious audience share,

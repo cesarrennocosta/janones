@@ -8,11 +8,11 @@ import numpy as np
 
 from src.core.agent_state import AgentStateEngine
 from src.core.multiplex_network import GraphEngine
-from src.core.news_entity import NewsEntityPool
+from src.core.news_entity import NewsEntityPool, compute_fact_bias_vector
 from src.engines.electoral_engine import ElectoralEngine
 from src.engines.media_engine import MediaEngine
 from src.io.parquet_writer import HPCStorage
-from src.kernels.opinion_updates import DynamicsKernel
+from src.kernels.opinion_updates import DynamicsKernel, step_conviction_and_opinion_tether_jit
 from src.metrics.polarization import AnalyticsEngine
 
 
@@ -72,6 +72,14 @@ class SimulationEngine:
             if self.enable_traditional_media
             else 0
         )
+        self.conviction_dynamics_enabled = bool(
+            sim_cfg.get("conviction_dynamics_enabled", False)
+        )
+        self.max_excursion_base = float(sim_cfg.get("max_excursion_base", 0.34))
+        self.conviction_drift_rate = float(sim_cfg.get("conviction_drift_rate", 0.0024))
+        self.crystallization_tau = float(sim_cfg.get("crystallization_tau", 280.0))
+        self.fact_direct_pull = float(sim_cfg.get("fact_direct_pull", 0.055))
+        self.fact_bias_mode = str(media_cfg.get("fact_bias_mode", "neutral"))
 
         # 1. Initialize AgentStateEngine
         self.agent_state = AgentStateEngine.initialize(
@@ -153,6 +161,7 @@ class SimulationEngine:
                 fact_dictation_pull=float(
                     media_cfg.get("fact_dictation_pull", 0.42)
                 ),
+                fact_bias_mode=self.fact_bias_mode,
                 agent_opinions=self.agent_state.opinions,
                 agent_innate_beliefs=self.agent_state.innate_beliefs,
             )
@@ -287,6 +296,12 @@ class SimulationEngine:
                 )
 
         for step in range(start_step, self.n_steps + 1):
+            prev_opinions = self.agent_state.opinions.copy()
+            prev_convictions = self.agent_state.innate_beliefs.copy()
+            fact_bias_vec, fact_bias_active = compute_fact_bias_vector(
+                step, self.n_dims, self.fact_bias_mode
+            )
+
             if step > 0:
                 self.dynamics_kernel.step_interpersonal(
                     self.agent_state, self.graph_engine, self.rng_dynamics
@@ -310,6 +325,24 @@ class SimulationEngine:
                         "feed_engaged": 0.0,
                         "whatsapp_cascades": 0.0,
                     }
+
+                if self.conviction_dynamics_enabled:
+                    # Keep conviction evolution strictly governed by the slow two-timescale integrator
+                    self.agent_state.innate_beliefs[:] = prev_convictions
+                    step_conviction_and_opinion_tether_jit(
+                        self.agent_state.opinions,
+                        self.agent_state.innate_beliefs,
+                        self.agent_state.age,
+                        self.agent_state.ses,
+                        self.agent_state.susceptibility,
+                        fact_bias_vec,
+                        int(step),
+                        float(self.max_excursion_base),
+                        float(self.conviction_drift_rate),
+                        float(self.crystallization_tau),
+                        float(self.fact_direct_pull),
+                        1 if fact_bias_active else 0,
+                    )
             else:
                 media_stats = {
                     "broadcast_reached": 0.0,
@@ -332,6 +365,10 @@ class SimulationEngine:
                 electoral_result=last_electoral,
                 media_stats=media_stats,
                 news_pool=self.news_pool,
+                candidate_profiles=self.electoral_engine.candidate_profiles,
+                prev_opinions=prev_opinions,
+                prev_convictions=prev_convictions,
+                fact_bias_d0=float(fact_bias_vec[0]) if self.n_dims > 0 else 0.0,
             )
             step_metrics["task_id"] = self.task_id
             step_metrics["n_agents"] = self.n_agents

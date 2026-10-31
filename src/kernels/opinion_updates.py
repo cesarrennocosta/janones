@@ -219,6 +219,139 @@ def apply_media_assimilation_jit(
     return engaged_flags
 
 
+@njit(parallel=True, fastmath=True)
+def step_conviction_and_opinion_tether_jit(
+    opinions: np.ndarray,
+    innate_beliefs: np.ndarray,
+    age: np.ndarray,
+    ses: np.ndarray,
+    susceptibility: np.ndarray,
+    fact_bias_vec: np.ndarray,
+    step_idx: int,
+    max_excursion_base: float = 0.34,
+    conviction_drift_rate: float = 0.0024,
+    crystallization_tau: float = 280.0,
+    fact_direct_pull: float = 0.055,
+    fact_bias_active: int = 0,
+) -> tuple[float, float]:
+    """Two-timescale update coupling fast current opinions x_i(t) and slow convictions s_i(t).
+
+    Grounded in Converse (1964), Zaller (1992, RAS Model), Alwin & Krosnick (1991, Aging-Stability),
+    Howe & Krosnick (2017, Attitude Extremity), and Kiley & Vaisey (2020):
+    1. Current opinions x_i(t) respond rapidly to current news/fact environments, modulated by
+       individual conviction extremity E_i = ||s_i||/sqrt(d), age, and SES.
+    2. Elastic Conviction Tether: x_i(t) can fluctuate around conviction s_i(t) (enough to swing
+       elections), but is smoothly bounded within an individual excursion envelope Delta_{max, i}
+       around s_i(t).
+    3. Slow Conviction Stabilization & Adaptation: s_i(t) evolves slowly toward sustained opinion
+       experience and crystallizes (stabilizes) over time, changing much more slowly than x_i(t)
+       even under strong shifts in exogenous fact bias.
+    """
+    n_agents, n_dims = opinions.shape
+    inv_sqrt_d = 1.0 / math.sqrt(float(n_dims))
+    cryst_factor = 1.0 / (1.0 + math.pow(float(max(0, step_idx)) / max(10.0, crystallization_tau), 1.15))
+
+    total_op_delta = 0.0
+    total_conv_delta = 0.0
+
+    for i in prange(n_agents):
+        age_norm = (age[i] - 16.0) / 74.0
+        if age_norm < 0.0:
+            age_norm = 0.0
+        elif age_norm > 1.0:
+            age_norm = 1.0
+        ses_i = ses[i]
+        alpha_i = susceptibility[i]
+
+        # Compute individual conviction extremity E_i = ||s_i||_2 / sqrt(d) in [0, 1]
+        s_norm_sq = 0.0
+        for d in range(n_dims):
+            s_norm_sq += innate_beliefs[i, d] * innate_beliefs[i, d]
+        ext_i = math.sqrt(s_norm_sq) * inv_sqrt_d
+        if ext_i > 1.0:
+            ext_i = 1.0
+
+        # 1. Fast current-opinion sensitivity to ambient exogenous fact bias (when active)
+        if fact_bias_active == 1:
+            # Centrists and younger adults respond more strongly to shifting real-world facts
+            fast_pull = (
+                fact_direct_pull
+                * (1.30 - 0.72 * ext_i)
+                * (1.18 - 0.48 * age_norm)
+                * (0.85 + 0.30 * ses_i)
+            )
+            for d in range(n_dims):
+                opinions[i, d] += fast_pull * (fact_bias_vec[d] - opinions[i, d])
+
+        # 2. Elastic conviction tether: keep x_i(t) within bounded excursion Delta_{max, i} of s_i(t)
+        gap_sq = 0.0
+        for d in range(n_dims):
+            diff = opinions[i, d] - innate_beliefs[i, d]
+            gap_sq += diff * diff
+        gap_dist = math.sqrt(gap_sq) * inv_sqrt_d
+
+        # Centrists (low ext_i) and younger citizens have wider opinion excursion around conviction;
+        # extremists (high ext_i) are tightly anchored to their conviction (Howe & Krosnick, 2017)
+        max_exc_i = (
+            max_excursion_base
+            * (0.65 + 0.55 * alpha_i)
+            * math.pow(max(0.18, 1.15 - 0.95 * ext_i), 1.35)
+            * (1.16 - 0.32 * age_norm)
+        )
+        if max_exc_i < 0.05:
+            max_exc_i = 0.05
+
+        if gap_dist > 1e-9:
+            eff_gap = max_exc_i * math.tanh(gap_dist / max_exc_i)
+            scale = eff_gap / gap_dist
+        else:
+            eff_gap = 0.0
+            scale = 1.0
+
+        # 3. Slow conviction update s_i(t+1): crystallizes over time, plus slow adaptation under sustained pressure
+        eta_cryst = (
+            conviction_drift_rate
+            * cryst_factor
+            * (1.25 - 0.75 * age_norm)
+            * (1.22 - 0.68 * ext_i)
+            * (1.10 - 0.25 * ses_i)
+        )
+        # Sustained opinion-conviction tension induces slow plastic drift even after initial crystallization
+        tension_ratio = eff_gap / max(max_exc_i, 1e-6)
+        eta_sustained = (
+            conviction_drift_rate
+            * 0.28
+            * (tension_ratio * tension_ratio)
+            * (1.18 - 0.58 * age_norm)
+            * (1.20 - 0.62 * ext_i)
+        )
+        eta_conv = eta_cryst + eta_sustained
+
+        conv_step_sq = 0.0
+        for d in range(n_dims):
+            s_old = innate_beliefs[i, d]
+            x_tethered = s_old + scale * (opinions[i, d] - s_old)
+            if x_tethered > 1.0:
+                x_tethered = 1.0
+            elif x_tethered < -1.0:
+                x_tethered = -1.0
+            opinions[i, d] = x_tethered
+
+            ds = eta_conv * (x_tethered - s_old)
+            s_new = s_old + ds
+            if s_new > 1.0:
+                s_new = 1.0
+            elif s_new < -1.0:
+                s_new = -1.0
+            innate_beliefs[i, d] = s_new
+            conv_step_sq += (s_new - s_old) * (s_new - s_old)
+
+        total_op_delta += eff_gap
+        total_conv_delta += math.sqrt(conv_step_sq) * inv_sqrt_d
+
+    return total_op_delta / float(n_agents), total_conv_delta / float(n_agents)
+
+
 class DynamicsKernel:
     """High-level wrapper around Numba JIT opinion dynamics routines."""
 

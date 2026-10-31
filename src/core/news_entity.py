@@ -105,6 +105,49 @@ def default_vehicle_group_centers(n_groups: int, n_dims: int) -> np.ndarray:
     return np.ascontiguousarray(centers, dtype=np.float64)
 
 
+def compute_fact_bias_vector(
+    step_idx: int,
+    n_dims: int,
+    fact_bias_mode: str = "neutral",
+) -> tuple[np.ndarray, bool]:
+    """Return the exogenous real-world fact bias vector b_{fact}(t) in [-1, 1]^d at `step_idx`.
+
+    Modes:
+    - 'neutral': Unbiased fact stream centered at 0.0 across all steps.
+    - 'regime_shift': Three-phase exogenous fact-bias regime shift to test two-timescale
+      separation between fast current opinion x_i(t) and slow conviction s_i(t):
+        * Phase 1 (0 <= t <= 400): Neutral baseline (0.0) while convictions stabilize.
+        * Phase 2 (401 <= t <= 950): Strong positive fact-bias shift (+0.78 on even dims,
+          -0.78 on odd dims, aligned with Candidate 2 profile).
+        * Phase 3 (951 <= t <= 1500): Strong negative fact-bias reversal (-0.82 on even dims,
+          +0.82 on odd dims, aligned with Candidate 0 profile).
+    - 'positive_shift': Shift from 0.0 (t <= 450) to +0.78 (t > 450).
+    """
+    vec = np.zeros(n_dims, dtype=np.float64)
+    mode = (fact_bias_mode or "neutral").lower()
+    if mode == "neutral":
+        return vec, False
+
+    amp = 0.0
+    if mode == "regime_shift":
+        if step_idx <= 400:
+            amp = 0.0
+        elif step_idx <= 950:
+            amp = 0.78
+        else:
+            amp = -0.82
+    elif mode == "positive_shift":
+        amp = 0.0 if step_idx <= 450 else 0.78
+
+    if abs(amp) < 1e-6:
+        return vec, False
+
+    for d in range(n_dims):
+        sign = 1.0 if d % 2 == 0 else -1.0
+        vec[d] = sign * amp
+    return vec, True
+
+
 @dataclass
 class TraditionalMediaEcosystem:
     """Models M traditional media vehicle groups (conglomerates), each operating 3 vehicles:
@@ -163,6 +206,8 @@ class TraditionalMediaEcosystem:
     last_dictated_trad_share: float = 0.0
     last_mean_fact_longevity: float = 1.0
     last_mean_fact_relevance: float = 0.65
+    fact_bias_mode: str = "neutral"
+    last_fact_bias_d0: float = 0.0
 
     @classmethod
     def initialize(
@@ -175,6 +220,7 @@ class TraditionalMediaEcosystem:
         gatekeeping_sigma: float = 0.85,
         framing_noise_std: float = 0.05,
         seed: int | np.random.Generator | None = None,
+        fact_bias_mode: str = "neutral",
     ) -> "TraditionalMediaEcosystem":
         """Build M vehicle groups (each with TV, Radio, and Press) with configurable tendentiousness."""
         n_groups = max(0, int(n_groups))
@@ -283,6 +329,7 @@ class TraditionalMediaEcosystem:
             framing_noise_std=float(framing_noise_std),
             dictated_active_intensity=np.zeros(n_vehicles, dtype=np.float64),
             active_longevity_mult=np.ones(n_vehicles, dtype=np.float64),
+            fact_bias_mode=str(fact_bias_mode or "neutral"),
         )
         return eco
 
@@ -342,10 +389,18 @@ class TraditionalMediaEcosystem:
         inv_sqrt_d = 1.0 / math.sqrt(float(self.n_dims))
         step_relevances: list[float] = []
         step_longevities: list[float] = []
+        fact_bias_vec, fact_bias_active = compute_fact_bias_vector(
+            step_idx, self.n_dims, self.fact_bias_mode
+        )
+        self.last_fact_bias_d0 = float(fact_bias_vec[0]) if self.n_dims > 0 else 0.0
 
         for _ in range(n_facts):
             # Objective fact valence vector f_k in [-1, 1]^d and heterogeneous relevance r_k in [0.25, 1.0]
-            fact_vec = rng.uniform(-1.0, 1.0, size=self.n_dims)
+            raw_fact = rng.uniform(-1.0, 1.0, size=self.n_dims)
+            if fact_bias_active:
+                fact_vec = np.clip(0.32 * raw_fact + 0.68 * fact_bias_vec, -1.0, 1.0)
+            else:
+                fact_vec = raw_fact
             # Some facts are routine/ephemeral while others are highly relevant and last longer
             fact_relevance = float(0.25 + 0.75 * rng.beta(1.6, 2.0))
             fact_longevity = float(0.75 + 1.15 * fact_relevance)
@@ -526,6 +581,7 @@ class NewsEntityPool:
     sync_focal_fact_remaining_steps: int = 0
     sync_primary_subject: int = 0
     sync_network_interest_push: float = 0.0
+    fact_bias_mode: str = "neutral"
 
     @classmethod
     def initialize(
@@ -555,6 +611,7 @@ class NewsEntityPool:
         cowork_reach_fraction: float = 0.50,
         fact_dictation_enabled: bool = False,
         fact_dictation_pull: float = 0.42,
+        fact_bias_mode: str = "neutral",
         agent_opinions: np.ndarray | None = None,
         agent_innate_beliefs: np.ndarray | None = None,
     ) -> "NewsEntityPool":
@@ -743,6 +800,7 @@ class NewsEntityPool:
             fact_rate=fact_rate,
             gatekeeping_sigma=gatekeeping_sigma,
             seed=rng,
+            fact_bias_mode=fact_bias_mode,
         )
 
         # Keep broadcast_orientations synchronized with vehicle centers for backward compatibility
@@ -788,6 +846,7 @@ class NewsEntityPool:
             sync_focal_fact_remaining_steps=max(4, int(round(6.0 * focal_fact_longev))),
             sync_primary_subject=primary_subj,
             sync_network_interest_push=1.0 if (extreme_imposed_enabled and sync_tactics_enabled) else 0.0,
+            fact_bias_mode=str(fact_bias_mode or "neutral"),
             n_broadcast=n_b,
             broadcast_orientations=broadcast_orientations,
             broadcast_credibility=broadcast_credibility,
@@ -868,6 +927,7 @@ class NewsEntityPool:
         influencer_ids: np.ndarray | None = None,
         replace_fraction: float = 0.20,
         rng: np.random.Generator | None = None,
+        step_idx: int = 0,
     ) -> None:
         """Coevolution step: influencers refresh content according to their factual vs. tendentious profile."""
         if rng is None:
@@ -898,6 +958,11 @@ class NewsEntityPool:
             tend_chosen = np.full(n_replace, 0.60, dtype=np.float64)
 
         fact_anchor = rng.uniform(-0.60, 0.60, size=(n_replace, self.n_dims))
+        fact_bias_vec, fact_bias_active = compute_fact_bias_vector(
+            step_idx, self.n_dims, self.fact_bias_mode
+        )
+        if fact_bias_active:
+            fact_anchor = np.clip(0.35 * fact_anchor + 0.65 * fact_bias_vec[None, :], -1.0, 1.0)
         inf_anchor = np.clip(
             influencer_opinions[chosen_inf] * (0.95 + 0.40 * tend_chosen[:, None]), -1.0, 1.0
         )

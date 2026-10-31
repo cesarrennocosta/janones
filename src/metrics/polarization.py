@@ -345,6 +345,353 @@ def compute_media_center_of_mass_metrics(
     return res
 
 
+@njit(fastmath=True)
+def _conviction_cohort_kernel_jit(
+    opinions: np.ndarray,
+    innate_beliefs: np.ndarray,
+    prev_opinions: np.ndarray,
+    prev_convictions: np.ndarray,
+    age: np.ndarray,
+    ses: np.ndarray,
+    candidate_profiles: np.ndarray,
+) -> tuple:
+    """Single-pass JIT kernel computing conviction vs. opinion gaps, step volatilities,
+    counterfactual conviction vote shares, and demographic/extremity cohort breakdowns.
+    """
+    n_agents, n_dims = opinions.shape
+    n_cands = candidate_profiles.shape[0]
+    inv_sqrt_d = 1.0 / math.sqrt(float(n_dims))
+
+    sum_gap = 0.0
+    sum_op_vol = 0.0
+    sum_conv_vol = 0.0
+    sum_ext = 0.0
+    swing_total = 0
+
+    # Age cohorts: young (<30), mid (30..55), senior (>=55)
+    cnt_young = 0
+    cnt_mid = 0
+    cnt_senior = 0
+    gap_young = 0.0
+    gap_mid = 0.0
+    gap_senior = 0.0
+    op_vol_young = 0.0
+    op_vol_mid = 0.0
+    op_vol_senior = 0.0
+    conv_vol_young = 0.0
+    conv_vol_mid = 0.0
+    conv_vol_senior = 0.0
+    swing_young = 0
+    swing_mid = 0
+    swing_senior = 0
+
+    # SES cohorts: low (<0.35), high (>=0.55)
+    cnt_low_ses = 0
+    cnt_high_ses = 0
+    gap_low_ses = 0.0
+    gap_high_ses = 0.0
+    op_vol_low_ses = 0.0
+    op_vol_high_ses = 0.0
+    swing_low_ses = 0
+    swing_high_ses = 0
+
+    # Conviction extremity cohorts: centrist (<0.35), moderate (0.35..0.60), extremist (>0.60)
+    cnt_cent = 0
+    cnt_mod = 0
+    cnt_ext = 0
+    gap_cent = 0.0
+    gap_mod = 0.0
+    gap_ext = 0.0
+    op_vol_cent = 0.0
+    op_vol_mod = 0.0
+    op_vol_ext = 0.0
+    conv_vol_cent = 0.0
+    conv_vol_ext = 0.0
+    swing_cent = 0
+    swing_mod = 0
+    swing_ext = 0
+
+    conv_cand_counts = np.zeros(n_cands, dtype=np.int64)
+
+    for i in range(n_agents):
+        gap_sq = 0.0
+        op_step_sq = 0.0
+        conv_step_sq = 0.0
+        s_norm_sq = 0.0
+
+        for d in range(n_dims):
+            x_d = opinions[i, d]
+            s_d = innate_beliefs[i, d]
+            dx_s = x_d - s_d
+            gap_sq += dx_s * dx_s
+            s_norm_sq += s_d * s_d
+
+            dx_t = x_d - prev_opinions[i, d]
+            op_step_sq += dx_t * dx_t
+
+            ds_t = s_d - prev_convictions[i, d]
+            conv_step_sq += ds_t * ds_t
+
+        gap_i = math.sqrt(gap_sq) * inv_sqrt_d
+        op_vol_i = math.sqrt(op_step_sq) * inv_sqrt_d
+        conv_vol_i = math.sqrt(conv_step_sq) * inv_sqrt_d
+        ext_i = math.sqrt(s_norm_sq) * inv_sqrt_d
+
+        sum_gap += gap_i
+        sum_op_vol += op_vol_i
+        sum_conv_vol += conv_vol_i
+        sum_ext += ext_i
+
+        # Closest candidate under current opinion vs. under conviction + ideological runoff midline flip
+        best_op_k = 0
+        best_op_dist = 1e12
+        best_conv_k = 0
+        best_conv_dist = 1e12
+        for k in range(n_cands):
+            d_op = 0.0
+            d_cv = 0.0
+            for d in range(n_dims):
+                diff_op = opinions[i, d] - candidate_profiles[k, d]
+                d_op += diff_op * diff_op
+                diff_cv = innate_beliefs[i, d] - candidate_profiles[k, d]
+                d_cv += diff_cv * diff_cv
+            if d_op < best_op_dist:
+                best_op_dist = d_op
+                best_op_k = k
+            if d_cv < best_conv_dist:
+                best_conv_dist = d_cv
+                best_conv_k = k
+
+        conv_cand_counts[best_conv_k] += 1
+        # Check whether opinion shift flipped either multi-candidate preference or primary issue side (d=0)
+        runoff_flipped = (opinions[i, 0] * innate_beliefs[i, 0]) < 0.0
+        is_swing = 1 if (best_op_k != best_conv_k or runoff_flipped) else 0
+        swing_total += is_swing
+
+        a_i = age[i]
+        if a_i < 30.0:
+            cnt_young += 1
+            gap_young += gap_i
+            op_vol_young += op_vol_i
+            conv_vol_young += conv_vol_i
+            swing_young += is_swing
+        elif a_i < 55.0:
+            cnt_mid += 1
+            gap_mid += gap_i
+            op_vol_mid += op_vol_i
+            conv_vol_mid += conv_vol_i
+            swing_mid += is_swing
+        else:
+            cnt_senior += 1
+            gap_senior += gap_i
+            op_vol_senior += op_vol_i
+            conv_vol_senior += conv_vol_i
+            swing_senior += is_swing
+
+        ses_i = ses[i]
+        if ses_i < 0.35:
+            cnt_low_ses += 1
+            gap_low_ses += gap_i
+            op_vol_low_ses += op_vol_i
+            swing_low_ses += is_swing
+        elif ses_i >= 0.55:
+            cnt_high_ses += 1
+            gap_high_ses += gap_i
+            op_vol_high_ses += op_vol_i
+            swing_high_ses += is_swing
+
+        if ext_i < 0.35:
+            cnt_cent += 1
+            gap_cent += gap_i
+            op_vol_cent += op_vol_i
+            conv_vol_cent += conv_vol_i
+            swing_cent += is_swing
+        elif ext_i <= 0.60:
+            cnt_mod += 1
+            gap_mod += gap_i
+            op_vol_mod += op_vol_i
+            swing_mod += is_swing
+        else:
+            cnt_ext += 1
+            gap_ext += gap_i
+            op_vol_ext += op_vol_i
+            conv_vol_ext += conv_vol_i
+            swing_ext += is_swing
+
+    return (
+        sum_gap,
+        sum_op_vol,
+        sum_conv_vol,
+        sum_ext,
+        swing_total,
+        cnt_young,
+        cnt_mid,
+        cnt_senior,
+        gap_young,
+        gap_mid,
+        gap_senior,
+        op_vol_young,
+        op_vol_mid,
+        op_vol_senior,
+        conv_vol_young,
+        conv_vol_mid,
+        conv_vol_senior,
+        swing_young,
+        swing_mid,
+        swing_senior,
+        cnt_low_ses,
+        cnt_high_ses,
+        gap_low_ses,
+        gap_high_ses,
+        op_vol_low_ses,
+        op_vol_high_ses,
+        swing_low_ses,
+        swing_high_ses,
+        cnt_cent,
+        cnt_mod,
+        cnt_ext,
+        gap_cent,
+        gap_mod,
+        gap_ext,
+        op_vol_cent,
+        op_vol_mod,
+        op_vol_ext,
+        conv_vol_cent,
+        conv_vol_ext,
+        swing_cent,
+        swing_mod,
+        swing_ext,
+        conv_cand_counts,
+    )
+
+
+def compute_conviction_and_cohort_metrics(
+    agent_state,
+    candidate_profiles: np.ndarray,
+    popular_winner: int,
+    prev_opinions: np.ndarray | None = None,
+    prev_convictions: np.ndarray | None = None,
+) -> dict[str, float | int]:
+    """Compute two-timescale conviction vs. opinion metrics, counterfactual conviction-only
+    electoral outcomes, and demographic/extremity cohort breakdowns.
+    """
+    n_agents, n_dims = agent_state.opinions.shape
+    inv_sqrt_d = 1.0 / math.sqrt(float(max(1, n_dims)))
+    prev_op = prev_opinions if prev_opinions is not None else agent_state.opinions
+    prev_cv = prev_convictions if prev_convictions is not None else agent_state.innate_beliefs
+
+    res = _conviction_cohort_kernel_jit(
+        agent_state.opinions,
+        agent_state.innate_beliefs,
+        prev_op,
+        prev_cv,
+        agent_state.age,
+        agent_state.ses,
+        candidate_profiles,
+    )
+    (
+        sum_gap,
+        sum_op_vol,
+        sum_conv_vol,
+        sum_ext,
+        swing_total,
+        cnt_young,
+        cnt_mid,
+        cnt_senior,
+        gap_young,
+        gap_mid,
+        gap_senior,
+        op_vol_young,
+        op_vol_mid,
+        op_vol_senior,
+        conv_vol_young,
+        conv_vol_mid,
+        conv_vol_senior,
+        swing_young,
+        swing_mid,
+        swing_senior,
+        cnt_low_ses,
+        cnt_high_ses,
+        gap_low_ses,
+        gap_high_ses,
+        op_vol_low_ses,
+        op_vol_high_ses,
+        swing_low_ses,
+        swing_high_ses,
+        cnt_cent,
+        cnt_mod,
+        cnt_ext,
+        gap_cent,
+        gap_mod,
+        gap_ext,
+        op_vol_cent,
+        op_vol_mod,
+        op_vol_ext,
+        conv_vol_cent,
+        conv_vol_ext,
+        swing_cent,
+        swing_mod,
+        swing_ext,
+        conv_cand_counts,
+    ) = res
+
+    n_f = float(max(1, n_agents))
+    conv_cm = np.mean(agent_state.innate_beliefs, axis=0)
+    conv_cm_norm = float(np.linalg.norm(conv_cm)) * inv_sqrt_d
+    conv_vars = np.var(agent_state.innate_beliefs, axis=0)
+    conv_disp_ratio = float(np.mean(conv_vars) / (1.0 / 3.0))
+
+    conv_winner = int(np.argmax(conv_cand_counts)) if len(conv_cand_counts) > 0 else -1
+    conv_shares = conv_cand_counts / n_f
+
+    out: dict[str, float | int] = {
+        "conv_cm_d0": float(conv_cm[0]) if n_dims > 0 else 0.0,
+        "conv_cm_norm": conv_cm_norm,
+        "conv_dispersion_ratio": conv_disp_ratio,
+        "mean_conviction_extremity": float(sum_ext / n_f),
+        "mean_op_conv_gap": float(sum_gap / n_f),
+        "opinion_step_volatility": float(sum_op_vol / n_f),
+        "conviction_step_volatility": float(sum_conv_vol / n_f),
+        "conv_popular_winner": conv_winner,
+        "election_flipped_by_opinion": 1.0 if (popular_winner >= 0 and popular_winner != conv_winner) else 0.0,
+        "swing_voter_fraction": float(swing_total / n_f),
+        "op_conv_gap_young": float(gap_young / max(1, cnt_young)),
+        "op_conv_gap_mid": float(gap_mid / max(1, cnt_mid)),
+        "op_conv_gap_senior": float(gap_senior / max(1, cnt_senior)),
+        "op_vol_young": float(op_vol_young / max(1, cnt_young)),
+        "op_vol_mid": float(op_vol_mid / max(1, cnt_mid)),
+        "op_vol_senior": float(op_vol_senior / max(1, cnt_senior)),
+        "conv_vol_young": float(conv_vol_young / max(1, cnt_young)),
+        "conv_vol_mid": float(conv_vol_mid / max(1, cnt_mid)),
+        "conv_vol_senior": float(conv_vol_senior / max(1, cnt_senior)),
+        "swing_vote_young": float(swing_young / max(1, cnt_young)),
+        "swing_vote_mid": float(swing_mid / max(1, cnt_mid)),
+        "swing_vote_senior": float(swing_senior / max(1, cnt_senior)),
+        "op_conv_gap_low_ses": float(gap_low_ses / max(1, cnt_low_ses)),
+        "op_conv_gap_high_ses": float(gap_high_ses / max(1, cnt_high_ses)),
+        "op_vol_low_ses": float(op_vol_low_ses / max(1, cnt_low_ses)),
+        "op_vol_high_ses": float(op_vol_high_ses / max(1, cnt_high_ses)),
+        "swing_vote_low_ses": float(swing_low_ses / max(1, cnt_low_ses)),
+        "swing_vote_high_ses": float(swing_high_ses / max(1, cnt_high_ses)),
+        "frac_centrist_convictions": float(cnt_cent / n_f),
+        "frac_extremist_convictions": float(cnt_ext / n_f),
+        "op_conv_gap_centrist": float(gap_cent / max(1, cnt_cent)),
+        "op_conv_gap_moderate": float(gap_mod / max(1, cnt_mod)),
+        "op_conv_gap_extremist": float(gap_ext / max(1, cnt_ext)),
+        "op_vol_centrist": float(op_vol_cent / max(1, cnt_cent)),
+        "op_vol_moderate": float(op_vol_mod / max(1, cnt_mod)),
+        "op_vol_extremist": float(op_vol_ext / max(1, cnt_ext)),
+        "conv_vol_centrist": float(conv_vol_cent / max(1, cnt_cent)),
+        "conv_vol_extremist": float(conv_vol_ext / max(1, cnt_ext)),
+        "swing_vote_centrist": float(swing_cent / max(1, cnt_cent)),
+        "swing_vote_moderate": float(swing_mod / max(1, cnt_mod)),
+        "swing_vote_extremist": float(swing_ext / max(1, cnt_ext)),
+    }
+    for k in range(len(conv_shares)):
+        out[f"conv_share_cand_{k}"] = float(conv_shares[k])
+    return out
+
+
 class AnalyticsEngine:
     """Unified analytics engine extracting multidimensional polarization, cluster counts,
     issue alignment correlations, press center-of-mass pull, network segregation, and vote metrics.
@@ -362,6 +709,10 @@ class AnalyticsEngine:
         electoral_result: dict,
         media_stats: dict | None = None,
         news_pool=None,
+        candidate_profiles: np.ndarray | None = None,
+        prev_opinions: np.ndarray | None = None,
+        prev_convictions: np.ndarray | None = None,
+        fact_bias_d0: float = 0.0,
     ) -> dict:
         """Compute all aggregate scalar, clustering, correlation, press CM, and candidate metrics for a step."""
         from src.metrics.network_metrics import compute_ideological_segregation
@@ -502,6 +853,17 @@ class AnalyticsEngine:
             record[f"votes_cand_{k}"] = int(pop_counts[k])
             record[f"share_cand_{k}"] = float(pop_shares[k])
             record[f"seats_cand_{k}"] = int(dist_seats[k])
+
+        if candidate_profiles is not None:
+            conv_metrics = compute_conviction_and_cohort_metrics(
+                agent_state=agent_state,
+                candidate_profiles=candidate_profiles,
+                popular_winner=int(electoral_result["popular_winner"]),
+                prev_opinions=prev_opinions,
+                prev_convictions=prev_convictions,
+            )
+            record.update(conv_metrics)
+            record["fact_bias_d0"] = float(fact_bias_d0)
 
         return record
 

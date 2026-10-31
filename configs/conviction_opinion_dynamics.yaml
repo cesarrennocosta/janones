@@ -1,0 +1,83 @@
+# ==============================================================================
+# OmniOpinion Configuration: Two-Timescale Conviction vs. Current Opinion Dynamics
+# Reference Scale: Medium City (N = 100,000) | 1500 Steps | 100 Seeds/Scenario
+#
+# Models:
+# 1. Slow-moving Convictions s_i(t) (Converse, 1964; Zaller, 1992; Alwin & Krosnick, 1991;
+#    Kiley & Vaisey, 2020) that crystallize and stabilize over time.
+# 2. Fast-moving Current Opinions x_i(t) that govern electoral ballot casting
+#    (ElectoralEngine) and respond rapidly to interpersonal encounters, media, and
+#    real-world facts, while remaining elastically tethered within a bounded
+#    excursion radius around s_i(t).
+# 3. Heterogeneity by Person Features (Age, SES/Education) and Centrist vs.
+#    Extremist Conviction (Howe & Krosnick, 2017; Sherif & Hovland, 1961).
+# 4. Exogenous Fact-Bias Regime Shifts ('regime_shift': 0.0 -> +0.78 -> -0.82)
+#    demonstrating that current opinions shift rapidly and flip elections while
+#    convictions evolve much more slowly.
+# ==============================================================================
+
+simulation:
+  n_agents: 100000
+  n_dims: 4
+  n_steps: 1500
+  snapshot_interval: 50
+  checkpoint_interval: 50
+  n_candidates: 3
+  n_districts: 10
+  n_news_items: 48
+  init_mode: "uniform_random"
+  age_distribution: "ibge_2022"
+  base_epsilon: 0.45
+  base_assimilation_bias: 1.25
+  dt: 0.15
+  noise_std: 0.012
+  er_alpha: 1.3
+  er_bins: 4
+  conviction_dynamics_enabled: true
+  max_excursion_base: 0.34
+  conviction_drift_rate: 0.0024
+  crystallization_tau: 280.0
+  fact_direct_pull: 0.055
+
+networks:
+  family_degree: 3.2
+  work_school_degree: 8.5
+  church_community_degree: 4.5
+  friends_degree: 6.0
+  weak_ties_degree: 5.0
+  social_feed_out_degree: 12
+  influencer_Power_alpha: 2.3
+  n_influencers: 80
+  n_whatsapp_groups_per_1k: 45
+  max_whatsapp_group_size: 256
+
+media:
+  enabled: true
+  traditional_enabled: true
+  social_enabled: true
+  n_vehicle_groups: 3
+  group_tendentiousness: [0.80, 0.25, 0.65]
+  influencer_tendentiousness: "heterogeneous"
+  fact_rate: 1.8
+  gatekeeping_sigma: 0.85
+  traditional_selectivity_beta: 1.2
+  broadcast_strength: 0.065
+  feed_strength: 0.075
+  beta: 2.0
+  emotional_boost: 1.5
+  dislike_reaction_strength: 0.45
+  backfire_repulsion_strength: 0.35
+  influencer_impact_strength: 0.045
+  whatsapp_trust: 0.85
+  whatsapp_forward_prob: 0.25
+  fact_bias_mode: "neutral"
+
+electoral:
+  indifference_threshold: -1.65
+  rationality_lambda: 4.2
+  noise_scale: 0.10
+
+io:
+  hdf5_compression: "lzf"
+  buffer_size: 25
+  save_full_trajectory: false

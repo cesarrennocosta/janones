@@ -150,6 +150,44 @@ class AgentStateEngine:
             uncertainty = np.ascontiguousarray(
                 rng.uniform(0.10, 0.90, size=n_agents), dtype=np.float64
             )
+        elif init_mode in ("centrist_convictions", "extremist_convictions"):
+            if init_mode == "centrist_convictions":
+                # Unimodal centrist convictions concentrated near 0 (mostly moderate/centrist citizens)
+                innate_beliefs = np.ascontiguousarray(
+                    np.clip(rng.normal(0.0, 0.25, size=(n_agents, n_dims)), -1.0, 1.0),
+                    dtype=np.float64,
+                )
+            else:
+                # Bimodal polarized convictions anchored near +/- 0.72 across dimensions
+                pole_signs = rng.choice(np.array([-1.0, 1.0], dtype=np.float64), size=(n_agents, 1))
+                dim_pattern = np.array([1.0 if d % 2 == 0 else -1.0 for d in range(n_dims)], dtype=np.float64)
+                base_poles = pole_signs * dim_pattern[None, :] * 0.72
+                is_mod = rng.random(size=n_agents) < 0.18
+                base_poles[is_mod, :] = 0.0
+                innate_beliefs = np.ascontiguousarray(
+                    np.clip(base_poles + rng.normal(0.0, 0.16, size=(n_agents, n_dims)), -1.0, 1.0),
+                    dtype=np.float64,
+                )
+            opinions = np.ascontiguousarray(innate_beliefs.copy(), dtype=np.float64)
+            conv_extremity = np.linalg.norm(innate_beliefs, axis=1) / np.sqrt(float(n_dims))
+            susceptibility = np.clip(
+                0.85 - 0.55 * age_norm - 0.22 * conv_extremity + rng.uniform(-0.08, 0.08, size=n_agents),
+                0.05,
+                0.98,
+            )
+            susceptibility = np.ascontiguousarray(susceptibility, dtype=np.float64)
+            epsilon = np.ascontiguousarray(
+                np.clip(base_epsilon * (1.15 - 0.45 * conv_extremity) + rng.uniform(-0.08, 0.08, size=n_agents), 0.12, 1.20),
+                dtype=np.float64,
+            )
+            assimilation_bias = np.ascontiguousarray(
+                np.clip(base_assimilation_bias * (0.65 + 0.75 * conv_extremity) + rng.uniform(0.0, 0.4, size=n_agents), 0.1, 4.0),
+                dtype=np.float64,
+            )
+            uncertainty = np.ascontiguousarray(
+                np.clip(0.65 - 0.35 * conv_extremity - 0.20 * age_norm + rng.uniform(-0.08, 0.08, size=n_agents), 0.05, 0.95),
+                dtype=np.float64,
+            )
         else:
             latent_ideology = (
                 (ses - 0.45) * 0.8

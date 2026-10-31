@@ -93,9 +93,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--init-mode",
         type=str,
-        choices=["uniform_random", "correlated"],
+        choices=["uniform_random", "correlated", "centrist_convictions", "extremist_convictions"],
         default=None,
-        help="Parameter initialization mode ('uniform_random' for pure random initial conditions).",
+        help="Parameter initialization mode ('uniform_random', 'correlated', 'centrist_convictions', or 'extremist_convictions').",
+    )
+    parser.add_argument(
+        "--conviction-dynamics",
+        action="store_true",
+        help="Enable two-timescale conviction-opinion dynamics (slow stabilizing convictions + bounded current-opinion tether).",
+    )
+    parser.add_argument(
+        "--fact-bias-mode",
+        type=str,
+        choices=["neutral", "regime_shift", "positive_shift"],
+        default=None,
+        help="Exogenous fact-bias schedule ('neutral', 'regime_shift', or 'positive_shift').",
     )
     parser.add_argument(
         "--no-media",
@@ -236,6 +248,10 @@ def main() -> None:
         sim_cfg["checkpoint_interval"] = args.checkpoint_interval
     if args.init_mode is not None:
         sim_cfg["init_mode"] = args.init_mode
+    if args.conviction_dynamics:
+        sim_cfg["conviction_dynamics_enabled"] = True
+    if args.fact_bias_mode is not None:
+        media_cfg["fact_bias_mode"] = args.fact_bias_mode
     if args.no_media:
         media_cfg["enabled"] = False
         media_cfg["traditional_enabled"] = False
