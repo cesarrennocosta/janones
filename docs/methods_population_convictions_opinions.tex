@@ -271,7 +271,8 @@ where $\eta_0 = 0.0024 \ll \Delta t$ is the baseline conviction drift rate. Beca
 \caption{Summary of model variables, baseline parameters, and empirical/theoretical references.}
 \label{tab:model_parameters}
 \footnotesize
-\begin{tabular}{llll}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lp{5.1cm}p{3.6cm}p{3.8cm}}
 \toprule
 \textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
 \midrule
@@ -279,7 +280,7 @@ where $\eta_0 = 0.0024 \ll \Delta t$ is the baseline conviction drift rate. Beca
 $N$ & City population size & $\{10^4, 10^5, 10^6, 10^7\}$ & \citet{bettencourt2007growth} \\
 $D$ & Number of policy/concept dimensions & $4$ ($\Omega = [-1, 1]^4$) & \citet{converse1964nature} \\
 $T, \Delta t$ & Horizon and integration step size & $T \in \{100, 1500\}$, $\Delta t = 0.15$ & \citet{friedkin1990social} \\
-$S$ & Monte Carlo realizations (seeds) per scenario & $100$ & --- \\
+$S$ & Monte Carlo realizations per scenario & $100$ & --- \\
 $\mathbf{C}$ & Cognitive issue-coupling matrix & $\mathbb{R}^{4 \times 4}$, Eq.~\eqref{eq:coupling_matrix} & \citet{friedkin2016network} \\
 \midrule
 \multicolumn{4}{l}{\textit{Citizen Demographics \& Psychological Traits}} \\
@@ -289,16 +290,16 @@ $\mathbf{s}_i(t)$ & Deep conviction vector of citizen $i$ & $[-1, 1]^D$ & \citet
 $\mathbf{x}_i(t)$ & Current opinion vector of citizen $i$ & $[-1, 1]^D$ & \citet{zaller1992nature} \\
 $E_i(t)$ & Conviction extremity ($\|\mathbf{s}_i(t)\|_2 / \sqrt{D}$) & $[0, 1]$ & \citet{howe2017attitude} \\
 $\alpha_i$ & Interpersonal social susceptibility & $[0.05, 0.98]$, Eq.~\eqref{eq:susceptibility} & \citet{friedkin1990social, alwin1991aging} \\
-$\epsilon_i$ & Bounded confidence threshold (base $\bar{\epsilon}=0.45$) & $[0.10, 1.50]$, Eq.~\eqref{eq:bounded_confidence} & \citet{deffuant2000mixing, hegselmann2002opinion} \\
+$\epsilon_i$ & Bounded confidence (base $\bar{\epsilon}=0.45$) & $[0.10, 1.50]$, Eq.~\eqref{eq:bounded_confidence} & \citet{deffuant2000mixing, hegselmann2002opinion} \\
 $u_i(t)$ & Attitude uncertainty (Relative Agreement) & $[0.02, 1.00]$, Eq.~\eqref{eq:uncertainty_update} & \citet{deffuant2002how} \\
-$b_i$ & Biased assimilation parameter (base $\bar{b}=1.25$) & $[0.00, 5.00]$, Eq.~\eqref{eq:assimilation_bias} & \citet{lord1979biased, dandekar2013biased} \\
+$b_i$ & Biased assimilation (base $\bar{b}=1.25$) & $[0.00, 5.00]$, Eq.~\eqref{eq:assimilation_bias} & \citet{lord1979biased, dandekar2013biased} \\
 \midrule
 \multicolumn{4}{l}{\textit{Five-Layer Multiplex Interpersonal Network}} \\
-$w_1, \langle s_h \rangle$ & Layer 1 (\texttt{family}): household weight \& clique size & $w_1 = 0.36$, $\langle s_h \rangle = 2.79$ & \citet{ibge2022censo} \\
-$w_2, \langle k^{[2]} \rangle$ & Layer 2 (\texttt{work\_school}): weight \& peer degree & $w_2 = 0.26$, $\langle k^{[2]} \rangle = 10$ & \citet{inep2023censo, mte2023rais} \\
-$w_3, \langle k^{[3]} \rangle$ & Layer 3 (\texttt{church\_community}): weight \& degree & $w_3 = 0.14$, $\langle k^{[3]} \rangle = 8$ & \citet{mcpherson2001birds} \\
-$w_4, \langle k^{[4]} \rangle, p_{\mathrm{ws}}$ & Layer 4 (\texttt{friends}): small-world weight, degree, rewire & $w_4 = 0.14$, $\langle k^{[4]} \rangle = 6$, $p_{\mathrm{ws}}=0.15$ & \citet{watts1998collective} \\
-$w_5, \langle k^{[5]} \rangle$ & Layer 5 (\texttt{weak\_ties}): transit/casual weight \& degree & $w_5 = 0.10$, $\langle k^{[5]} \rangle = 4$ & \citet{granovetter1973strength, ibge2022censo} \\
+$w_1, \langle s_h \rangle$ & Layer 1 (\texttt{family}): household clique & $w_1 = 0.36$, $\langle s_h \rangle = 2.79$ & \citet{ibge2022censo} \\
+$w_2, \langle k^{[2]} \rangle$ & Layer 2 (\texttt{work\_school}): peer degree & $w_2 = 0.26$, $\langle k^{[2]} \rangle = 10$ & \citet{inep2023censo, mte2023rais} \\
+$w_3, \langle k^{[3]} \rangle$ & Layer 3 (\texttt{church\_community}): degree & $w_3 = 0.14$, $\langle k^{[3]} \rangle = 8$ & \citet{mcpherson2001birds} \\
+$w_4, \langle k^{[4]} \rangle, p_{\mathrm{ws}}$ & Layer 4 (\texttt{friends}): small-world circle & $w_4 = 0.14$, $\langle k^{[4]} \rangle = 6$, $p_{\mathrm{ws}}=0.15$ & \citet{watts1998collective} \\
+$w_5, \langle k^{[5]} \rangle$ & Layer 5 (\texttt{weak\_ties}): transit ties & $w_5 = 0.10$, $\langle k^{[5]} \rangle = 4$ & \citet{granovetter1973strength, ibge2022censo} \\
 \midrule
 \multicolumn{4}{l}{\textit{Two-Timescale Conviction--Opinion \& Fact Parameters}} \\
 $\Delta_0, \Delta_{\max, i}$ & Base and individual opinion tether radius & $\Delta_0 = 0.34$, Eq.~\eqref{eq:tether_radius} & \citet{sherif1961social, howe2017attitude} \\

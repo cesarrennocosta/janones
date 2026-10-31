@@ -1,0 +1,658 @@
+\documentclass{article}
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{amsmath}        % math environments (cases, dfrac, binom, text, boldsymbol)
+\usepackage{amssymb}        % extended math symbols
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{cleveref}       % smart cross-referencing
+\usepackage{lipsum}         % Can be removed after putting your text content
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{doi}
+
+\title{A template for the \emph{arxiv} style}
+
+% Here you can change the date presented in the paper title
+%\date{September 9, 1985}
+% Or remove it
+%\date{}
+
+\newif\ifuniqueAffiliation
+% Comment to use multiple affiliations variant of author block 
+\uniqueAffiliationtrue
+
+\ifuniqueAffiliation % Standard variant of author block
+\author{ \href{https://orcid.org/0000-0003-0417-8108}{\IfFileExists{orcid.pdf}{\includegraphics[scale=0.06]{orcid.pdf}\hspace{1mm}}{}César Rennó-Costa}\thanks{Use footnote for providing further
+		information about author (webpage, alternative
+		address)---\emph{not} for acknowledging funding agencies.} \\
+	Digital Metropolis Institute (IMD)\\
+	Federal University of Rio Grande do Norte (UFRN)\\
+	Natal, RN, Brazil\\
+	\texttt{cesar@imd.ufrn.br} \\
+	%% examples of more authors
+	%\And
+	%\href{https://orcid.org/0000-0000-0000-0000}{\includegraphics[scale=0.06]{orcid.pdf}\hspace{1mm}Elias D.~Striatum} \\
+	%Department of Electrical Engineering\\
+	%Mount-Sheikh University\\
+	%Santa Narimana, Levand \\
+	%\texttt{stariate@ee.mount-sheikh.edu} \\
+	%% \AND
+	%% Coauthor \\
+	%% Affiliation \\
+	%% Address \\
+	%% \texttt{email} \\
+	%% \And
+	%% Coauthor \\
+	%% Affiliation \\
+	%% Address \\
+	%% \texttt{email} \\
+	%% \And
+	%% Coauthor \\
+	%% Affiliation \\
+	%% Address \\
+	%% \texttt{email} \\
+}
+\else
+% Multiple affiliations variant of author block
+\usepackage{authblk}
+\renewcommand\Authfont{\bfseries}
+\setlength{\affilsep}{0em}
+% box is needed for correct spacing with authblk
+\newbox{\orcid}\sbox{\orcid}{\includegraphics[scale=0.06]{orcid.pdf}} 
+\author[1]{%
+	\href{https://orcid.org/0000-0000-0000-0000}{\usebox{\orcid}\hspace{1mm}David S.~Hippocampus\thanks{\texttt{hippo@cs.cranberry-lemon.edu}}}%
+}
+\author[1,2]{%
+	\href{https://orcid.org/0000-0000-0000-0000}{\usebox{\orcid}\hspace{1mm}Elias D.~Striatum\thanks{\texttt{stariate@ee.mount-sheikh.edu}}}%
+}
+\affil[1]{Department of Computer Science, Cranberry-Lemon University, Pittsburgh, PA 15213}
+\affil[2]{Department of Electrical Engineering, Mount-Sheikh University, Santa Narimana, Levand}
+\fi
+
+% Uncomment to override  the `A preprint' in the header
+%\renewcommand{\headeright}{Technical Report}
+%\renewcommand{\undertitle}{Technical Report}
+\renewcommand{\shorttitle}{\textit{arXiv} Template}
+
+%%% Add PDF metadata to help others organize their library
+%%% Once the PDF is generated, you can check the metadata with
+%%% $ pdfinfo template.pdf
+\hypersetup{
+pdftitle={A template for the arxiv style},
+pdfsubject={q-bio.NC, q-bio.QM},
+pdfauthor={David S.~Hippocampus, Elias D.~Striatum},
+pdfkeywords={First keyword, Second keyword, More},
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+	\lipsum[1]
+\end{abstract}
+
+
+% keywords can be removed
+\keywords{First keyword \and Second keyword \and More}
+
+
+\section{Introduction}
+\lipsum[2]
+\lipsum[3]
+
+
+
+
+% ==============================================================================
+% Methods Section: Baseline Urban Population, Multiplex Interpersonal Network,
+% and Coupled Two-Timescale Conviction--Opinion Dynamics
+% ==============================================================================
+
+\section{Methods: Population Structure, Interpersonal Multiplex Network, and Coupled Conviction--Opinion Dynamics}
+\label{sec:methods_baseline}
+
+To isolate the foundational cognitive and interpersonal mechanisms governing public attitude formation prior to introducing mass media, algorithmic social platforms, or electoral competition, we formulate a discrete-time, multidimensional agent-based model of an urban population interacting across a five-layer physical social network. All state arrays are allocated in contiguous double-precision memory and integrated synchronously using parallelized just-in-time (JIT) compiled numerical kernels \citep{lam2015numba}.
+
+% ------------------------------------------------------------------------------
+\subsection{Overall Simulation Architecture and Multidimensional Concept Space}
+\label{subsec:concept_space}
+
+We consider a city populated by $N$ citizens indexed by $i \in \mathcal{V} = \{1, 2, \dots, N\}$, evolving over discrete time steps $t \in \{0, 1, \dots, T\}$ with integration step size $\Delta t = 0.15$. To ensure statistical robustness and exact replicability across high-performance computing (HPC) array executions, each experimental condition is evaluated across $S = 100$ independent Monte Carlo realizations ($s \in \{0, \dots, 99\}$). For each realization $s$, an independent cryptographic seed sequence spawns dedicated pseudorandom number generator (PRNG) streams for demographic initialization, network topology construction, and stochastic interpersonal dynamics.
+
+Public issues and policy concepts are embedded in a compact, $D$-dimensional continuous attitude space:
+\begin{equation}
+    \Omega = [-1, 1]^D, \qquad D = 4,
+    \label{eq:concept_space}
+\end{equation}
+where each coordinate $d \in \{0, 1, 2, 3\}$ represents a primary thematic policy domain of urban and national debate:
+\begin{enumerate}
+    \item $d = 0$: \textbf{Economic and Fiscal Policy} (from state-led redistribution at $-1$ to market deregulation at $+1$);
+    \item $d = 1$: \textbf{Moral and Social Customs} (from progressive/secular norms at $-1$ to traditionalist/conservative norms at $+1$);
+    \item $d = 2$: \textbf{Environment and Climate} (from preservation-first regulation at $-1$ to resource-extraction prioritization at $+1$);
+    \item $d = 3$: \textbf{Public Security and Institutional Order} (from civil-liberties emphasis at $-1$ to punitive law-and-order emphasis at $+1$).
+\end{enumerate}
+The origin $\mathbf{0} = (0, 0, 0, 0)^\top \in \Omega$ represents a neutral, centrist position across all four thematic dimensions. For any two vectors $\mathbf{u}, \mathbf{v} \in \Omega$, we define the dimension-normalized Euclidean metric:
+\begin{equation}
+    d(\mathbf{u}, \mathbf{v}) = \frac{1}{\sqrt{D}} \|\mathbf{u} - \mathbf{v}\|_2 = \sqrt{\frac{1}{D} \sum_{d=0}^{D-1} (u_d - v_d)^2} \in [0, 2],
+    \label{eq:normalized_metric}
+\end{equation}
+so that the distance of any vector $\mathbf{u} \in \Omega$ from the ideological center $\mathbf{0}$ lies strictly in the unit interval:
+\begin{equation}
+    E(\mathbf{u}) \equiv d(\mathbf{u}, \mathbf{0}) = \frac{1}{\sqrt{D}} \|\mathbf{u}\|_2 \in [0, 1].
+    \label{eq:distance_to_center}
+\end{equation}
+
+Because citizens do not evaluate policy domains in complete isolation, logical and ideological interdependence across the $D = 4$ dimensions is represented by a row-normalized cognitive coupling matrix $\mathbf{C} = [C_{dd'}] \in \mathbb{R}^{D \times D}$ \citep{converse1964nature, friedkin2016network}. Specifically, $\mathbf{C}$ combines dominant diagonal self-consistency with decaying off-diagonal cross-issue constraints:
+\begin{equation}
+    \tilde{C}_{dd'} =
+    \begin{cases}
+        1, & \text{if } d = d', \\[4pt]
+        (-1)^{d + d'} \dfrac{0.18}{|d - d'|}, & \text{if } d \neq d',
+    \end{cases}
+    \qquad
+    C_{dd'} = \frac{\tilde{C}_{dd'}}{\max\!\left(1, \sum_{k=0}^{D-1} |\tilde{C}_{dk}|\right)}.
+    \label{eq:coupling_matrix}
+\end{equation}
+
+% ------------------------------------------------------------------------------
+\subsection{Citizen Demographics and Behavioral Characteristics}
+\label{subsec:demographics_traits}
+
+Each citizen $i \in \mathcal{V}$ is endowed with static demographic attributes calibrated to the Brazilian adult population ($\ge 16$ years) from the 2022 Demographic Census \citep{ibge2022censo}, alongside heterogeneous psychological traits that govern attitude plasticity.
+
+\paragraph{Age Distribution ($a_i$).}
+Citizen age $a_i \in [16, 90]$ is sampled from the six contiguous adult age cohorts of the 2022 IBGE Census pyramid: $B_1 = [16, 25)$ ($p_1 = 0.168$), $B_2 = [25, 35)$ ($p_2 = 0.198$), $B_3 = [35, 45)$ ($p_3 = 0.196$), $B_4 = [45, 55)$ ($p_4 = 0.164$), $B_5 = [55, 65)$ ($p_5 = 0.138$), and $B_6 = [65, 90]$ ($p_6 = 0.136$). Within cohorts $B_1, \dots, B_5$, raw ages are drawn uniformly within bracket bounds, whereas within the senior cohort $B_6$ raw ages follow a mortality-tapered Beta distribution $a_i^{\mathrm{raw}} = 65 + 25\,\mathrm{Beta}(1.15, 2.25)$. To prevent artificial discretization discontinuities at cohort boundaries, a zero-mean Gaussian smoothing kernel $\xi_i \sim \mathcal{N}(0, \sigma_a^2)$ with $\sigma_a = 1.35\text{ yr}$ is applied with reflection at the domain boundaries $\{16, 90\}$. Each citizen's normalized life-stage coordinate is defined as:
+\begin{equation}
+    \tilde{a}_i = \frac{a_i - 16}{90 - 16} = \frac{a_i - 16}{74} \in [0, 1].
+    \label{eq:age_norm}
+\end{equation}
+For cohort-level analysis, citizens are grouped into Young ($a_i < 30$), Mid-Age ($30 \le a_i < 55$), and Senior ($a_i \ge 55$) life stages.
+
+\paragraph{Socioeconomic Status ($\mathrm{SES}_i$), Gender ($g_i$), and Residential District ($r_i$).}
+Socioeconomic and educational status $\mathrm{SES}_i \in [0, 1]$ is drawn independently from a right-skewed Beta distribution:
+\begin{equation}
+    \mathrm{SES}_i \sim \mathrm{Beta}(2.0, 3.0), \qquad \mathbb{E}[\mathrm{SES}_i] = 0.40,
+    \label{eq:ses_distribution}
+\end{equation}
+reflecting the empirical skew of urban income and educational attainment in Brazil \citep{ibge2022censo}. Citizens are stratified into Low SES ($\mathrm{SES}_i < 0.35$, $\approx 42.8\%$), Mid SES ($0.35 \le \mathrm{SES}_i < 0.55$, $\approx 35.1\%$), and High SES ($\mathrm{SES}_i \ge 0.55$, $\approx 22.1\%$). Gender $g_i \in \{0, 1, 2\}$ is sampled with probabilities $\{0.48, 0.50, 0.02\}$, and each citizen is assigned to one of $R = 10$ urban residential districts $r_i \in \{0, \dots, R-1\}$ according to city-specific Dirichlet weights $\mathbf{\pi}_r \sim \mathrm{Dirichlet}(3\mathbf{1}_R)$.
+
+\paragraph{Convictions ($\mathbf{s}_i(t)$) and Current Opinions ($\mathbf{x}_i(t)$).}
+Following belief-system theory \citep{converse1964nature, zaller1992nature, kiley2020measuring}, each citizen $i$ maintains two distinct but coupled attitudinal vectors in $\Omega = [-1, 1]^D$:
+\begin{enumerate}
+    \item \textbf{Deep Conviction} $\mathbf{s}_i(t) = (s_{i,0}(t), \dots, s_{i,D-1}(t))^\top \in [-1, 1]^D$: a slow-moving internal predisposition that anchors the individual's worldview and crystallizes over time \citep{friedkin1990social, alwin1991aging};
+    \item \textbf{Current Opinion} $\mathbf{x}_i(t) = (x_{i,0}(t), \dots, x_{i,D-1}(t))^\top \in [-1, 1]^D$: a fast-moving expressed attitude that responds to daily interpersonal conversations and real-world events while remaining elastically tethered to $\mathbf{s}_i(t)$ \citep{zaller1992nature}.
+\end{enumerate}
+The individual's conviction extremity at time $t$ is defined by the normalized distance of their conviction from the origin \citep{howe2017attitude}:
+\begin{equation}
+    E_i(t) \equiv E(\mathbf{s}_i(t)) = \frac{1}{\sqrt{D}} \|\mathbf{s}_i(t)\|_2 \in [0, 1].
+    \label{eq:conviction_extremity}
+\end{equation}
+Citizens are classified by conviction extremity into Centrists ($E_i < 0.35$), Moderates ($0.35 \le E_i \le 0.60$), and Extremists ($E_i > 0.60$).
+
+\paragraph{Individual Psychological Parameters ($\alpha_i, \epsilon_i, u_i, b_i$).}
+Guided by the aging-stability hypothesis \citep{alwin1991aging, kiley2020measuring} and attitude-strength theory \citep{sherif1961social, howe2017attitude}, four behavioral traits are calibrated per citizen $i$:
+\begin{enumerate}
+    \item \textbf{Social Susceptibility} $\alpha_i \in [0.05, 0.98]$, which governs the relative weight placed on interpersonal social influence versus internal conviction anchoring \citep{friedkin1990social}:
+    \begin{equation}
+        \alpha_i = \mathrm{clip}_{[0.05,\, 0.98]}\!\left(0.85 - 0.55\tilde{a}_i - 0.22 E_i(0) + \zeta_{i,\alpha}\right),
+        \label{eq:susceptibility}
+    \end{equation}
+    where $\zeta_{i,\alpha} \sim \mathcal{U}(-0.08, 0.08)$ (or $0.85 - 0.65\tilde{a}_i + \zeta_{i,\alpha}$ under unconstrained uniform initialization).
+    \item \textbf{Bounded Confidence Threshold} $\epsilon_i \in [0.10, 1.50]$ (with baseline $\bar{\epsilon} = 0.45$), defining the maximum attitudinal distance within which citizen $i$ is open to peer influence \citep{deffuant2000mixing, hegselmann2002opinion}:
+    \begin{equation}
+        \epsilon_i = \mathrm{clip}_{[0.12,\, 1.20]}\!\left(\bar{\epsilon}\,[1.15 - 0.45 E_i(0)] + \zeta_{i,\epsilon}\right).
+        \label{eq:bounded_confidence}
+    \end{equation}
+    \item \textbf{Attitude Uncertainty} $u_i(t) \in [0.02, 1.0]$, which modulates relative agreement in peer interactions \citep{deffuant2002how}, initialized as:
+    \begin{equation}
+        u_i(0) = \mathrm{clip}_{[0.05,\, 0.95]}\!\left(0.65 - 0.35 E_i(0) - 0.20\tilde{a}_i + \zeta_{i,u}\right).
+        \label{eq:initial_uncertainty}
+    \end{equation}
+    \item \textbf{Biased Assimilation Parameter} $b_i \in [0.0, 5.0]$ (with baseline $\bar{b} = 1.25$), measuring the strength of confirmatory evaluation toward directionally aligned peers \citep{lord1979biased, dandekar2013biased}:
+    \begin{equation}
+        b_i = \mathrm{clip}_{[0.10,\, 4.00]}\!\left(\bar{b}\,[0.65 + 0.75 E_i(0)] + \zeta_{i,b}\right).
+        \label{eq:assimilation_bias}
+    \end{equation}
+\end{enumerate}
+
+\paragraph{Initial Attitude Distributions.}
+To evaluate convergence and stability from contrasting structural baselines, three initial condition regimes are defined at $t = 0$ (with $\mathbf{x}_i(0) = \mathbf{s}_i(0)$):
+\begin{itemize}
+    \item \emph{Uniform Random Baseline} (\texttt{uniform\_random}): $s_{i,d}(0) \stackrel{\text{i.i.d.}}{\sim} \mathcal{U}(-1, 1)$ across all $i$ and $d$, providing an unconstrained maximum-entropy null model ($\mathrm{Var}[s_{i,d}(0)] = 1/3$, $E[\|\mathbf{s}_i(0)\|_2/\sqrt{D}] \approx 0.577$);
+    \item \emph{Centrist Conviction Baseline} (\texttt{centrist\_convictions}): $s_{i,d}(0) \sim \mathrm{clip}_{[-1,1]}(\mathcal{N}(0, 0.25^2))$, representing a predominantly moderate society;
+    \item \emph{Extremist Conviction Baseline} (\texttt{extremist\_convictions}): $82\%$ of citizens are initialized around opposing ideological poles $p_i (-1)^d (0.72) + \mathcal{N}(0, 0.16^2)$ with $p_i \in \{-1, +1\}$, and $18\%$ near the center $\mathcal{N}(0, 0.16^2)$.
+\end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection{Real-World Five-Layer Multiplex Interpersonal Network}
+\label{subsec:multiplex_network}
+
+Citizens interact through a five-layer physical and social multiplex network $\mathcal{G} = (\mathcal{V}, \{\mathcal{E}^{[\ell]}\}_{\ell=1}^5)$ \citep{boccaletti2014structure, kivela2014multilayer}, where each layer $\ell \in \{1, \dots, 5\}$ represents a distinct sphere of everyday urban interaction with unweighted adjacency matrix $\mathbf{A}^{[\ell]} \in \{0, 1\}^{N \times N}$ and relative daily interaction/trust weight $w_\ell > 0$ ($\sum_{\ell=1}^5 w_\ell = 1$):
+
+\begin{enumerate}
+    \item \textbf{Layer 1 — Family and Household Cliques ($\ell = 1$, $w_1 = 0.36$):}
+    The population $\mathcal{V}$ is partitioned into disjoint, fully connected household cliques of size $s_h \in \{2, 3, 4, 5\}$ drawn with probabilities $\{0.42, 0.35, 0.16, 0.07\}$, calibrated to the 2022 IBGE Census mean of $2.79$ residents per household \citep{ibge2022censo}. Because household assignment is independent of age bracket, this layer provides high-trust cross-generational ties.
+    \item \textbf{Layer 2 — Workplace and School Peers ($\ell = 2$, $w_2 = 0.26$, $\langle k^{[2]} \rangle = 10$):}
+    Citizens are ordered by a composite life-stage and socioeconomic key $\vartheta_i = 2.5 \lfloor(a_i - 16)/12\rfloor + \mathrm{SES}_i + \mathcal{N}(0, 0.08^2)$ and connected to their $\langle k^{[2]} \rangle / 2 = 5$ nearest predecessors and successors on a circular lattice. This captures age- and SES-stratified school classrooms for youth aged $16\text{--}24$ (calibrated to INEP School Census class sizes of $25\text{--}30$ students \citep{inep2023censo}) and formal/informal workplace establishments for working-age adults aged $25\text{--}64$ (calibrated to MTE RAIS micro- and small-establishment sizes \citep{mte2023rais}).
+    \item \textbf{Layer 3 — Religious Congregation and Local Community ($\ell = 3$, $w_3 = 0.14$, $\langle k^{[3]} \rangle = 8$):}
+    Citizens are sorted by their moral/customs conviction coordinate perturbed by local mixing noise, $\tilde{s}_{i,1} = s_{i,1}(0) + \mathcal{N}(0, 0.15^2)$, and linked to $\langle k^{[3]} \rangle = 8$ neighbors, generating community clusters with moderate ideological homophily \citep{mcpherson2001birds} that cut across age cohorts.
+    \item \textbf{Layer 4 — Small-World Friendship Circle ($\ell = 4$, $w_4 = 0.14$, $\langle k^{[4]} \rangle = 6$):}
+    Constructed via the Watts--Strogatz small-world mechanism \citep{watts1998collective} over a ring ordered by the multidimensional projection $\mathbf{s}_i(0)^\top \mathbf{\nu}$ ($\mathbf{\nu}$ linearly spaced from $1.0$ to $0.5$), with base coordination number $k_{\mathrm{ws}} = 6$ and long-range random rewiring probability $p_{\mathrm{ws}} = 0.15$.
+    \item \textbf{Layer 5 — Urban Transit and Casual Weak Ties ($\ell = 5$, $w_5 = 0.10$, $\langle k^{[5]} \rangle = 4$):}
+    Generated as an Erd\H{o}s--R\'enyi random graph with $N \langle k^{[5]} \rangle / 2$ undirected edges connecting citizens uniformly at random across districts and demographic strata. This layer models weak cross-cutting urban encounters \citep{granovetter1973strength} calibrated to IBGE 2022 commuting data, in which $24.4\%$ of Brazilian commuters rely on shared public transit \citep{ibge2022censo}.
+\end{enumerate}
+
+The five layers are aggregated into a single row-normalized composite interpersonal adjacency matrix $\mathbf{W} = [W_{ij}] \in [0, 1]^{N \times N}$ stored in Compressed Sparse Row (CSR) format:
+\begin{equation}
+    \tilde{W}_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]}, \qquad
+    W_{ij} = \frac{\tilde{W}_{ij}}{\sum_{k \in \mathcal{V}} \tilde{W}_{ik}},
+    \label{eq:composite_csr}
+\end{equation}
+yielding a mean composite interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ connections per citizen.
+
+To quantify demographic mixing across the six IBGE age cohorts $B_1, \dots, B_6$, we define the $6 \times 6$ \textbf{Age-Cohort Connection Matrix} $\mathbf{M} = [M_{ab}]$:
+\begin{equation}
+    M_{ab} = \frac{\sum_{i \in B_a} \sum_{j \in B_b} \mathbb{I}(W_{ij} > 0)}{\sum_{i \in B_a} \sum_{k \in \mathcal{V}} \mathbb{I}(W_{ik} > 0)} \times 100\%,
+    \label{eq:age_cohort_matrix}
+\end{equation}
+which measures the percentage of composite interpersonal ties originating from age cohort $a$ that connect to peers in age cohort $b$.
+
+% ------------------------------------------------------------------------------
+\subsection{Individual Behavior: Coupled Conviction and Opinion Dynamics}
+\label{subsec:dynamics_equations}
+
+At each discrete step $t \to t + 1$, citizen attitudes evolve through a two-stage update: (i) synchronous interpersonal social influence over the composite network $\mathbf{W}$, and (ii) exogenous fact assimilation, elastic conviction tethering, and slow conviction crystallization.
+
+\subsubsection{Interpersonal Social Influence on Current Opinions}
+For each citizen $i \in \mathcal{V}$ and each connected peer $j \in \mathcal{N}_i = \{j : W_{ij} > 0\}$, the normalized attitudinal distance between their current opinions is:
+\begin{equation}
+    d_{ij}(t) = \frac{1}{\sqrt{D}} \|\mathbf{x}_j(t) - \mathbf{x}_i(t)\|_2.
+    \label{eq:peer_dist}
+\end{equation}
+Peer $j$ influences citizen $i$ at step $t$ if and only if $d_{ij}(t)$ falls within citizen $i$'s uncertainty-modulated bounded confidence threshold \citep{deffuant2000mixing, deffuant2002how, hegselmann2002opinion}:
+\begin{equation}
+    d_{ij}(t) \le \tilde{\epsilon}_i(t), \qquad \tilde{\epsilon}_i(t) = \epsilon_i + 0.5\,u_i(t).
+    \label{eq:effective_threshold}
+\end{equation}
+When Eq.~\eqref{eq:effective_threshold} is satisfied, the interaction weight combines three cognitive mechanisms:
+\begin{enumerate}
+    \item \textbf{Relative Agreement Overlap} \citep{deffuant2002how}: Peers with lower uncertainty $u_j(t)$ (higher confidence) exert stronger influence proportional to the overlap $h_{ij}(t)$ of their uncertainty segments:
+    \begin{equation}
+        h_{ij}(t) = \min\!\big(\tilde{\epsilon}_i(t), u_j(t)\big) - \max\!\big(-\tilde{\epsilon}_i(t), d_{ij}(t) - u_j(t)\big), \qquad
+        \phi_{ij}^{\mathrm{RA}}(t) = \max\!\left(0, \frac{h_{ij}(t)}{2u_j(t) + 10^{-9}}\right).
+        \label{eq:relative_agreement}
+    \end{equation}
+    \item \textbf{Biased Assimilation} \citep{lord1979biased, dandekar2013biased}: Peers whose multidimensional attitude aligns directionally with $\mathbf{x}_i(t)$ (measured by cosine similarity $\cos\theta_{ij}(t)$) receive an exponential confirmatory boost governed by $b_i$:
+    \begin{equation}
+        \cos\theta_{ij}(t) = \frac{\mathbf{x}_i(t)^\top \mathbf{x}_j(t)}{\|\mathbf{x}_i(t)\|_2 \|\mathbf{x}_j(t)\|_2 + 10^{-12}}, \qquad
+        \phi_{ij}^{\mathrm{BA}}(t) = \frac{\exp\!\big(0.35\,b_i \cos\theta_{ij}(t)\big)}{1 + 0.35\,b_i}.
+        \label{eq:biased_assimilation}
+    \end{equation}
+    \item \textbf{Composite Effective Peer Weight}: Combining the structural tie weight $W_{ij}$ with Eqs.~\eqref{eq:relative_agreement}--\eqref{eq:biased_assimilation}:
+    \begin{equation}
+        \tilde{w}_{ij}(t) = W_{ij} \big(0.4 + 0.6\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \, \mathbb{I}\!\big(d_{ij}(t) \le \tilde{\epsilon}_i(t)\big).
+        \label{eq:effective_peer_weight}
+    \end{equation}
+\end{enumerate}
+
+The normalized interpersonal social shift vector $\Delta \mathbf{x}_i^{\mathrm{soc}}(t) \in \mathbb{R}^D$ is then computed as the weighted average of peer differences and transformed by the cognitive coupling matrix $\mathbf{C}$ (Eq.~\eqref{eq:coupling_matrix}):
+\begin{equation}
+    \Delta \mathbf{x}_i^{\mathrm{soc}}(t) =
+    \begin{cases}
+        \displaystyle \frac{\sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t) \big(\mathbf{x}_j(t) - \mathbf{x}_i(t)\big)}{\sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t)}, & \text{if } \sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t) > 0, \\[10pt]
+        \mathbf{0}, & \text{otherwise}.
+    \end{cases}
+    \label{eq:social_shift}
+\end{equation}
+
+Following the Friedkin--Johnsen social influence framework \citep{friedkin1990social, parsegov2017novel}, the interpersonal update balances the coupled social pull $\mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)$ (weighted by susceptibility $\alpha_i$) against the anchoring pull toward the citizen's current conviction $\mathbf{s}_i(t)$ (weighted by $1 - \alpha_i$):
+\begin{equation}
+    \mathbf{x}_i^{\mathrm{int}}(t) = \mathrm{clip}_{[-1, 1]^D}\!\Big(
+        \mathbf{x}_i(t) + \Delta t \big[(1 - \alpha_i)(\mathbf{s}_i(t) - \mathbf{x}_i(t)) + \alpha_i \mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)\big] + \boldsymbol{\xi}_i(t)
+    \Big),
+    \label{eq:fj_interpersonal_update}
+\end{equation}
+where $\boldsymbol{\xi}_i(t) \sim \mathcal{N}(\mathbf{0}, \sigma_{\xi}^2 \mathbf{I}_D)$ with $\sigma_{\xi} = 0.012$ represents idiosyncratic daily attitude noise. Concurrently, attitude uncertainty $u_i(t)$ adapts toward the confidence of accepted peers \citep{deffuant2002how}:
+\begin{equation}
+    u_i(t+1) = \mathrm{clip}_{[0.02,\, 1.0]}\!\left(
+        u_i(t) + 0.25\,\Delta t \frac{\sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t)\big(u_j(t) - u_i(t)\big)}{\sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t)}
+    \right).
+    \label{eq:uncertainty_update}
+\end{equation}
+
+\subsubsection{Exogenous Facts, Elastic Conviction Tethering, and Slow Conviction Crystallization}
+\label{subsubsec:facts_and_tether}
+
+\paragraph{Definition of Exogenous Facts.}
+In addition to peer conversations, citizens are exposed to objective real-world events and empirical conditions — termed \textbf{exogenous facts} \citep{mullainathan2005market, gentzkow2006media}. At any step $t$, available facts are represented as points $\mathbf{f}_m(t) \in \Omega = [-1, 1]^D$ ($m = 1, \dots, M_t$) in the same $D = 4$ concept space, each carrying a salience weight $\omega_m > 0$. Under normal stationary conditions (\texttt{neutral} regime), exogenous facts are generated symmetrically around the neutral origin, $\mathbf{f}_m(t) \sim \mathrm{clip}_{[-0.85, 0.85]^D}(\mathcal{N}(\mathbf{b}_{\mathrm{fact}}(t), \sigma_f^2 \mathbf{I}_D))$ with $\mathbf{b}_{\mathrm{fact}}(t) = \mathbf{0}$ and $\sigma_f = 0.32$. Because unbiased facts are distributed around $\mathbf{0}$ and cross-cutting interpersonal ties average out opposing idiosyncrasies, social interaction and neutral fact exposure naturally draw initially dispersed attitudes toward a centrist distribution around $\mathbf{0}$.
+
+When the aggregate exogenous fact environment exhibits a directional impulse $\mathbf{b}_{\mathrm{fact}}(t) \in [-1, 1]^D$ (indicated by $I_{\mathrm{fact}}(t) \in \{0, 1\}$), citizen $i$'s current opinion responds rapidly with an individual sensitivity $\gamma_i(t)$ modulated by conviction extremity $E_i(t)$, age $\tilde{a}_i$, and socioeconomic status $\mathrm{SES}_i$ \citep{zaller1992nature, howe2017attitude}:
+\begin{equation}
+    \gamma_i(t) = \gamma_0 \big(1.30 - 0.72 E_i(t)\big)\big(1.18 - 0.48\tilde{a}_i\big)\big(0.85 + 0.30\,\mathrm{SES}_i\big) I_{\mathrm{fact}}(t),
+    \label{eq:fact_direct_pull}
+\end{equation}
+\begin{equation}
+    \tilde{\mathbf{x}}_i(t) = \mathbf{x}_i^{\mathrm{int}}(t) + \gamma_i(t)\big(\mathbf{b}_{\mathrm{fact}}(t) - \mathbf{x}_i^{\mathrm{int}}(t)\big),
+    \label{eq:opinion_fact_response}
+\end{equation}
+where $\gamma_0 = 0.055$ is the baseline direct fact pull. Equation~\eqref{eq:fact_direct_pull} reflects three empirical regularities: centrist citizens ($E_i \ll 1$) are substantially more responsive to new factual evidence than ideological extremists ($E_i \to 1$) \citep{howe2017attitude}; younger adults are more attitudinally plastic than older adults \citep{alwin1991aging}; and higher-SES individuals have higher direct informational exposure \citep{zaller1992nature}.
+
+\paragraph{Elastic Conviction Tether.}
+While a citizen's current opinion $\tilde{\mathbf{x}}_i(t)$ can fluctuate rapidly in response to daily social encounters and salient facts, it cannot drift arbitrarily far from their deep conviction $\mathbf{s}_i(t)$ within a short timeframe \citep{sherif1961social, zaller1992nature}. Let $g_i(t) = d(\tilde{\mathbf{x}}_i(t), \mathbf{s}_i(t)) = \frac{1}{\sqrt{D}}\|\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\|_2$ denote the raw excursion distance. Each citizen has a maximum opinion excursion radius $\Delta_{\max, i}(t)$ around $\mathbf{s}_i(t)$:
+\begin{equation}
+    \Delta_{\max, i}(t) = \max\!\Big(0.05,\; \Delta_0 \big(0.65 + 0.55\alpha_i\big) \big[\max(0.18, 1.15 - 0.95 E_i(t))\big]^{1.35} \big(1.16 - 0.32\tilde{a}_i\big)\Big),
+    \label{eq:tether_radius}
+\end{equation}
+where $\Delta_0 = 0.34$ is the base excursion radius. The current opinion at step $t+1$ is smoothly bounded within the ball of radius $\Delta_{\max, i}(t)$ centered at $\mathbf{s}_i(t)$ via a radial hyperbolic-tangent tether:
+\begin{equation}
+    g_i^{\mathrm{eff}}(t) = \Delta_{\max, i}(t) \tanh\!\left(\frac{g_i(t)}{\Delta_{\max, i}(t)}\right), \qquad
+    \mathbf{x}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\left(\mathbf{s}_i(t) + \frac{g_i^{\mathrm{eff}}(t)}{g_i(t) + 10^{-12}}\big(\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\big)\right).
+    \label{eq:elastic_tether}
+\end{equation}
+For small perturbations ($g_i(t) \ll \Delta_{\max, i}(t)$), $\tanh(g_i/\Delta_{\max, i}) \approx g_i/\Delta_{\max, i}$, so $\mathbf{x}_i(t+1) \approx \tilde{\mathbf{x}}_i(t)$ moves freely; as $g_i(t)$ approaches or exceeds $\Delta_{\max, i}(t)$, the restoring tether smoothly saturates the excursion at $\Delta_{\max, i}(t)$.
+
+\paragraph{Slow Conviction Adaptation and Crystallization.}
+Deep convictions $\mathbf{s}_i(t)$ evolve on a much slower timescale than current opinions and progressively crystallize over time \citep{alwin1991aging, kiley2020measuring}. Specifically, the conviction learning rate $\eta_i(t)$ comprises a decaying crystallization term $\eta_{\mathrm{cryst}, i}(t)$ governed by characteristic crystallization time $\tau_c = 280$ steps and a nonlinear sustained-tension term $\eta_{\mathrm{sust}, i}(t)$ that activates only when current opinion is held persistently near the boundary of the conviction tether:
+\begin{equation}
+    \kappa(t) = \frac{1}{1 + (t / \tau_c)^{1.15}},
+    \label{eq:crystallization_factor}
+\end{equation}
+\begin{equation}
+    \eta_{\mathrm{cryst}, i}(t) = \eta_0 \,\kappa(t) \big(1.25 - 0.75\tilde{a}_i\big)\big(1.22 - 0.68 E_i(t)\big)\big(1.10 - 0.25\,\mathrm{SES}_i\big),
+    \label{eq:eta_cryst}
+\end{equation}
+\begin{equation}
+    \eta_{\mathrm{sust}, i}(t) = 0.28\,\eta_0 \left(\frac{g_i^{\mathrm{eff}}(t)}{\Delta_{\max, i}(t)}\right)^2 \big(1.18 - 0.58\tilde{a}_i\big)\big(1.20 - 0.62 E_i(t)\big),
+    \label{eq:eta_sustained}
+\end{equation}
+\begin{equation}
+    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big),
+    \label{eq:conviction_update}
+\end{equation}
+where $\eta_0 = 0.0024 \ll \Delta t$ is the baseline conviction drift rate. Because $\eta_0$ is two orders of magnitude smaller than the interpersonal and fact update rates, transient fluctuations in $\mathbf{x}_i(t)$ are filtered out before they can alter $\mathbf{s}_i(t)$, whereas prolonged structural shifts slowly pull convictions over hundreds of steps.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of model variables, baseline parameters, and empirical/theoretical references.}
+\label{tab:model_parameters}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lp{5.1cm}p{3.6cm}p{3.8cm}}
+\toprule
+\textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
+\midrule
+\multicolumn{4}{l}{\textit{Global Simulation \& Concept Space}} \\
+$N$ & City population size & $\{10^4, 10^5, 10^6, 10^7\}$ & \citet{bettencourt2007growth} \\
+$D$ & Number of policy/concept dimensions & $4$ ($\Omega = [-1, 1]^4$) & \citet{converse1964nature} \\
+$T, \Delta t$ & Horizon and integration step size & $T \in \{100, 1500\}$, $\Delta t = 0.15$ & \citet{friedkin1990social} \\
+$S$ & Monte Carlo realizations per scenario & $100$ & --- \\
+$\mathbf{C}$ & Cognitive issue-coupling matrix & $\mathbb{R}^{4 \times 4}$, Eq.~\eqref{eq:coupling_matrix} & \citet{friedkin2016network} \\
+\midrule
+\multicolumn{4}{l}{\textit{Citizen Demographics \& Psychological Traits}} \\
+$a_i, \tilde{a}_i$ & Citizen age (years) and normalized age & $[16, 90]$, $\tilde{a}_i \in [0, 1]$ & \citet{ibge2022censo} \\
+$\mathrm{SES}_i$ & Socioeconomic and educational index & $\mathrm{Beta}(2, 3) \in [0, 1]$ & \citet{ibge2022censo} \\
+$\mathbf{s}_i(t)$ & Deep conviction vector of citizen $i$ & $[-1, 1]^D$ & \citet{converse1964nature, kiley2020measuring} \\
+$\mathbf{x}_i(t)$ & Current opinion vector of citizen $i$ & $[-1, 1]^D$ & \citet{zaller1992nature} \\
+$E_i(t)$ & Conviction extremity ($\|\mathbf{s}_i(t)\|_2 / \sqrt{D}$) & $[0, 1]$ & \citet{howe2017attitude} \\
+$\alpha_i$ & Interpersonal social susceptibility & $[0.05, 0.98]$, Eq.~\eqref{eq:susceptibility} & \citet{friedkin1990social, alwin1991aging} \\
+$\epsilon_i$ & Bounded confidence (base $\bar{\epsilon}=0.45$) & $[0.10, 1.50]$, Eq.~\eqref{eq:bounded_confidence} & \citet{deffuant2000mixing, hegselmann2002opinion} \\
+$u_i(t)$ & Attitude uncertainty (Relative Agreement) & $[0.02, 1.00]$, Eq.~\eqref{eq:uncertainty_update} & \citet{deffuant2002how} \\
+$b_i$ & Biased assimilation (base $\bar{b}=1.25$) & $[0.00, 5.00]$, Eq.~\eqref{eq:assimilation_bias} & \citet{lord1979biased, dandekar2013biased} \\
+\midrule
+\multicolumn{4}{l}{\textit{Five-Layer Multiplex Interpersonal Network}} \\
+$w_1, \langle s_h \rangle$ & Layer 1 (\texttt{family}): household clique & $w_1 = 0.36$, $\langle s_h \rangle = 2.79$ & \citet{ibge2022censo} \\
+$w_2, \langle k^{[2]} \rangle$ & Layer 2 (\texttt{work\_school}): peer degree & $w_2 = 0.26$, $\langle k^{[2]} \rangle = 10$ & \citet{inep2023censo, mte2023rais} \\
+$w_3, \langle k^{[3]} \rangle$ & Layer 3 (\texttt{church\_community}): degree & $w_3 = 0.14$, $\langle k^{[3]} \rangle = 8$ & \citet{mcpherson2001birds} \\
+$w_4, \langle k^{[4]} \rangle, p_{\mathrm{ws}}$ & Layer 4 (\texttt{friends}): small-world circle & $w_4 = 0.14$, $\langle k^{[4]} \rangle = 6$, $p_{\mathrm{ws}}=0.15$ & \citet{watts1998collective} \\
+$w_5, \langle k^{[5]} \rangle$ & Layer 5 (\texttt{weak\_ties}): transit ties & $w_5 = 0.10$, $\langle k^{[5]} \rangle = 4$ & \citet{granovetter1973strength, ibge2022censo} \\
+\midrule
+\multicolumn{4}{l}{\textit{Two-Timescale Conviction--Opinion \& Fact Parameters}} \\
+$\Delta_0, \Delta_{\max, i}$ & Base and individual opinion tether radius & $\Delta_0 = 0.34$, Eq.~\eqref{eq:tether_radius} & \citet{sherif1961social, howe2017attitude} \\
+$\eta_0$ & Base conviction adaptation drift rate & $0.0024 \text{ step}^{-1}$ & \citet{kiley2020measuring} \\
+$\tau_c$ & Conviction crystallization timescale & $280 \text{ steps}$ & \citet{alwin1991aging} \\
+$\gamma_0$ & Direct exogenous fact pull coefficient & $0.055 \text{ step}^{-1}$ & \citet{mullainathan2005market, zaller1992nature} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ------------------------------------------------------------------------------
+\subsection{Scaling Across City Population Sizes}
+\label{subsec:city_scaling}
+
+To investigate how urban population scale affects emergent attitude distributions and cross-issue alignment in a pure interpersonal network, we simulate four city scales spanning four orders of magnitude \citep{bettencourt2007growth, schlapfer2014scaling}:
+\begin{enumerate}
+    \item \textbf{Small City (\texttt{small\_10k}):} $N = 10^4$ citizens;
+    \item \textbf{Medium City (\texttt{medium\_100k}):} $N = 10^5$ citizens (reference city scale for deep multi-timescale experiments);
+    \item \textbf{Large City (\texttt{large\_1m}):} $N = 10^6$ citizens;
+    \item \textbf{Metropolis (\texttt{metropolis\_10m}):} $N = 10^7$ citizens.
+\end{enumerate}
+Across all four scales, the intensive demographic distributions (Eqs.~\eqref{eq:age_norm}--\eqref{eq:assimilation_bias}) and the mean degree of each interpersonal network layer ($\langle k^{[1]} \rangle \approx 1.8$, $\langle k^{[2]} \rangle = 10$, $\langle k^{[3]} \rangle = 8$, $\langle k^{[4]} \rangle = 6$, $\langle k^{[5]} \rangle = 4$) are held strictly constant. Consequently, while a citizen's local ego-network size remains invariant with respect to $N$, the global network diameter, the number of distinct household cliques ($\approx N / 2.79$), and the diversity of cross-cutting weak ties ($\mathcal{E}^{[5]}$) scale linearly with $N$. In smaller cities ($N = 10^4$), finite-size topological clustering induces stronger shared local fluctuations across issue dimensions, whereas in larger cities ($N \ge 10^5$), independent local neighborhoods self-average across the population \citep{castellano2009statistical}.
+
+% ------------------------------------------------------------------------------
+\subsection{Exogenous Fact Interventions}
+\label{subsec:interventions}
+
+To test the dynamical separation of timescales between fast current opinions $\mathbf{x}_i(t)$ and slow convictions $\mathbf{s}_i(t)$, we design two controlled exogenous fact interventions in the medium city ($N = 10^5$) without altering interpersonal network rules:
+
+\paragraph{1. Temporary Single High-Salience Event Intervention.}
+To measure how a single important real-world event perturbs public opinion while leaving underlying convictions largely intact, the population evolves under a neutral fact environment ($\mathbf{b}_{\mathrm{fact}}(t) = \mathbf{0}$, $I_{\mathrm{fact}}(t) = 0$) during a baseline stabilization period $0 \le t < t_{\mathrm{start}}$ ($t_{\mathrm{start}} = 450$). During a bounded event window $t \in [t_{\mathrm{start}}, t_{\mathrm{end}}] = [450, 570]$ of duration $\Delta t_{\mathrm{ev}} = 120$ steps, a high-salience exogenous fact vector is injected into the concept space:
+\begin{equation}
+    \mathbf{b}_{\mathrm{fact}}(t) =
+    \begin{cases}
+        (+0.85, +0.60, -0.50, +0.40)^\top, & \text{for } 450 \le t \le 570 \quad (I_{\mathrm{fact}}(t) = 1), \\[4pt]
+        (0, 0, 0, 0)^\top, & \text{for } t < 450 \text{ or } t > 570 \quad (I_{\mathrm{fact}}(t) = 0),
+    \end{cases}
+    \label{eq:single_event_intervention}
+\end{equation}
+with event pull $\gamma_0 = 0.075$. At $t > 570$, the temporary event ceases and the environment returns to neutral baseline facts ($\mathbf{b}_{\mathrm{fact}}(t) = \mathbf{0}$), allowing direct measurement of (i) the peak excursion ratio $|\Delta \bar{x}_0(t_{\mathrm{end}})| / |\Delta \bar{s}_0(t_{\mathrm{end}})|$ and (ii) the post-event relaxation of $\mathbf{x}_i(t)$ back toward the conviction anchor $\mathbf{s}_i(t)$.
+
+\paragraph{2. Multi-Phase Fact-Bias Regime Shift Intervention.}
+To evaluate long-horizon resilience and plastic drift under sustained macro-environmental shocks over $T = 1500$ steps, we implement a three-phase regime-shift protocol (\texttt{regime\_shift}):
+\begin{equation}
+    b_{\mathrm{fact}, d}(t) = (-1)^d A_{\mathrm{fact}}(t), \qquad
+    A_{\mathrm{fact}}(t) =
+    \begin{cases}
+        0.00, & 0 \le t \le 400 \quad \text{(Phase I: Neutral Crystallization)}, \\[4pt]
+        +0.78, & 401 \le t \le 950 \quad \text{(Phase II: Positive Fact-Bias Shift)}, \\[4pt]
+        -0.82, & 951 \le t \le 1500 \quad \text{(Phase III: Negative Fact-Bias Reversal)}.
+    \end{cases}
+    \label{eq:regime_shift_intervention}
+\end{equation}
+
+% ------------------------------------------------------------------------------
+\subsection{Evaluation Metrics and Statistical Analysis}
+\label{subsec:metrics_analysis}
+
+At regular snapshot intervals across every simulation trajectory, we compute a suite of aggregate and cohort-stratified metrics to characterize central tendency, dispersion, multi-timescale volatility, clustering, and multidimensional issue alignment.
+
+\paragraph{1. Mean Normalized Distance to the Center and Attitude Extremity.}
+To track convergence toward a centrist distribution in $\Omega = [-1, 1]^D$, we compute the population-average normalized Euclidean distance to the origin $\mathbf{0}$ separately for convictions and current opinions \citep{howe2017attitude}:
+\begin{equation}
+    \bar{E}_{\mathbf{s}}(t) = \frac{1}{N}\sum_{i=1}^N \frac{\|\mathbf{s}_i(t)\|_2}{\sqrt{D}}, \qquad
+    \bar{E}_{\mathbf{x}}(t) = \frac{1}{N}\sum_{i=1}^N \frac{\|\mathbf{x}_i(t)\|_2}{\sqrt{D}} \in [0, 1].
+    \label{eq:mean_distance_to_center}
+\end{equation}
+
+\paragraph{2. Opinion--Conviction Excursion Gap and Step-to-Step Volatilities.}
+The instantaneous decoupling between citizens' current opinions and their underlying convictions is measured by the mean opinion--conviction excursion gap $G(t)$:
+\begin{equation}
+    G(t) = \frac{1}{N}\sum_{i=1}^N G_i(t), \qquad G_i(t) = \frac{1}{\sqrt{D}} \|\mathbf{x}_i(t) - \mathbf{s}_i(t)\|_2.
+    \label{eq:op_conv_gap}
+\end{equation}
+To compare the rate of temporal fluctuation on the fast and slow timescales, we compute the step-to-step opinion volatility $V_{\mathbf{x}}(t)$ and conviction volatility $V_{\mathbf{s}}(t)$:
+\begin{equation}
+    V_{\mathbf{x}}(t) = \frac{1}{N}\sum_{i=1}^N \frac{\|\mathbf{x}_i(t) - \mathbf{x}_i(t-1)\|_2}{\sqrt{D}}, \qquad
+    V_{\mathbf{s}}(t) = \frac{1}{N}\sum_{i=1}^N \frac{\|\mathbf{s}_i(t) - \mathbf{s}_i(t-1)\|_2}{\sqrt{D}}.
+    \label{eq:step_volatilities}
+\end{equation}
+Both $G(t)$ and $V_{\mathbf{x}}(t), V_{\mathbf{s}}(t)$ are disaggregated across age cohorts (Young $<30$, Mid-Age $30\text{--}54$, Senior $\ge 55$), socioeconomic strata (Low, Mid, High SES), and conviction extremity tiers (Centrist, Moderate, Extremist).
+
+\paragraph{3. Normalized Multidimensional Dispersion Ratio.}
+Following \citet{bramson2016disambiguation}, population spread across the $D$ dimensions is benchmarked against the variance of a continuous uniform distribution on $[-1, 1]$, $\mathrm{Var}(\mathcal{U}[-1, 1]) = 1/3$:
+\begin{equation}
+    D_{\mathrm{ratio}}^{\mathbf{x}}(t) = \frac{\frac{1}{D}\sum_{d=0}^{D-1} \mathrm{Var}_i\!\big(x_{i,d}(t)\big)}{1/3} = \frac{3}{D}\sum_{d=0}^{D-1} \mathrm{Var}_i\!\big(x_{i,d}(t)\big),
+    \label{eq:dispersion_ratio}
+\end{equation}
+and analogously $D_{\mathrm{ratio}}^{\mathbf{s}}(t) = \frac{3}{D}\sum_{d=0}^{D-1} \mathrm{Var}_i(s_{i,d}(t))$ for convictions. A value of $D_{\mathrm{ratio}} = 1$ corresponds to uniform random dispersion, $D_{\mathrm{ratio}} \to 0$ indicates full consensus, and $0.25 \le D_{\mathrm{ratio}} \le 0.40$ characterizes a cohesive centrist distribution.
+
+\paragraph{4. Cross-Issue Alignment and Effective Ideological Dimensionality.}
+In multidimensional attitude spaces, ideological sorting manifests not only within individual issues but through \textbf{issue alignment} (or constraint) — the degree to which a citizen's stance on one policy dimension predicts their stances on logically independent dimensions \citep{converse1964nature, baldassarri2008partisans}. Let $\boldsymbol{\Sigma}(t) \in \mathbb{R}^{D \times D}$ denote the empirical covariance matrix of current opinions $\{\mathbf{x}_i(t)\}_{i=1}^N$ with entries $\Sigma_{dd'}(t) = \mathrm{Cov}(x_{\cdot, d}(t), x_{\cdot, d'}(t))$, and let $\mathbf{R}(t) = [\rho_{dd'}(t)]$ denote the corresponding Pearson correlation matrix:
+\begin{equation}
+    \rho_{dd'}(t) = \frac{\Sigma_{dd'}(t)}{\sqrt{\Sigma_{dd}(t)\,\Sigma_{d'd'}(t)}} \in [-1, 1].
+    \label{eq:pearson_issue_corr}
+\end{equation}
+Following \citet{baldassarri2008partisans}, we quantify cross-issue alignment using the mean and maximum absolute pairwise off-diagonal correlations across all $\binom{D}{2} = 6$ issue pairs:
+\begin{equation}
+    \bar{|\rho|}(t) = \frac{2}{D(D-1)} \sum_{0 \le d < d' \le D-1} |\rho_{dd'}(t)|, \qquad
+    \rho_{\max}(t) = \max_{0 \le d < d' \le D-1} |\rho_{dd'}(t)|.
+    \label{eq:issue_alignment_metrics}
+\end{equation}
+Complementarily, to measure whether the $D$-dimensional concept space remains multi-axis or collapses onto a single left--right ideological axis, we compute the \textbf{Effective Ideological Dimensionality} via Roy's eigenvalue participation ratio \citep{roy1953useful}:
+\begin{equation}
+    \mathrm{PR}(\boldsymbol{\Sigma}(t)) = \frac{\big(\mathrm{Tr}\,\boldsymbol{\Sigma}(t)\big)^2}{\mathrm{Tr}\!\big(\boldsymbol{\Sigma}(t)^2\big)} = \frac{\left(\sum_{d=1}^D \lambda_d(t)\right)^2}{\sum_{d=1}^D \lambda_d(t)^2} \in [1, D],
+    \label{eq:participation_ratio}
+\end{equation}
+where $\lambda_1(t), \dots, \lambda_D(t) \ge 0$ are the eigenvalues of $\boldsymbol{\Sigma}(t)$. When the $D = 4$ dimensions vary independently with equal variance, $\mathrm{PR}(\boldsymbol{\Sigma}) = 4.0$; when all issues collapse onto a single ideological axis, $\mathrm{PR}(\boldsymbol{\Sigma}) \to 1.0$.
+
+\paragraph{5. Polarization, Multimodality, and Network Segregation Indices.}
+To test whether attitudes fragment into antagonistic poles or contract into a unimodal centrist distribution, we evaluate four additional structural metrics:
+\begin{enumerate}
+    \item \textbf{Multidimensional Esteban--Ray Polarization Index} $P_{\mathrm{ER}}(t)$ \citep{esteban1994measurement}: Quantizing $\Omega = [-1, 1]^D$ into $B^D = 4^4 = 256$ cells with nonempty cell masses $\pi_c(t)$ and centroids $\mathbf{y}_c(t)$ ($c = 1, \dots, K$),
+    \begin{equation}
+        P_{\mathrm{ER}}(t) = \kappa_{\mathrm{ER}} \sum_{c=1}^K \sum_{c'=1}^K \pi_c(t)^{1 + \alpha_{\mathrm{ER}}} \pi_{c'}(t) \|\mathbf{y}_c(t) - \mathbf{y}_{c'}(t)\|_2,
+        \label{eq:esteban_ray}
+    \end{equation}
+    with polarization sensitivity parameter $\alpha_{\mathrm{ER}} = 1.3$ and scaling constant $\kappa_{\mathrm{ER}} = 1.0$.
+    \item \textbf{Sarle's Bimodality Coefficient} $\mathrm{BC}(t)$ \citep{pfister2013good}: Averaged across the $D$ dimensions using standardized skewness $\gamma_d$ and excess kurtosis $\kappa_d$,
+    \begin{equation}
+        \mathrm{BC}(t) = \frac{1}{D}\sum_{d=0}^{D-1} \frac{\gamma_d(t)^2 + 1}{\kappa_d(t) + \dfrac{3(N-1)^2}{(N-2)(N-3)}},
+        \label{eq:sarle_bc}
+    \end{equation}
+    where $\mathrm{BC} > 5/9 \approx 0.555$ indicates bimodality or multimodality and $\mathrm{BC} < 5/9$ indicates a unimodal distribution (for a Gaussian distribution, $\mathrm{BC} = 1/3 \approx 0.333$).
+    \item \textbf{Effective Number of Opinion Clusters} \citep{laakso1979effective, jost2006entropy}: Computed via the Inverse Participation Ratio $N_{\mathrm{eff}}^{\mathrm{IPR}}(t) = \big(\sum_{c=1}^K \pi_c(t)^2\big)^{-1}$ and exponential Shannon entropy $N_{\mathrm{eff}}^{H}(t) = \exp\!\big(-\sum_{c=1}^K \pi_c(t)\ln\pi_c(t)\big)$.
+    \item \textbf{Network Ideological Segregation} $S_{\mathrm{net}}(t) \in [0, 1]$: Defined as one minus the ratio of mean weighted neighbor attitude distance to the expected distance of random pairs in the population:
+    \begin{equation}
+        S_{\mathrm{net}}(t) = \mathrm{clip}_{[0, 1]}\!\left(1 - \frac{\frac{1}{N}\sum_{i=1}^N \sum_{j \in \mathcal{N}_i} W_{ij}\, d(\mathbf{x}_i(t), \mathbf{x}_j(t))}{\sqrt{\frac{2}{D}\sum_{d=0}^{D-1} \mathrm{Var}_i(x_{i,d}(t))}}\right).
+        \label{eq:network_segregation}
+    \end{equation}
+\end{enumerate}
+
+\paragraph{6. Marginal Attitude Density Estimation and Ensemble Statistical Aggregation.}
+To inspect the full shape of the stationary attitude distributions at $t = T$, one-dimensional marginal probability densities $p(x_d)$ and $p(s_d)$ along each dimension $d \in \{0, 1, 2, 3\}$ are estimated via Gaussian kernel density estimation (KDE) with Scott's bandwidth rule $h = N^{-1/5}\hat{\sigma}_d$ \citep{scott2015multivariate}. Across all $S = 100$ Monte Carlo realizations for each scenario and city scale, time-series and terminal metrics are summarized by the ensemble mean $\bar{\mu}(t) = \frac{1}{S}\sum_{s=1}^S \mu^{(s)}(t)$, sample standard deviation $\hat{\sigma}_{\mu}(t)$, and $95\%$ confidence intervals $\bar{\mu}(t) \pm 1.96\,\hat{\sigma}_{\mu}(t)/\sqrt{S}$.
+
+
+
+
+\section{Headings: first level}
+\label{sec:headings}
+
+\lipsum[4] See Section \ref{sec:headings}.
+
+\subsection{Headings: second level}
+\lipsum[5]
+\begin{equation}
+	\xi _{ij}(t)=P(x_{t}=i,x_{t+1}=j|y,v,w;\theta)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
+\end{equation}
+
+\subsubsection{Headings: third level}
+\lipsum[6]
+
+\paragraph{Paragraph}
+\lipsum[7]
+
+
+
+\section{Examples of citations, figures, tables, references}
+\label{sec:others}
+
+\subsection{Citations}
+Citations use \verb+natbib+. The documentation may be found at
+\begin{center}
+	\url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
+\end{center}
+
+Here is an example usage of the two main commands (\verb+citet+ and \verb+citep+): Some people thought a thing \citep{kour2014real, keshet2016prediction} but other people thought something else \citep{kour2014fast}. Many people have speculated that if we knew exactly why \citet{kour2014fast} thought this\dots
+
+\subsection{Figures}
+\lipsum[10]
+See Figure \ref{fig:fig1}. Here is how you add footnotes. \footnote{Sample of the first footnote.}
+\lipsum[11]
+
+\begin{figure}
+	\centering
+	\fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+	\caption{Sample figure caption.}
+	\label{fig:fig1}
+\end{figure}
+
+\subsection{Tables}
+See awesome Table~\ref{tab:table}.
+
+The documentation for \verb+booktabs+ (`Publication quality tables in LaTeX') is available from:
+\begin{center}
+	\url{https://www.ctan.org/pkg/booktabs}
+\end{center}
+
+
+\begin{table}
+	\caption{Sample table title}
+	\centering
+	\begin{tabular}{lll}
+		\toprule
+		\multicolumn{2}{c}{Part}                   \\
+		\cmidrule(r){1-2}
+		Name     & Description     & Size ($\mu$m) \\
+		\midrule
+		Dendrite & Input terminal  & $\sim$100     \\
+		Axon     & Output terminal & $\sim$10      \\
+		Soma     & Cell body       & up to $10^6$  \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:table}
+\end{table}
+
+\subsection{Lists}
+\begin{itemize}
+	\item Lorem ipsum dolor sit amet
+	\item consectetur adipiscing elit.
+	\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
+\end{itemize}
+
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}  %%% Uncomment this line and comment out the ``thebibliography'' section below to use the external .bib file (using bibtex) .
+
+
+%%% Uncomment this section and comment out the \bibliography{references} line above to use inline references.
+% \begin{thebibliography}{1}
+
+% 	\bibitem{kour2014real}
+% 	George Kour and Raid Saabne.
+% 	\newblock Real-time segmentation of on-line handwritten arabic script.
+% 	\newblock In {\em Frontiers in Handwriting Recognition (ICFHR), 2014 14th
+% 			International Conference on}, pages 417--422. IEEE, 2014.
+
+% 	\bibitem{kour2014fast}
+% 	George Kour and Raid Saabne.
+% 	\newblock Fast classification of handwritten on-line arabic characters.
+% 	\newblock In {\em Soft Computing and Pattern Recognition (SoCPaR), 2014 6th
+% 			International Conference of}, pages 312--318. IEEE, 2014.
+
+% 	\bibitem{keshet2016prediction}
+% 	Keshet, Renato, Alina Maor, and George Kour.
+% 	\newblock Prediction-Based, Prioritized Market-Share Insight Extraction.
+% 	\newblock In {\em Advanced Data Mining and Applications (ADMA), 2016 12th International 
+%                       Conference of}, pages 81--94,2016.
+
+% \end{thebibliography}
+
+
+\end{document}
