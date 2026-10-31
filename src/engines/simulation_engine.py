@@ -197,12 +197,26 @@ class SimulationEngine:
             ),
         )
         elec_cfg = self.config.get("electoral", {})
+        two_leg_enabled = bool(
+            elec_cfg.get("two_leg_enabled", self.conviction_dynamics_enabled or (self.n_candidates >= 4))
+        )
         self.electoral_engine = ElectoralEngine(
             n_candidates=self.n_candidates,
             n_dims=self.n_dims,
             indifference_threshold=float(elec_cfg.get("indifference_threshold", -1.65)),
             rationality_lambda=float(elec_cfg.get("rationality_lambda", 4.0)),
             noise_scale=float(elec_cfg.get("noise_scale", 0.12)),
+            two_leg_enabled=two_leg_enabled,
+            adm_dist_threshold=float(elec_cfg.get("adm_dist_threshold", 0.56)),
+            rej_dist_threshold=float(elec_cfg.get("rej_dist_threshold", 0.62)),
+            adm_gain_rate=float(elec_cfg.get("adm_gain_rate", 0.14)),
+            adm_decay_rate=float(elec_cfg.get("adm_decay_rate", 0.08)),
+            rej_gain_rate=float(elec_cfg.get("rej_gain_rate", 0.14)),
+            rej_decay_rate=float(elec_cfg.get("rej_decay_rate", 0.045)),
+            turnout_min_adm=float(elec_cfg.get("turnout_min_adm", 0.19)),
+            clear_margin_threshold=float(elec_cfg.get("clear_margin_threshold", 0.15)),
+            clear_adm_threshold=float(elec_cfg.get("clear_adm_threshold", 0.34)),
+            strong_rej_threshold=float(elec_cfg.get("strong_rej_threshold", 0.50)),
         )
         self.analytics_engine = AnalyticsEngine(
             er_alpha=float(sim_cfg.get("er_alpha", 1.3)),

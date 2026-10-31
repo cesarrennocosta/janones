@@ -19,7 +19,7 @@ def _base_conviction_config(
             "n_steps": n_steps,
             "snapshot_interval": 20,
             "checkpoint_interval": 50,
-            "n_candidates": 3,
+            "n_candidates": 4,
             "n_districts": 5,
             "n_news_items": 24,
             "init_mode": init_mode,
@@ -162,3 +162,56 @@ def test_fact_bias_shift_flips_opinion_and_elections_faster_than_conviction() ->
     delta_conv = abs(s1 - s0)
     assert delta_op > 0.15
     assert delta_op > 5.0 * delta_conv
+
+
+def test_two_leg_election_admiration_rejection_abstention_and_blank_votes() -> None:
+    """Verify the Two-Leg (4 candidates -> 2 candidates) election model:
+    - Each candidate has a center of mass in the opinion spectrum.
+    - Independent admiration (increased by very close current opinion) and rejection
+      (increased by very different current opinion).
+    - Three-way voting: not going to vote (-1, low admiration in general), going to vote
+      but voting blank (-2, no clear winner and no strong rejection), and valid vote (0..3)
+      based on current opinion rather than conviction.
+    """
+    cfg = _base_conviction_config(n_agents=1500, n_steps=40, init_mode="uniform_random")
+    engine = SimulationEngine(config=cfg, base_seed=777, task_id=0)
+    res = engine.run()
+    final_m = res["final_metrics"]
+    state = engine.agent_state
+
+    # 1. 4 candidates in First Leg, 2 finalists in Second Leg
+    assert engine.electoral_engine.n_candidates == 4
+    assert engine.electoral_engine.candidate_profiles.shape == (4, 4)
+    assert final_m["r2_cand_a"] != final_m["r2_cand_b"]
+    assert final_m["r2_winner"] in (final_m["r2_cand_a"], final_m["r2_cand_b"])
+    assert np.isclose(final_m["r2_share_cand_a"] + final_m["r2_share_cand_b"], 1.0, atol=1e-5)
+
+    # 2. Admiration and Rejection are bounded in [0, 1] and respond to opinion distance
+    assert state.candidate_admiration is not None
+    assert state.candidate_rejection is not None
+    assert np.all((state.candidate_admiration >= 0.0) & (state.candidate_admiration <= 1.0))
+    assert np.all((state.candidate_rejection >= 0.0) & (state.candidate_rejection <= 1.0))
+
+    # Citizens very close to Candidate 0 have high admiration and low rejection for Candidate 0;
+    # citizens very far from Candidate 0 have high rejection and low admiration for Candidate 0.
+    c0 = engine.electoral_engine.candidate_profiles[0]
+    dists_c0 = np.linalg.norm(state.opinions - c0[None, :], axis=1) / np.sqrt(4.0)
+    close_mask = dists_c0 < 0.35
+    far_mask = dists_c0 > 0.85
+    assert state.candidate_admiration[close_mask, 0].mean() > state.candidate_admiration[far_mask, 0].mean() + 0.25
+    assert state.candidate_rejection[far_mask, 0].mean() > state.candidate_rejection[close_mask, 0].mean() + 0.25
+
+    # 3. Three voting states present (-1 not going to vote, -2 blank vote, >=0 valid vote)
+    assert final_m["abstention_rate"] > 0.0
+    assert final_m["blank_rate"] > 0.0
+    assert final_m["valid_vote_rate"] > 0.30
+    assert np.isclose(
+        final_m["abstention_rate"] + final_m["blank_rate"] + final_m["valid_vote_rate"],
+        1.0,
+        atol=1e-5,
+    )
+    assert np.isclose(
+        final_m["r2_abstention_rate"] + final_m["r2_blank_rate"] + final_m["r2_valid_vote_rate"],
+        1.0,
+        atol=1e-5,
+    )

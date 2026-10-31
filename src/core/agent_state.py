@@ -52,7 +52,10 @@ class AgentStateEngine:
     exposure_count: np.ndarray    # int64, shape (N,), total recent informational exposures
     engagement_rate: np.ndarray   # float64, shape (N,), platform engagement rate in [0, 1]
     vote_probs: np.ndarray        # float64, shape (N, K + 1), probabilities for K candidates + abstention (index K)
-    vote_choice: np.ndarray       # int32, shape (N,), categorical choice in {0, ..., K-1} or -1 for abstention
+    vote_choice: np.ndarray       # int32, shape (N,), Leg 1 choice in {0..K-1}, -1 (not voting), -2 (blank vote)
+    candidate_admiration: np.ndarray | None = None  # float64, shape (N, K), independent admiration in [0, 1]
+    candidate_rejection: np.ndarray | None = None   # float64, shape (N, K), independent rejection in [0, 1]
+    vote_choice_r2: np.ndarray | None = None        # int32, shape (N,), Leg 2 runoff choice in {k1, k2}, -1, -2
 
     @staticmethod
     def sample_ibge_2022_ages(n_agents: int, rng: np.random.Generator) -> np.ndarray:
@@ -244,6 +247,9 @@ class AgentStateEngine:
         )
         vote_probs = np.zeros((n_agents, n_candidates + 1), dtype=np.float64)
         vote_choice = np.full(n_agents, -1, dtype=np.int32)
+        candidate_admiration = np.zeros((n_agents, n_candidates), dtype=np.float64)
+        candidate_rejection = np.zeros((n_agents, n_candidates), dtype=np.float64)
+        vote_choice_r2 = np.full(n_agents, -1, dtype=np.int32)
 
         return cls(
             n_agents=n_agents,
@@ -266,6 +272,9 @@ class AgentStateEngine:
             engagement_rate=engagement_rate,
             vote_probs=vote_probs,
             vote_choice=vote_choice,
+            candidate_admiration=candidate_admiration,
+            candidate_rejection=candidate_rejection,
+            vote_choice_r2=vote_choice_r2,
         )
 
     @staticmethod

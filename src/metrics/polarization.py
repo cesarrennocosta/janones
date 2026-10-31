@@ -854,6 +854,50 @@ class AnalyticsEngine:
             record[f"share_cand_{k}"] = float(pop_shares[k])
             record[f"seats_cand_{k}"] = int(dist_seats[k])
 
+        record["blank_votes"] = int(electoral_result.get("blank_votes", 0))
+        record["blank_rate"] = float(electoral_result.get("blank_rate", 0.0))
+        record["valid_vote_rate"] = float(
+            electoral_result.get("valid_vote_rate", 1.0 - record["abstention_rate"] - record["blank_rate"])
+        )
+
+        if electoral_result.get("two_leg_enabled", False):
+            record["r1_runner_up"] = int(electoral_result["r1_runner_up"])
+            record["r1_adm_driven_share"] = float(electoral_result["r1_adm_driven_share"])
+            record["r1_rej_driven_share"] = float(electoral_result["r1_rej_driven_share"])
+            record["r2_cand_a"] = int(electoral_result["r2_cand_a"])
+            record["r2_cand_b"] = int(electoral_result["r2_cand_b"])
+            record["r2_abstentions"] = int(electoral_result["r2_abstentions"])
+            record["r2_abstention_rate"] = float(electoral_result["r2_abstention_rate"])
+            record["r2_blank_votes"] = int(electoral_result["r2_blank_votes"])
+            record["r2_blank_rate"] = float(electoral_result["r2_blank_rate"])
+            record["r2_valid_vote_rate"] = float(electoral_result["r2_valid_vote_rate"])
+            record["r2_share_cand_a"] = float(electoral_result["r2_share_cand_a"])
+            record["r2_share_cand_b"] = float(electoral_result["r2_share_cand_b"])
+            record["r2_winner"] = int(electoral_result["r2_winner"])
+            record["r2_come_from_behind"] = float(electoral_result["r2_come_from_behind"])
+            record["r2_adm_driven_share"] = float(electoral_result["r2_adm_driven_share"])
+            record["r2_rej_driven_share"] = float(electoral_result["r2_rej_driven_share"])
+            record["conv_r1_winner"] = int(electoral_result["conv_r1_winner"])
+            record["conv_r1_runner_up"] = int(electoral_result["conv_r1_runner_up"])
+            record["conv_r2_winner"] = int(electoral_result["conv_r2_winner"])
+            record["r1_swing_voter_fraction"] = float(electoral_result["r1_swing_voter_fraction"])
+            record["r2_swing_voter_fraction"] = float(electoral_result["r2_swing_voter_fraction"])
+            record["r1_flipped_by_opinion"] = float(electoral_result["r1_flipped_by_opinion"])
+            record["r1_runoff_pair_flipped"] = float(electoral_result["r1_runoff_pair_flipped"])
+            record["r2_flipped_by_opinion"] = float(electoral_result["r2_flipped_by_opinion"])
+            record["max_adm_mean"] = float(electoral_result["max_adm_mean"])
+            record["max_rej_mean"] = float(electoral_result["max_rej_mean"])
+
+            r2_shares_all = electoral_result["r2_shares_all"]
+            conv_r2_shares = electoral_result["conv_r2_shares"]
+            adm_means = electoral_result["adm_means"]
+            rej_means = electoral_result["rej_means"]
+            for k in range(len(r2_shares_all)):
+                record[f"r2_share_cand_{k}"] = float(r2_shares_all[k])
+                record[f"conv_r2_share_cand_{k}"] = float(conv_r2_shares[k])
+                record[f"adm_cand_{k}"] = float(adm_means[k])
+                record[f"rej_cand_{k}"] = float(rej_means[k])
+
         if candidate_profiles is not None:
             conv_metrics = compute_conviction_and_cohort_metrics(
                 agent_state=agent_state,

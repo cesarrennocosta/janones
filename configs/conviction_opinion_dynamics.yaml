@@ -22,7 +22,7 @@ simulation:
   n_steps: 1500
   snapshot_interval: 50
   checkpoint_interval: 50
-  n_candidates: 3
+  n_candidates: 4
   n_districts: 10
   n_news_items: 48
   init_mode: "uniform_random"
@@ -76,6 +76,17 @@ electoral:
   indifference_threshold: -1.65
   rationality_lambda: 4.2
   noise_scale: 0.10
+  two_leg_enabled: true
+  adm_dist_threshold: 0.56
+  rej_dist_threshold: 0.62
+  adm_gain_rate: 0.14
+  adm_decay_rate: 0.08
+  rej_gain_rate: 0.14
+  rej_decay_rate: 0.045
+  turnout_min_adm: 0.19
+  clear_margin_threshold: 0.15
+  clear_adm_threshold: 0.34
+  strong_rej_threshold: 0.50
 
 io:
   hdf5_compression: "lzf"
