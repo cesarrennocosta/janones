@@ -228,7 +228,7 @@ def consolidate_scenario_suite(
     suite_prefix: str,
     master_filename: str,
     city_scale_label: str = "medium_100k",
-    max_seeds: int | None = 32,
+    max_seeds: int | None = 100,
 ) -> list[Path]:
     """Generic consolidator for multi-scenario suites (`social_media`, `extreme_imposed`,
     `extreme_imposed_1500runs`, `sync_dictation_100k`).
@@ -335,6 +335,7 @@ def main() -> None:
             output_dir=out_dir,
             suite_prefix="socmed",
             master_filename="all_social_media_metrics.parquet",
+            max_seeds=100,
         )
         ext_dir = root_dir / "extreme_imposed"
         if not ext_dir.exists() or not list(ext_dir.glob("*/*.parquet")):
@@ -344,14 +345,14 @@ def main() -> None:
             output_dir=out_dir,
             suite_prefix="extimp",
             master_filename="all_extreme_imposed_metrics.parquet",
-            max_seeds=32,
+            max_seeds=100,
         )
         consolidate_scenario_suite(
             suite_dir=root_dir / "sync_dictation_100k",
             output_dir=out_dir,
             suite_prefix="syncdict",
             master_filename="all_sync_dictation_metrics.parquet",
-            max_seeds=32,
+            max_seeds=100,
         )
     elif args.all_trad_media:
         out_dir = Path(args.scratch_base).parent / "consolidated"

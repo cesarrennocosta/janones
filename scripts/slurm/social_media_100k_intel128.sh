@@ -13,10 +13,10 @@
 
 # ==============================================================================
 # Multi-Platform Social Media Layer WITH vs WITHOUT Traditional Press
-# Reference Scale: Medium City (N = 100,000) | 1500 Steps | 32 Seeds/Scenario
+# Reference Scale: Medium City (N = 100,000) | 1500 Steps | 100 Seeds/Scenario
 # Most Accurate Brazilian Traditional Press Baseline: M = 3 Tripolar Conglomerates
 #   (Group 1: +0.65, tau=0.80 | Group 2: +0.15, tau=0.25 | Group 3: -0.50, tau=0.65)
-# Partition: intel-128 (Array 0..23 = 6 scenarios x 4 blocks of 8 seeds = 32 seeds/scenario):
+# Partition: intel-128 (Array 0..23 = 6 scenarios x 4 blocks of 25 seeds = 100 seeds/scenario):
 #   Scenario 0: Social Media ONLY (No Press, M=0) — Factual Influencers
 #   Scenario 1: Social Media ONLY (No Press, M=0) — Heterogeneous Influencers (Mixed)
 #   Scenario 2: Social Media ONLY (No Press, M=0) — Tendentious Influencers
@@ -90,8 +90,8 @@ mkdir -p "${OUTPUT_DIR}"
 
 python3 -c "import src.kernels, src.engines.electoral_engine, src.metrics.polarization, src.metrics.network_metrics"
 
-START_SEED=$(( BLOCK_ID * 8 ))
-END_SEED=$(( START_SEED + 7 ))
+START_SEED=$(( BLOCK_ID * 25 ))
+END_SEED=$(( START_SEED + 24 ))
 
 for SEED_ID in $(seq "${START_SEED}" "${END_SEED}"); do
     python3 scripts/run_single_simulation.py \

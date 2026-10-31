@@ -16,8 +16,8 @@
 # OmniOpinion SLURM Array Job: Long-Term Synchronization Tactics, Influencer
 # Co-Working & Intermedia Fact/Subject Dictation (amd-512)
 #
-# Scale: N = 100,000 agents (Medium City Reference), 1500 steps, 32 seeds/scenario
-# 12 Array Tasks x 16 runs/task = 192 total simulation runs (32 seeds x 6 scenarios)
+# Scale: N = 100,000 agents (Medium City Reference), 1500 steps, 100 seeds/scenario
+# 12 Array Tasks x 50 runs/task = 600 total simulation runs (100 seeds x 6 scenarios)
 # ==============================================================================
 
 set -euo pipefail
@@ -45,8 +45,8 @@ SCENARIOS=(
 TASK_ID=${SLURM_ARRAY_TASK_ID:-0}
 SCENARIO_IDX=$(( TASK_ID / 2 ))
 CHUNK_IDX=$(( TASK_ID % 2 ))
-SEED_START=$(( CHUNK_IDX * 16 ))
-SEED_END=$(( SEED_START + 15 ))
+SEED_START=$(( CHUNK_IDX * 50 ))
+SEED_END=$(( SEED_START + 49 ))
 
 SCENARIO="${SCENARIOS[$SCENARIO_IDX]}"
 OUT_DIR="${SCRATCH_ROOT}/${SCENARIO}"

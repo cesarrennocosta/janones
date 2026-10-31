@@ -16,7 +16,7 @@
 # OmniOpinion SLURM Array Job: Long-Term Synchronization Tactics, Influencer
 # Co-Working & Intermedia Fact/Subject Dictation (intel-128)
 #
-# Scale: N = 100,000 agents (Medium City Reference), 1500 steps, 32 seeds/scenario
+# Scale: N = 100,000 agents (Medium City Reference), 1500 steps, 100 seeds/scenario
 # 6 Scenarios (Incremental Ablation of Long-Term Synchronization & Dictation):
 #   0: unsync_nopress        -> M=0, Unsynchronized Extreme Imposed (3.5x Reach / 4x Pop)
 #   1: sync_cowork_nopress   -> M=0, Synchronized Facts + Influencer Co-Working
@@ -24,7 +24,7 @@
 #   3: sync_only_withpress   -> M=3, Synchronized Facts Only + Tripolar Press
 #   4: sync_cowork_withpress -> M=3, Synchronized Facts + Co-Working + Tripolar Press
 #   5: full_sync_cowork_dict -> M=3, Synchronized + Co-Working + Fact/Subject Dictation to Press
-# 24 Array Tasks x 8 runs/task = 192 total simulation runs (32 seeds x 6 scenarios)
+# 24 Array Tasks x 25 runs/task = 600 total simulation runs (100 seeds x 6 scenarios)
 # ==============================================================================
 
 set -euo pipefail
@@ -52,8 +52,8 @@ SCENARIOS=(
 TASK_ID=${SLURM_ARRAY_TASK_ID:-0}
 SCENARIO_IDX=$(( TASK_ID / 4 ))
 CHUNK_IDX=$(( TASK_ID % 4 ))
-SEED_START=$(( CHUNK_IDX * 8 ))
-SEED_END=$(( SEED_START + 7 ))
+SEED_START=$(( CHUNK_IDX * 25 ))
+SEED_END=$(( SEED_START + 24 ))
 
 SCENARIO="${SCENARIOS[$SCENARIO_IDX]}"
 OUT_DIR="${SCRATCH_ROOT}/${SCENARIO}"
