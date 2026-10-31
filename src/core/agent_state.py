@@ -7,15 +7,15 @@ import numpy as np
 
 
 # Empirical Brazilian Age Pyramid for Population >= 16 years (IBGE Demographic Census 2022)
-# Brackets: (min_age, max_age, relative_population_weight)
+# Contiguous brackets [min_age, max_age): (min_age, max_age, relative_population_weight)
 # Median age of total Brazilian population is 35.0 years; >= 65 represents 13.6% of adult (>=16) population.
 IBGE_2022_ADULT_AGE_PYRAMID = (
-    (16.0, 24.0, 0.168),  # Youth / University & High-School age
-    (25.0, 34.0, 0.198),  # Young Adults
-    (35.0, 44.0, 0.196),  # Prime Working Adults
-    (45.0, 54.0, 0.164),  # Mature Working Adults
-    (55.0, 64.0, 0.138),  # Pre-Retirement Cohort
-    (65.0, 90.0, 0.136),  # Seniors (65+ is 10.9% of total pop = 13.6% of 16+ pop)
+    (16.0, 25.0, 0.168),  # 16-24 completed years: Youth / University & High-School age
+    (25.0, 35.0, 0.198),  # 25-34 completed years: Young Adults
+    (35.0, 45.0, 0.196),  # 35-44 completed years: Prime Working Adults
+    (45.0, 55.0, 0.164),  # 45-54 completed years: Mature Working Adults
+    (55.0, 65.0, 0.138),  # 55-64 completed years: Pre-Retirement Cohort
+    (65.0, 90.0, 0.136),  # 65-89 completed years: Seniors (13.6% of 16+ population)
 )
 
 
@@ -59,13 +59,25 @@ class AgentStateEngine:
 
     @staticmethod
     def sample_ibge_2022_ages(n_agents: int, rng: np.random.Generator) -> np.ndarray:
-        """Sample continuous ages in [16, 90] following the IBGE 2022 Census empirical age pyramid."""
+        """Sample continuous ages in [16, 90] following the IBGE 2022 Census empirical age pyramid
+        with contiguous brackets and smooth demographic transitions.
+        """
         probs = np.array([b[2] for b in IBGE_2022_ADULT_AGE_PYRAMID], dtype=np.float64)
         probs /= np.sum(probs)
         bracket_indices = rng.choice(len(IBGE_2022_ADULT_AGE_PYRAMID), size=n_agents, p=probs)
         lows = np.array([IBGE_2022_ADULT_AGE_PYRAMID[idx][0] for idx in bracket_indices], dtype=np.float64)
         highs = np.array([IBGE_2022_ADULT_AGE_PYRAMID[idx][1] for idx in bracket_indices], dtype=np.float64)
         ages = rng.uniform(lows, highs)
+        # Smooth demographic mortality taper in the 65-90 senior bracket
+        senior_mask = bracket_indices == (len(IBGE_2022_ADULT_AGE_PYRAMID) - 1)
+        n_sen = int(np.sum(senior_mask))
+        if n_sen > 0:
+            ages[senior_mask] = 65.0 + 25.0 * rng.beta(1.15, 2.25, size=n_sen)
+        # Apply gentle cross-bracket kernel smoothing and reflect at boundaries [16, 90]
+        ages = ages + rng.normal(0.0, 1.35, size=n_agents)
+        ages = np.where(ages < 16.0, 16.0 + (16.0 - ages), ages)
+        ages = np.where(ages > 90.0, 90.0 - (ages - 90.0), ages)
+        ages = np.clip(ages, 16.0, 90.0)
         return np.ascontiguousarray(ages, dtype=np.float64)
 
     @classmethod
