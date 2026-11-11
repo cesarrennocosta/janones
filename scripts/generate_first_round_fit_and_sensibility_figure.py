@@ -360,6 +360,7 @@ def run_first_round_janones_simulations(
     n_agents: int = 100_000,
     task_id: int | None = None,
     base_seed: int = 20261004,
+    calibrated_bundle: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> dict:
     """
     Build the N = 100,000 citizen 5-layer multiplex + broadcast + social media + WhatsApp ABM,
@@ -466,65 +467,73 @@ def run_first_round_janones_simulations(
     init_rej[:, 1] *= 0.440 / np.mean(init_rej[:, 1])
     init_rej[:, 2] *= 0.260 / np.mean(init_rej[:, 2])
 
-    # Calibrate Day-1 baseline ballot intercepts
-    def loss_init(b):
-        cb = np.array([b[0], b[1], 0.0], dtype=np.float64)
-        v0, v1, _, _, _, _, _ = evaluate_ballots_jit(init_op, init_adm, init_rej, cand_profiles, cb, 4.2)
-        return [v0 - 44.35, v1 - 37.25]
-
-    res_init = least_squares(loss_init, [0.0, 0.0])
-    cand_bias = np.array([res_init.x[0], res_init.x[1], 0.0], dtype=np.float64)
-
-    def run_sim(xi_tuple, params):
-        return run_parsimonious_50day_abm_jit(
-            init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
-            cand_profiles, trad_lean, cand_bias, l3_weight, p_tv, p_trad_any, open_feed_prob, swing_weight, wa_weight,
-            xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], params
-        )
-
-    # -------------------------------------------------------------------------
-    # 3. Nonlinear Least-Squares Calibration of the Parsimonious Multi-Layer ABM
-    # -------------------------------------------------------------------------
-    p_full = np.zeros(14, dtype=np.float64)
-    run_sim((0.0, 0.0, 0.0, 0.0, 0.0), p_full)  # JIT warmup
-
-    def loss_neutral(p4):
-        p_tmp = np.zeros(14, dtype=np.float64)
-        p_tmp[:4] = p4
-        l_sh, f_sh, o_sh, _, _, _, _ = run_sim((0.0, 0.0, 0.0, 0.0, 0.0), p_tmp)
-        return [
-            (l_sh[-1] - 48.20) * 8.0,
-            (f_sh[-1] - 38.80) * 8.0,
-            (o_sh[17] - 21.6) * 2.5,
-            (o_sh[25] - 19.3) * 1.5,
-            (l_sh[17] - 42.3) * 1.5,
-        ]
-
-    res_n = least_squares(loss_neutral, [0.002, 0.001, 0.004, 0.030], bounds=(0.0, 0.5), diff_step=1e-4, max_nfev=45)
-    p_full[:4] = res_n.x
-
     # Normalized operational intensities corresponding to exact empirical Brazilian references:
-    # M1: 32% / 50% = 0.6400 (IBGE Evangelical electorate share in L_3)
-    # M2: 0.40 / 0.70 = 0.5714 (Manchetômetro broadcast/press editorial slant ||m_trad||)
-    # M3: (2.86 - 1.0) / (4.0 - 1.0) = 0.6200 (PL 210M vs PT 72M surrogate/bot amplification)
-    # M4: (3.50 - 1.0) / (5.0 - 1.0) = 0.6250 (Negativity asymmetry ratio lambda_R/delta_R = 0.14/0.04)
-    # M5: 68% / 100% = 0.6800 (3.9M Oct 4 WhatsApp cascade shock out of 5.7M saturation)
     ops = [0.6400, 0.5714, 0.6200, 0.6250, 0.6800]
-    target_f_cum = [40.60, 41.80, 43.20, 44.80, 47.00]
-    target_l_cum = [47.52, 47.07, 46.55, 45.96, 45.16]
 
-    for m_idx in range(5):
-        xi_vec = [ops[k] if k <= m_idx else 0.0 for k in range(5)]
-        def loss_m(pm):
-            p_try = p_full.copy()
-            p_try[4 + 2 * m_idx] = pm[0]
-            p_try[5 + 2 * m_idx] = pm[1]
-            l_s, f_s, _, _, _, _, _ = run_sim(tuple(xi_vec), p_try)
-            return [(f_s[-1] - target_f_cum[m_idx]) * 4.0, (l_s[-1] - target_l_cum[m_idx]) * 4.0]
-        init_guess = [0.002, 0.002] if m_idx < 4 else [0.04, 0.05]
-        res_m = least_squares(loss_m, init_guess, bounds=(0.0, 1.0), diff_step=1e-4, max_nfev=45)
-        p_full[4 + 2 * m_idx] = res_m.x[0]
-        p_full[5 + 2 * m_idx] = res_m.x[1]
+    if calibrated_bundle is not None:
+        p_ref, cb_ref = calibrated_bundle
+        cand_bias = cb_ref.copy()
+        # Apply seed-specific finite-city exposure fluctuation (~3.5% CV) around calibrated parameters
+        p_full = p_ref * np.clip(1.0 + rng.normal(0.0, 0.035, size=len(p_ref)), 0.85, 1.15)
+        def run_sim(xi_tuple, params):
+            return run_parsimonious_50day_abm_jit(
+                init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
+                cand_profiles, trad_lean, cand_bias, l3_weight, p_tv, p_trad_any, open_feed_prob, swing_weight, wa_weight,
+                xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], params
+            )
+    else:
+        # Calibrate Day-1 baseline ballot intercepts
+        def loss_init(b):
+            cb = np.array([b[0], b[1], 0.0], dtype=np.float64)
+            v0, v1, _, _, _, _, _ = evaluate_ballots_jit(init_op, init_adm, init_rej, cand_profiles, cb, 4.2)
+            return [v0 - 44.35, v1 - 37.25]
+
+        res_init = least_squares(loss_init, [0.0, 0.0])
+        cand_bias = np.array([res_init.x[0], res_init.x[1], 0.0], dtype=np.float64)
+
+        def run_sim(xi_tuple, params):
+            return run_parsimonious_50day_abm_jit(
+                init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
+                cand_profiles, trad_lean, cand_bias, l3_weight, p_tv, p_trad_any, open_feed_prob, swing_weight, wa_weight,
+                xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], params
+            )
+
+        # -------------------------------------------------------------------------
+        # 3. Nonlinear Least-Squares Calibration of the Parsimonious Multi-Layer ABM
+        # -------------------------------------------------------------------------
+        p_full = np.zeros(14, dtype=np.float64)
+        run_sim((0.0, 0.0, 0.0, 0.0, 0.0), p_full)  # JIT warmup
+
+        def loss_neutral(p4):
+            p_tmp = np.zeros(14, dtype=np.float64)
+            p_tmp[:4] = p4
+            l_sh, f_sh, o_sh, _, _, _, _ = run_sim((0.0, 0.0, 0.0, 0.0, 0.0), p_tmp)
+            return [
+                (l_sh[-1] - 48.20) * 8.0,
+                (f_sh[-1] - 38.80) * 8.0,
+                (o_sh[17] - 21.6) * 2.5,
+                (o_sh[25] - 19.3) * 1.5,
+                (l_sh[17] - 42.3) * 1.5,
+            ]
+
+        res_n = least_squares(loss_neutral, [0.002, 0.001, 0.004, 0.030], bounds=(0.0, 0.5), diff_step=1e-4, max_nfev=45)
+        p_full[:4] = res_n.x
+
+        target_f_cum = [40.60, 41.80, 43.20, 44.80, 47.00]
+        target_l_cum = [47.52, 47.07, 46.55, 45.96, 45.16]
+
+        for m_idx in range(5):
+            xi_vec = [ops[k] if k <= m_idx else 0.0 for k in range(5)]
+            def loss_m(pm):
+                p_try = p_full.copy()
+                p_try[4 + 2 * m_idx] = pm[0]
+                p_try[5 + 2 * m_idx] = pm[1]
+                l_s, f_s, _, _, _, _, _ = run_sim(tuple(xi_vec), p_try)
+                return [(f_s[-1] - target_f_cum[m_idx]) * 4.0, (l_s[-1] - target_l_cum[m_idx]) * 4.0]
+            init_guess = [0.002, 0.002] if m_idx < 4 else [0.04, 0.05]
+            res_m = least_squares(loss_m, init_guess, bounds=(0.0, 1.0), diff_step=1e-4, max_nfev=45)
+            p_full[4 + 2 * m_idx] = res_m.x[0]
+            p_full[5 + 2 * m_idx] = res_m.x[1]
 
     # Run Neutral Baseline ABM & Full Fitted ABM
     lula_neutral, flavio_neutral, others_neutral, _, _, lula_rej_neutral, _ = run_sim((0.0, 0.0, 0.0, 0.0, 0.0), p_full)
@@ -540,7 +549,8 @@ def run_first_round_janones_simulations(
     fit_rmse = float(np.sqrt(np.mean(errs ** 2)))
     all_obs = np.concatenate([poll_lula, poll_flavio, poll_others])
     fit_r2 = float(1.0 - np.sum(errs ** 2) / np.sum((all_obs - np.mean(all_obs)) ** 2))
-    print(f"Parsimonious ABM Calibration Complete: Poll+TSE RMSE = {fit_rmse:.2f} pct pts, R^2 = {fit_r2:.4f}")
+    if calibrated_bundle is None:
+        print(f"Parsimonious ABM Calibration Complete: Poll+TSE RMSE = {fit_rmse:.2f} pct pts, R^2 = {fit_r2:.4f}")
 
     # -------------------------------------------------------------------------
     # 4. Five Janones Mechanisms: Physical Parameter Scales & Live ABM Sweeps
@@ -691,6 +701,7 @@ def run_first_round_janones_simulations(
         "fit_rmse": fit_rmse,
         "fit_r2": fit_r2,
         "features": features,
+        "calibrated_bundle": (p_full, cand_bias),
     }
 
 
@@ -801,8 +812,9 @@ def render_master_figure(data: dict, out_paths: list[Path]) -> None:
     )
 
     # Annotate late surge + ABM Goodness-of-Fit metrics cleanly in middle space
+    n_seeds_lbl = f", {data.get('n_seeds', 1)} seeds" if data.get("n_seeds", 1) > 1 else ""
     ax_a.annotate(
-        f"ABM Fit (N=100k, RMSE={data['fit_rmse']:.2f}%, R²={data['fit_r2']:.3f}):\n"
+        f"ABM Fit (N=100k{n_seeds_lbl}, RMSE={data['fit_rmse']:.2f}%, R²={data['fit_r2']:.3f}):\n"
         f"48h Blitz lifts Flávio 38.8% -> 47.0%\n(+8.2% / +9.72M votes over Neutral)",
         xy=(48.8, 45.6), xytext=(15.5, 26.2),
         arrowprops=dict(arrowstyle="->", color=COLORS["flavio_dark"], lw=0.6, shrinkA=0, shrinkB=2),
@@ -1266,6 +1278,7 @@ def main() -> None:
         description="Run or aggregate the 2026 First-Round Janones Multi-Layer ABM Fit & 5-Mechanism Sensitivity Suite (N=100,000)."
     )
     parser.add_argument("--task-id", type=int, default=None, help="Slurm seed/task ID (0..99). If omitted, runs local mode.")
+    parser.add_argument("--num-seeds", type=int, default=None, help="Run N seeds (e.g. 100) locally in a single process, save all shards, and aggregate.")
     parser.add_argument("--base-seed", type=int, default=20261004, help="Master SeedSequence entropy for multi-seed Slurm runs.")
     parser.add_argument("--n-agents", type=int, default=100_000, help="Number of citizens in the urban multiplex (default: 100,000).")
     parser.add_argument("--output-dir", type=str, default=None, help="Directory to write per-seed JSON/Parquet shards in Slurm mode.")
@@ -1274,6 +1287,22 @@ def main() -> None:
 
     if args.aggregate_dir is not None:
         sim_data = aggregate_seed_shards_r1(Path(args.aggregate_dir))
+    elif args.num_seeds is not None and args.num_seeds > 1:
+        out_dir = Path(args.output_dir or (DATA_DIR / "results" / "janones_2026_100k" / "round1_diagnosis"))
+        out_dir.mkdir(parents=True, exist_ok=True)
+        print(f"=== Calibrating Reference N={args.n_agents} Model & Running {args.num_seeds} Independent Seeds -> {out_dir} ===")
+        ref_sim = run_first_round_janones_simulations(n_agents=args.n_agents)
+        cal_bundle = ref_sim["calibrated_bundle"]
+        for s_id in range(args.num_seeds):
+            existing_shard = out_dir / f"seed_{s_id:04d}.json"
+            if existing_shard.exists() and existing_shard.stat().st_size > 1024:
+                print(f"[Janones R1 Seed {s_id:04d}/{args.num_seeds - 1:04d}] Already completed, skipping.")
+                continue
+            s_data = ref_sim if s_id == 0 else run_first_round_janones_simulations(
+                n_agents=args.n_agents, task_id=s_id, base_seed=args.base_seed, calibrated_bundle=cal_bundle
+            )
+            save_seed_shard_r1(s_data, out_dir, s_id, args.n_agents)
+        sim_data = aggregate_seed_shards_r1(out_dir)
     elif args.task_id is not None:
         out_dir = Path(args.output_dir or "/scratch/global/crcosta/omni_opinion/janones_2026_100k/round1_diagnosis")
         existing_shard = out_dir / f"seed_{args.task_id:04d}.json"

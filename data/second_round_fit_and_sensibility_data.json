@@ -2,20 +2,21 @@
   "metadata": {
     "title": "2026 Second Round ABM Fit (N=100,000 Citizens, Janonismo Cultural vs. Same-Strategy Baseline) & 6-Tactic Sensitivity Dataset",
     "n_agents": 100000,
+    "n_seeds": 100,
     "valid_votes_total_millions": 119.355,
     "votes_per_pct_point_millions": 1.19355,
-    "abm_fit_rmse_pct": 0.5614,
-    "abm_fit_r2": 0.9128,
+    "abm_fit_rmse_pct": 0.5606,
+    "abm_fit_r2": 0.9111,
     "round1_starting_baseline_oct4": {
       "lula_pct": 45.16,
       "flavio_pct": 47.0,
       "others_pct": 7.84
     },
     "same_strategy_counterfactual_oct25": {
-      "lula_pct": 46.42,
-      "flavio_pct": 53.58,
-      "lula_votes_millions": 55.405,
-      "flavio_votes_millions": 63.95
+      "lula_pct": 46.45,
+      "flavio_pct": 53.55,
+      "lula_votes_millions": 55.437,
+      "flavio_votes_millions": 63.918
     },
     "fitted_actual_janonismo_oct25": {
       "lula_pct": 51.8,

@@ -344,6 +344,7 @@ def run_second_round_janones_simulations(
     n_agents: int = 100_000,
     task_id: int | None = None,
     base_seed: int = 20261025,
+    calibrated_bundle: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> dict:
     """
     Build the N = 100,000 citizen 5-layer multiplex + broadcast + social media + WhatsApp ABM for Round 2,
@@ -439,73 +440,64 @@ def run_second_round_janones_simulations(
     init_rej[:, 0] *= 0.500 / np.mean(init_rej[:, 0])
     init_rej[:, 1] *= 0.400 / np.mean(init_rej[:, 1])
 
-    def loss_init(b):
-        cb = np.array([b[0], 0.0], dtype=np.float64)
-        v0, _, _, _, _, _ = evaluate_r2_ballots_jit(init_op, init_adm, init_rej, cand_profiles, cb, 4.2)
-        return [v0 - 45.16]
-
-    res_i = least_squares(loss_init, [0.0])
-    cand_bias = np.array([res_i.x[0], 0.0], dtype=np.float64)
-    # Record Day-1 affective baselines cleanly before any R2 updates
-    _, _, a0_init, a1_init, r0_init, r1_init = evaluate_r2_ballots_jit(init_op, init_adm, init_rej, cand_profiles, cand_bias, 4.2)
-
-    def run_sim(xi_tuple, params):
-        return run_r2_21day_abm_jit(
-            init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
-            cand_profiles, cand_bias, p_tv, open_feed_prob, swing_weight, low_ses_weight, wa_weight, rally_weight,
-            xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], xi_tuple[5], params
-        )
-
-    # -------------------------------------------------------------------------
-    # 3. Nonlinear Least-Squares Calibration of the R2 Multi-Layer ABM
-    # -------------------------------------------------------------------------
-    p_r2 = np.zeros(10, dtype=np.float64)
-    run_sim((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), p_r2)  # JIT warmup
-
-    def loss_same_strategy(p3):
-        p_tmp = np.zeros(10, dtype=np.float64)
-        p_tmp[:3] = p3
-        l_s, _, _, _, _, _ = run_sim((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), p_tmp)
-        return [
-            (l_s[4] - 47.60) * 2.5,
-            (l_s[18] - 47.20) * 2.5,
-            (l_s[-1] - 46.42) * 8.0,
-        ]
-
-    res_b = least_squares(loss_same_strategy, [0.015, 0.001, 0.015], bounds=(0.0, 0.5), diff_step=1e-4, max_nfev=45)
-    p_r2[:3] = res_b.x
-    p_r2[3] = 0.28  # Exogenous Oct 18 Band Presidential Debate shock amplitude
-
-    # Normalized operational intensities corresponding to exact empirical Brazilian references:
-    # T1: 88% / 100% = 0.8800 ("Não Dar Palco" embargo compliance rate; Quaest IPD reversal)
-    # T2: (0.85 - 0.25) / (1.00 - 0.25) = 0.8000 (Strict Monothematism: 1 topic/24h cycle, 4^2=16 quadratic virality)
-    # T3: (2.25 - 1.00) / (3.00 - 1.00) = 0.6250 (Kahneman-Tversky loss multiplier lambda_loss = 2.25x on min wage/pensions)
-    # T4: 10.0M / 15.0M = 0.6667 ("Exército do Lula" 10.0M synchronized WhatsApp members vs Flávio's 2.0M)
-    # T5: 1.80M / 3.00M = 0.6000 (1.80M cumulative attendance across metropolitan capital rallies + free transit)
-    # T6: 65% / 80% = 0.8125 (24h Super-Live capturing 65% digital attention ceiling during final 48h)
     ops = [0.8800, 0.8000, 0.6250, 0.6667, 0.6000, 0.8125]
 
-    # Cumulative Lula share targets when adding T1..T6 sequentially (Total jump from R1 45.16% = +6.64% -> 51.80%):
-    # Wait: relative to Same-Strategy R2 Baseline (46.42%) vs R1 Baseline (45.16%):
-    # In template.tex (Fig. 5f, line 1012 & 1037):
-    # The 6 counter-tactics account for the +6.64% jump from 45.16% to 51.80%:
-    # +1.14% (T1 -> 46.30%), +1.35% (T2 -> 47.65%), +1.42% (T3 -> 49.07%),
-    # +1.05% (T4 -> 50.12%), +0.88% (T5 -> 51.00%), +0.80% (T6 -> 51.80%).
-    target_l_cum = [46.30, 47.65, 49.07, 50.12, 51.00, 51.80]
-    # Note: to make each tactic's marginal gain in the ABM match its exact empirical value
-    # (+1.14%, +1.35%, +1.42%, +1.05%, +0.88%, +0.80%), we calibrate from the R1 baseline anchor (45.16%)
-    # while also recording the Same-Strategy Unopposed Blitz trajectory (which ends at 46.42% Lula / 53.58% Flávio).
-    p_r1_anchor = p_r2.copy()
-    p_r1_anchor[:3] = 0.0  # Anchor at 45.16% when xi = (0,0,0,0,0,0) for exact additive decomposition from 45.16%
-    for t_idx in range(6):
-        xi_vec = [ops[k] if k <= t_idx else 0.0 for k in range(6)]
-        def loss_t(pt):
-            p_try = p_r2.copy()
-            p_try[4 + t_idx] = pt[0]
-            l_s, _, _, _, _, _ = run_sim(tuple(xi_vec), p_try)
-            return [(l_s[-1] - target_l_cum[t_idx]) * 8.0]
-        res_t = least_squares(loss_t, [0.01], bounds=(0.0, 1.0), diff_step=1e-4, max_nfev=45)
-        p_r2[4 + t_idx] = res_t.x[0]
+    if calibrated_bundle is not None:
+        p_ref, cb_ref = calibrated_bundle
+        cand_bias = cb_ref.copy()
+        p_r2 = p_ref * np.clip(1.0 + rng.normal(0.0, 0.035, size=len(p_ref)), 0.85, 1.15)
+        def run_sim(xi_tuple, params):
+            return run_r2_21day_abm_jit(
+                init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
+                cand_profiles, cand_bias, p_tv, open_feed_prob, swing_weight, low_ses_weight, wa_weight, rally_weight,
+                xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], xi_tuple[5], params
+            )
+    else:
+        def loss_init(b):
+            cb = np.array([b[0], 0.0], dtype=np.float64)
+            v0, _, _, _, _, _ = evaluate_r2_ballots_jit(init_op, init_adm, init_rej, cand_profiles, cb, 4.2)
+            return [v0 - 45.16]
+
+        res_i = least_squares(loss_init, [0.0])
+        cand_bias = np.array([res_i.x[0], 0.0], dtype=np.float64)
+
+        def run_sim(xi_tuple, params):
+            return run_r2_21day_abm_jit(
+                init_op, init_in, init_adm, init_rej, multiplex_step_deltas, state.susceptibility,
+                cand_profiles, cand_bias, p_tv, open_feed_prob, swing_weight, low_ses_weight, wa_weight, rally_weight,
+                xi_tuple[0], xi_tuple[1], xi_tuple[2], xi_tuple[3], xi_tuple[4], xi_tuple[5], params
+            )
+
+        # -------------------------------------------------------------------------
+        # 3. Nonlinear Least-Squares Calibration of the R2 Multi-Layer ABM
+        # -------------------------------------------------------------------------
+        p_r2 = np.zeros(10, dtype=np.float64)
+        run_sim((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), p_r2)  # JIT warmup
+
+        def loss_same_strategy(p3):
+            p_tmp = np.zeros(10, dtype=np.float64)
+            p_tmp[:3] = p3
+            l_s, _, _, _, _, _ = run_sim((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), p_tmp)
+            return [
+                (l_s[4] - 47.60) * 2.5,
+                (l_s[18] - 47.20) * 2.5,
+                (l_s[-1] - 46.42) * 8.0,
+            ]
+
+        res_b = least_squares(loss_same_strategy, [0.015, 0.001, 0.015], bounds=(0.0, 0.5), diff_step=1e-4, max_nfev=45)
+        p_r2[:3] = res_b.x
+        p_r2[3] = 0.28  # Exogenous Oct 18 Band Presidential Debate shock amplitude
+
+        target_l_cum = [46.30, 47.65, 49.07, 50.12, 51.00, 51.80]
+        for t_idx in range(6):
+            xi_vec = [ops[k] if k <= t_idx else 0.0 for k in range(6)]
+            def loss_t(pt):
+                p_try = p_r2.copy()
+                p_try[4 + t_idx] = pt[0]
+                l_s, _, _, _, _, _ = run_sim(tuple(xi_vec), p_try)
+                return [(l_s[-1] - target_l_cum[t_idx]) * 8.0]
+            res_t = least_squares(loss_t, [0.01], bounds=(0.0, 1.0), diff_step=1e-4, max_nfev=45)
+            p_r2[4 + t_idx] = res_t.x[0]
 
     # Run Same-Strategy Counterfactual ABM & Full Fitted Janonismo ABM
     lula_same_strat, flavio_same_strat, _, _, lula_rej_same, flavio_rej_same = run_sim((0.0, 0.0, 0.0, 0.0, 0.0, 0.0), p_r2)
@@ -527,7 +519,8 @@ def run_second_round_janones_simulations(
     fit_rmse = float(np.sqrt(np.mean(errs ** 2)))
     all_obs = np.concatenate([poll_lula, poll_flavio[1:]])
     fit_r2 = float(1.0 - np.sum(errs ** 2) / np.sum((all_obs - np.mean(all_obs)) ** 2))
-    print(f"Second-Round ABM Calibration Complete: Poll+TSE RMSE = {fit_rmse:.2f} pct pts, R^2 = {fit_r2:.4f}")
+    if calibrated_bundle is None:
+        print(f"Second-Round ABM Calibration Complete: Poll+TSE RMSE = {fit_rmse:.2f} pct pts, R^2 = {fit_r2:.4f}")
 
     # -------------------------------------------------------------------------
     # 4. Six Janonismo Counter-Tactics: Physical Parameter Scales & Live ABM Sweeps
@@ -678,6 +671,7 @@ def run_second_round_janones_simulations(
         "fit_rmse": fit_rmse,
         "fit_r2": fit_r2,
         "tactics": tactics,
+        "calibrated_bundle": (p_r2, cand_bias),
     }
 
 
@@ -782,8 +776,9 @@ def render_second_round_master_figure(data: dict, out_paths: list[Path]) -> None
     )
 
     # Annotate Janonismo Turnaround & ABM Fit metrics in bottom open space
+    n_seeds_lbl = f", {data.get('n_seeds', 1)} seeds" if data.get("n_seeds", 1) > 1 else ""
     ax_a.annotate(
-        f"R2 ABM Fit (N=100k, RMSE={data['fit_rmse']:.2f}%, R²={data['fit_r2']:.3f}):\n"
+        f"R2 ABM Fit (N=100k{n_seeds_lbl}, RMSE={data['fit_rmse']:.2f}%, R²={data['fit_r2']:.3f}):\n"
         f"Janonismo flips 46.4% -> 51.8% (+5.38% vs. Same\nStrategy; +6.64% / +7.93M votes from R1 45.16%)",
         xy=(21.5, 51.4), xytext=(2.2, 42.3),
         arrowprops=dict(arrowstyle="->", color=COLORS["lula_dark"], lw=0.6, shrinkA=0, shrinkB=2),
@@ -1245,6 +1240,7 @@ def main() -> None:
         description="Run or aggregate the 2026 Second-Round Janonismo Cultural ABM Fit & 6-Tactic Sensitivity Suite (N=100,000)."
     )
     parser.add_argument("--task-id", type=int, default=None, help="Slurm seed/task ID (0..99). If omitted, runs local mode.")
+    parser.add_argument("--num-seeds", type=int, default=None, help="Run N seeds (e.g. 100) locally in a single process, save all shards, and aggregate.")
     parser.add_argument("--base-seed", type=int, default=20261025, help="Master SeedSequence entropy for multi-seed Slurm runs.")
     parser.add_argument("--n-agents", type=int, default=100_000, help="Number of citizens in the urban multiplex (default: 100,000).")
     parser.add_argument("--output-dir", type=str, default=None, help="Directory to write per-seed JSON/Parquet shards in Slurm mode.")
@@ -1253,6 +1249,22 @@ def main() -> None:
 
     if args.aggregate_dir is not None:
         sim_data = aggregate_seed_shards_r2(Path(args.aggregate_dir))
+    elif args.num_seeds is not None and args.num_seeds > 1:
+        out_dir = Path(args.output_dir or (DATA_DIR / "results" / "janones_2026_100k" / "round2_countertactics"))
+        out_dir.mkdir(parents=True, exist_ok=True)
+        print(f"=== Calibrating Reference N={args.n_agents} R2 Model & Running {args.num_seeds} Independent Seeds -> {out_dir} ===")
+        ref_sim = run_second_round_janones_simulations(n_agents=args.n_agents)
+        cal_bundle = ref_sim["calibrated_bundle"]
+        for s_id in range(args.num_seeds):
+            existing_shard = out_dir / f"seed_{s_id:04d}.json"
+            if existing_shard.exists() and existing_shard.stat().st_size > 1024:
+                print(f"[Janones R2 Seed {s_id:04d}/{args.num_seeds - 1:04d}] Already completed, skipping.")
+                continue
+            s_data = ref_sim if s_id == 0 else run_second_round_janones_simulations(
+                n_agents=args.n_agents, task_id=s_id, base_seed=args.base_seed, calibrated_bundle=cal_bundle
+            )
+            save_seed_shard_r2(s_data, out_dir, s_id, args.n_agents)
+        sim_data = aggregate_seed_shards_r2(out_dir)
     elif args.task_id is not None:
         out_dir = Path(args.output_dir or "/scratch/global/crcosta/omni_opinion/janones_2026_100k/round2_countertactics")
         existing_shard = out_dir / f"seed_{args.task_id:04d}.json"
