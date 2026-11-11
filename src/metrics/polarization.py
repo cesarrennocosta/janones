@@ -800,6 +800,8 @@ class AnalyticsEngine:
             "tv_reached": float(media_stats.get("tv_reached", 0.0)) if media_stats else 0.0,
             "radio_reached": float(media_stats.get("radio_reached", 0.0)) if media_stats else 0.0,
             "press_reached": float(media_stats.get("press_reached", 0.0)) if media_stats else 0.0,
+            "outdoor_reached": float(media_stats.get("outdoor_reached", 0.0)) if media_stats else 0.0,
+            "rally_reached": float(media_stats.get("rally_reached", 0.0)) if media_stats else 0.0,
             "facts_count": float(media_stats.get("facts_count", 0.0)) if media_stats else 0.0,
             "published_notices": float(media_stats.get("published_notices", 0.0)) if media_stats else 0.0,
             "dictated_trad_share": float(media_stats.get("dictated_trad_share", 0.0)) if media_stats else 0.0,

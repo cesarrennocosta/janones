@@ -203,6 +203,90 @@ class AgentStateEngine:
                 np.clip(0.65 - 0.35 * conv_extremity - 0.20 * age_norm + rng.uniform(-0.08, 0.08, size=n_agents), 0.05, 0.95),
                 dtype=np.float64,
             )
+        elif init_mode in ("janones_brazil_datafolha", "datafolha_2024", "brazil_electoral"):
+            # Datafolha Empirical Brazilian Political Identification Distribution:
+            # - Petistas / Lulistas (~40%): Note 5 (strongly convinced ~28%), Note 4 (soft/inclined ~12%)
+            # - Bolsonaristas (~34%): Note 1 (strongly convinced ~23%), Note 2 (soft/inclined ~11%)
+            # - Neutros / Centro (~20%): Note 3 (~19%) + Nao sabem (~1%)
+            # - Nenhum dos dois / Rejeita a regua (~6%)
+            cohort_draws = rng.random(size=n_agents)
+            innate_beliefs = np.zeros((n_agents, n_dims), dtype=np.float64)
+
+            # Lula ideological center: Center-Left (-0.25, -0.20, -0.35, -0.15)
+            # Flavio Bolsonaro center: Extreme Right (+0.65, +0.70, +0.60, +0.65)
+            lula_center = np.array([-0.25, -0.20, -0.35, -0.15], dtype=np.float64)
+            flavio_center = np.array([0.65, 0.70, 0.60, 0.65], dtype=np.float64)
+
+            # 1. Strongly Petistas / Lulistas (Note 5, 28%): [0.00, 0.28)
+            mask_lula_strong = cohort_draws < 0.28
+            n_ls = int(np.sum(mask_lula_strong))
+            if n_ls > 0:
+                innate_beliefs[mask_lula_strong] = np.clip(
+                    lula_center * 1.20 + rng.normal(0.0, 0.10, size=(n_ls, n_dims)), -1.0, 1.0
+                )
+
+            # 2. Lightly inclined Lulistas (Note 4, 12%): [0.28, 0.40)
+            mask_lula_soft = (cohort_draws >= 0.28) & (cohort_draws < 0.40)
+            n_lsoft = int(np.sum(mask_lula_soft))
+            if n_lsoft > 0:
+                innate_beliefs[mask_lula_soft] = np.clip(
+                    lula_center * 0.75 + rng.normal(0.0, 0.10, size=(n_lsoft, n_dims)), -1.0, 1.0
+                )
+
+            # 3. Strongly Bolsonaristas (Note 1, 23%): [0.40, 0.63)
+            mask_bols_strong = (cohort_draws >= 0.40) & (cohort_draws < 0.63)
+            n_bs = int(np.sum(mask_bols_strong))
+            if n_bs > 0:
+                innate_beliefs[mask_bols_strong] = np.clip(
+                    flavio_center * 1.00 + rng.normal(0.0, 0.10, size=(n_bs, n_dims)), -1.0, 1.0
+                )
+
+            # 4. Lightly inclined Bolsonaristas (Note 2, 11%): [0.63, 0.74)
+            mask_bols_soft = (cohort_draws >= 0.63) & (cohort_draws < 0.74)
+            n_bsoft = int(np.sum(mask_bols_soft))
+            if n_bsoft > 0:
+                innate_beliefs[mask_bols_soft] = np.clip(
+                    flavio_center * 0.70 + rng.normal(0.0, 0.12, size=(n_bsoft, n_dims)), -1.0, 1.0
+                )
+
+            # 5. Neutros / Centro (Note 3, 20%): [0.74, 0.94)
+            # Brazilian centrists: culturally conservative/religious, law-and-order, economically pragmatic
+            mask_neutro = (cohort_draws >= 0.74) & (cohort_draws < 0.94)
+            n_neu = int(np.sum(mask_neutro))
+            if n_neu > 0:
+                neu_center = np.array([0.05, 0.28, 0.05, 0.28], dtype=np.float64)
+                innate_beliefs[mask_neutro] = np.clip(
+                    neu_center + rng.normal(0.0, 0.18, size=(n_neu, n_dims)), -1.0, 1.0
+                )
+
+            # 6. Nenhum / Rejeita regua (6%): [0.94, 1.00]
+            mask_nenhum = cohort_draws >= 0.94
+            n_nen = int(np.sum(mask_nenhum))
+            if n_nen > 0:
+                innate_beliefs[mask_nenhum] = np.clip(
+                    rng.normal(0.0, 0.30, size=(n_nen, n_dims)), -1.0, 1.0
+                )
+
+            opinions = np.ascontiguousarray(innate_beliefs.copy(), dtype=np.float64)
+            conv_extremity = np.linalg.norm(innate_beliefs, axis=1) / np.sqrt(float(n_dims))
+            susceptibility = np.clip(
+                0.85 - 0.55 * age_norm - 0.22 * conv_extremity + rng.uniform(-0.08, 0.08, size=n_agents),
+                0.05,
+                0.98,
+            )
+            susceptibility = np.ascontiguousarray(susceptibility, dtype=np.float64)
+            epsilon = np.ascontiguousarray(
+                np.clip(base_epsilon * (1.15 - 0.45 * conv_extremity) + rng.uniform(-0.08, 0.08, size=n_agents), 0.12, 1.20),
+                dtype=np.float64,
+            )
+            assimilation_bias = np.ascontiguousarray(
+                np.clip(base_assimilation_bias * (0.65 + 0.75 * conv_extremity) + rng.uniform(0.0, 0.4, size=n_agents), 0.1, 4.0),
+                dtype=np.float64,
+            )
+            uncertainty = np.ascontiguousarray(
+                np.clip(0.65 - 0.35 * conv_extremity - 0.20 * age_norm + rng.uniform(-0.08, 0.08, size=n_agents), 0.05, 0.95),
+                dtype=np.float64,
+            )
         else:
             latent_ideology = (
                 (ses - 0.45) * 0.8

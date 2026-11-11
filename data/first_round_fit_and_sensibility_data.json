@@ -1,0 +1,118 @@
+{
+  "metadata": {
+    "title": "2026 First Round Parsimonious ABM Fit (N=100,000 Citizens, 23/08 Augusto Cury Debate Shock) & Physical Sensitivity Dataset",
+    "n_agents": 100000,
+    "valid_votes_total_millions": 118.552353,
+    "votes_per_pct_point_millions": 1.185524,
+    "abm_fit_rmse_pct": 0.8531,
+    "abm_fit_r2": 0.9955,
+    "exogenous_debate_event": {
+      "date": "23/08/2026",
+      "campaign_day": 8,
+      "description": "Televised presidential debate with Lula and Flávio Bolsonaro absent; third-way candidate Augusto Cury achieved strong positive reception and transient fact-generation momentum peaking at the 02/09 Datafolha poll (21.4% observed vs 21.2% ABM) before decaying exponentially."
+    },
+    "neutral_baseline_oct4": {
+      "flavio_pct": 38.8,
+      "lula_pct": 48.2,
+      "others_pct": 13.0,
+      "flavio_votes_millions": 45.998,
+      "lula_votes_millions": 57.142
+    },
+    "fitted_actual_oct4": {
+      "flavio_pct": 47.0,
+      "lula_pct": 45.16,
+      "others_pct": 7.84,
+      "flavio_votes_millions": 55.72,
+      "lula_votes_millions": 53.538
+    },
+    "total_flavio_surge_pct": 8.2,
+    "total_flavio_surge_votes_millions": 9.721
+  },
+  "five_janones_mechanisms": [
+    {
+      "id": "m1",
+      "panel": "f",
+      "name": "1. Church Priming (32% L_3 Evang.)",
+      "subtitle": "Moral/Order drift (d=1,3)",
+      "physical_axis_label": "L_3 Church Reach (% Electorate)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 50.0,
+      "calibrated_physical_value": 32.0,
+      "calibrated_reference_badge": "32% Evang. (IBGE)",
+      "empirical_reference_source": "IBGE/Datafolha: 32% Evangelical share in L_3",
+      "calibrated_intensity_pct_of_max": 64.0,
+      "flavio_gain_pct": 1.789,
+      "flavio_gain_votes_millions": 2.121,
+      "lula_loss_pct": -0.679,
+      "lula_loss_votes_millions": -0.805
+    },
+    {
+      "id": "m2",
+      "panel": "g",
+      "name": "2. Trad. Media Lean (||m_trad||=0.40)",
+      "subtitle": "Editorial slant ||m_trad||",
+      "physical_axis_label": "Editorial Slant ||m_trad|| [0–0.7]",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 0.7,
+      "calibrated_physical_value": 0.4,
+      "calibrated_reference_badge": "||m||=0.40 (Slant)",
+      "empirical_reference_source": "Manchetômetro: ||m_trad||=0.40 center-right slant",
+      "calibrated_intensity_pct_of_max": 57.1,
+      "flavio_gain_pct": 1.2,
+      "flavio_gain_votes_millions": 1.423,
+      "lula_loss_pct": -0.45,
+      "lula_loss_votes_millions": -0.533
+    },
+    {
+      "id": "m3",
+      "panel": "h",
+      "name": "3. Bot/Surrogate Amp. (2.9x Reach)",
+      "subtitle": "Dual-valence R_m = L + ωD",
+      "physical_axis_label": "Bot/Surrogate Amp. Ratio (× Base)",
+      "physical_scale_min": 1.0,
+      "physical_scale_max": 4.0,
+      "calibrated_physical_value": 2.86,
+      "calibrated_reference_badge": "2.9x (PL 210M/72M)",
+      "empirical_reference_source": "Bites/NetLab: PL 210M vs PT 72M surrogate reach (2.9x)",
+      "calibrated_intensity_pct_of_max": 62.0,
+      "flavio_gain_pct": 1.4,
+      "flavio_gain_votes_millions": 1.66,
+      "lula_loss_pct": -0.52,
+      "lula_loss_votes_millions": -0.616
+    },
+    {
+      "id": "m4",
+      "panel": "i",
+      "name": "4. Rejection Asymmetry (3.5x λ_R/δ_R)",
+      "subtitle": "Negativity ratio λ_R / δ_R",
+      "physical_axis_label": "Negativity Ratio λ_R / δ_R (× Sym.)",
+      "physical_scale_min": 1.0,
+      "physical_scale_max": 5.0,
+      "calibrated_physical_value": 3.5,
+      "calibrated_reference_badge": "3.5x (λ_R=0.14/0.04)",
+      "empirical_reference_source": "Quaest IPD/Soroka: λ_R=0.14 vs δ_R=0.04 decay (3.5x)",
+      "calibrated_intensity_pct_of_max": 62.5,
+      "flavio_gain_pct": 1.6,
+      "flavio_gain_votes_millions": 1.897,
+      "lula_loss_pct": -0.59,
+      "lula_loss_votes_millions": -0.699
+    },
+    {
+      "id": "m5",
+      "panel": "j",
+      "name": "5. 48h WhatsApp Blitz (68% / 3.9M)",
+      "subtitle": "Dark-social cascades (K≤256)",
+      "physical_axis_label": "48h WhatsApp Cascade Reach (%)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 100.0,
+      "calibrated_physical_value": 68.0,
+      "calibrated_reference_badge": "68% WA (3.9M Shock)",
+      "empirical_reference_source": "Bites Oct 4: 3.9M Flávio vs 170k Lula interactions (68% WA)",
+      "calibrated_intensity_pct_of_max": 68.0,
+      "flavio_gain_pct": 2.2,
+      "flavio_gain_votes_millions": 2.608,
+      "lula_loss_pct": -0.8,
+      "lula_loss_votes_millions": -0.948
+    }
+  ]
+}

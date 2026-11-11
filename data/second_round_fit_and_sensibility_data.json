@@ -1,0 +1,123 @@
+{
+  "metadata": {
+    "title": "2026 Second Round ABM Fit (N=100,000 Citizens, Janonismo Cultural vs. Same-Strategy Baseline) & 6-Tactic Sensitivity Dataset",
+    "n_agents": 100000,
+    "valid_votes_total_millions": 119.355,
+    "votes_per_pct_point_millions": 1.19355,
+    "abm_fit_rmse_pct": 0.5614,
+    "abm_fit_r2": 0.9128,
+    "round1_starting_baseline_oct4": {
+      "lula_pct": 45.16,
+      "flavio_pct": 47.0,
+      "others_pct": 7.84
+    },
+    "same_strategy_counterfactual_oct25": {
+      "lula_pct": 46.42,
+      "flavio_pct": 53.58,
+      "lula_votes_millions": 55.405,
+      "flavio_votes_millions": 63.95
+    },
+    "fitted_actual_janonismo_oct25": {
+      "lula_pct": 51.8,
+      "flavio_pct": 48.2,
+      "lula_votes_millions": 61.826,
+      "flavio_votes_millions": 57.529
+    },
+    "total_lula_jump_from_r1_pct": 6.64,
+    "total_lula_jump_from_r1_votes_millions": 7.925,
+    "net_gain_vs_same_strategy_pct": 5.38,
+    "net_gain_vs_same_strategy_votes_millions": 6.421
+  },
+  "six_janonismo_counter_tactics": [
+    {
+      "id": "t1",
+      "panel": "f",
+      "name": "1. Algorithmic Asphyxiation (88% Embargo)",
+      "subtitle": "Zero-friction embargo (P_rep=0)",
+      "physical_axis_label": "Embargo Compliance (% Network)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 100.0,
+      "calibrated_physical_value": 88.0,
+      "calibrated_reference_badge": "88% Embargo (IPD)",
+      "empirical_reference_source": "Quaest IPD/Bites: 88% network compliance starving quote-dunks",
+      "calibrated_intensity_pct_of_max": 88.0,
+      "lula_gain_pct": 1.14,
+      "lula_gain_votes_millions": 1.361
+    },
+    {
+      "id": "t2",
+      "panel": "g",
+      "name": "2. Strict Monothematism (1 Topic/24h)",
+      "subtitle": "Quadratic virality (V ~ Σx_k²)",
+      "physical_axis_label": "24h Agenda Concentration (HHI)",
+      "physical_scale_min": 0.25,
+      "physical_scale_max": 1.0,
+      "calibrated_physical_value": 0.85,
+      "calibrated_reference_badge": "1 Topic/24h (HHI=.85)",
+      "empirical_reference_source": "Janonismo Doctrine: 1 topic/24h cycle (4²=16 vs 1²×4=4)",
+      "calibrated_intensity_pct_of_max": 80.0,
+      "lula_gain_pct": 1.35,
+      "lula_gain_votes_millions": 1.611
+    },
+    {
+      "id": "t3",
+      "panel": "h",
+      "name": "3. Material Loss Framing (λ_loss=2.25x)",
+      "subtitle": "Prospect utility (λ_loss=2.25x)",
+      "physical_axis_label": "Loss-Aversion Multiplier λ_loss",
+      "physical_scale_min": 1.0,
+      "physical_scale_max": 3.0,
+      "calibrated_physical_value": 2.25,
+      "calibrated_reference_badge": "λ_loss=2.25x (Min.Wage)",
+      "empirical_reference_source": "Kahneman-Tversky / Datafolha: 2.25x loss framing on wages/pensions",
+      "calibrated_intensity_pct_of_max": 62.5,
+      "lula_gain_pct": 1.42,
+      "lula_gain_votes_millions": 1.695
+    },
+    {
+      "id": "t4",
+      "panel": "i",
+      "name": "4. WhatsApp Sync (10.0M 'Exército')",
+      "subtitle": "Closed-group cascades (τ=0.85)",
+      "physical_axis_label": "Synchronized WA Members (Millions)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 15.0,
+      "calibrated_physical_value": 10.0,
+      "calibrated_reference_badge": "10.0M ('Exército')",
+      "empirical_reference_source": "Bites/Quaest: 10.0M 'Exército do Lula' vs 2.0M 'Tropa do Flávio'",
+      "calibrated_intensity_pct_of_max": 66.7,
+      "lula_gain_pct": 1.05,
+      "lula_gain_votes_millions": 1.253
+    },
+    {
+      "id": "t5",
+      "panel": "j",
+      "name": "5. Mass Capital Rallies (1.80M Crowd)",
+      "subtitle": "Turnout locking (v=5 & L_1–L_4)",
+      "physical_axis_label": "Capital Rally Attendance (Millions)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 3.0,
+      "calibrated_physical_value": 1.8,
+      "calibrated_reference_badge": "1.80M (27 Capitals)",
+      "empirical_reference_source": "Paulista/Cinelândia/BH/Salvador/Recife + Free Transit (+4.55M turnout)",
+      "calibrated_intensity_pct_of_max": 60.0,
+      "lula_gain_pct": 0.88,
+      "lula_gain_votes_millions": 1.05
+    },
+    {
+      "id": "t6",
+      "panel": "k",
+      "name": "6. 24h Live Saturation (65% Share)",
+      "subtitle": "Attention ceiling (65% share)",
+      "physical_axis_label": "48h Attention Share Captured (%)",
+      "physical_scale_min": 0.0,
+      "physical_scale_max": 80.0,
+      "calibrated_physical_value": 65.0,
+      "calibrated_reference_badge": "65% Share (24h Live)",
+      "empirical_reference_source": "Oct 24–25 Super-Live: 65% digital attention ceiling blunting blitz",
+      "calibrated_intensity_pct_of_max": 81.2,
+      "lula_gain_pct": 0.8,
+      "lula_gain_votes_millions": 0.955
+    }
+  ]
+}

@@ -164,6 +164,9 @@ class SimulationEngine:
                 fact_bias_mode=self.fact_bias_mode,
                 agent_opinions=self.agent_state.opinions,
                 agent_innate_beliefs=self.agent_state.innate_beliefs,
+                include_extended_modalities=bool(
+                    media_cfg.get("include_extended_modalities", False)
+                ),
             )
 
         # 4. Initialize Kernels & Engines

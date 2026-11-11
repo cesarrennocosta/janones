@@ -301,6 +301,7 @@ class ElectoralEngine:
         rationality_lambda: float = 4.0,
         noise_scale: float = 0.12,
         two_leg_enabled: bool = False,
+        use_admiration_rejection: bool = True,
         adm_dist_threshold: float = 0.56,
         rej_dist_threshold: float = 0.62,
         adm_gain_rate: float = 0.14,
@@ -318,6 +319,7 @@ class ElectoralEngine:
         self.rationality_lambda = float(rationality_lambda)
         self.noise_scale = float(noise_scale)
         self.two_leg_enabled = bool(two_leg_enabled)
+        self.use_admiration_rejection = bool(use_admiration_rejection)
 
         self.adm_dist_threshold = float(adm_dist_threshold)
         self.rej_dist_threshold = float(rej_dist_threshold)
@@ -340,14 +342,25 @@ class ElectoralEngine:
     def default_candidate_profiles(n_candidates: int, n_dims: int) -> np.ndarray:
         """Create distinct ideological candidate centers of mass theta_k in [-1, 1]^d.
 
-        For K = 4 candidates (First Leg), places centers of mass across the spectrum:
+        For K = 2 candidates (Brazilian Presidential Race - Janones Diagnosis):
+          - Cand 0: Lula (Center-Left: -0.25, -0.20, -0.35, -0.15)
+          - Cand 1: Flavio Bolsonaro (Extreme Right: +0.75, +0.85, +0.70, +0.80)
+
+        For K = 4 candidates (First Leg), places centers across the spectrum:
           - Cand 0: Left / Progressive Pole (-0.75)
           - Cand 1: Center-Left (-0.25)
           - Cand 2: Center-Right (+0.25)
           - Cand 3: Right / Conservative Pole (+0.75)
-        with subtle secondary axis differentiation on dims 2 and 3 so centrist and
-        polar candidates have realistic multidimensional platforms.
         """
+        if n_candidates == 2:
+            profiles = np.zeros((2, n_dims), dtype=np.float64)
+            base_lula = np.array([-0.25, -0.20, -0.35, -0.15], dtype=np.float64)
+            base_flavio = np.array([0.75, 0.85, 0.70, 0.80], dtype=np.float64)
+            for d in range(n_dims):
+                profiles[0, d] = base_lula[d % 4]
+                profiles[1, d] = base_flavio[d % 4]
+            return np.ascontiguousarray(profiles, dtype=np.float64)
+
         profiles = np.zeros((n_candidates, n_dims), dtype=np.float64)
         anchors = np.linspace(-0.75, 0.75, n_candidates)
         for k in range(n_candidates):
@@ -372,13 +385,13 @@ class ElectoralEngine:
         rng: np.random.Generator,
     ) -> dict:
         """Compute individual votes, popular vote shares, abstention rate, district outcomes,
-        and (when `two_leg_enabled` or `n_candidates >= 4`) full Two-Leg (4 -> 2) Admiration/Rejection
-        and Abstention/Blank/Valid election dynamics based on Current Opinions vs. Convictions.
+        and (when `use_admiration_rejection` or `two_leg_enabled` or `n_candidates >= 2`) full
+        Admiration/Rejection, Abstention/Blank/Valid election dynamics based on Current Opinions vs. Convictions.
         """
         n = agent_state.n_agents
         k = self.n_candidates
 
-        if not self.two_leg_enabled:
+        if not self.two_leg_enabled and not self.use_admiration_rejection:
             if self.noise_scale > 0.0:
                 gumbel_noise = np.ascontiguousarray(
                     rng.gumbel(loc=0.0, scale=self.noise_scale, size=(n, k)),
@@ -751,3 +764,33 @@ class ElectoralEngine:
             "winner_mismatch": bool(r1_winner != district_winner and r1_winner >= 0),
             "two_leg_enabled": True,
         }
+
+    def step_rejection_news_impact(
+        self,
+        agent_state: AgentStateEngine,
+        target_cand: int,
+        rejection_pull: float = 0.20,
+        exposure_mask: np.ndarray | None = None,
+    ) -> None:
+        """Apply negative campaigning / rejection news impact on candidate `target_cand`.
+
+        Grounded in electoral psychology (negativity bias & affective polarization):
+        Exposure to rejection news elevates voter aversion R_{i, target_cand} and
+        dampens likelihood / admiration A_{i, target_cand}.
+        """
+        n = agent_state.n_agents
+        if agent_state.candidate_rejection is None or agent_state.candidate_rejection.shape[1] <= target_cand:
+            return
+        if exposure_mask is None:
+            exposure_mask = np.ones(n, dtype=bool)
+
+        # Elevate aversion / rejection toward the attacked candidate
+        cur_rej = agent_state.candidate_rejection[:, target_cand].copy()
+        cur_rej[exposure_mask] = np.clip(cur_rej[exposure_mask] + rejection_pull, 0.0, 1.0)
+        agent_state.candidate_rejection[:, target_cand] = cur_rej
+
+        # Dampen admiration for the attacked candidate
+        if agent_state.candidate_admiration is not None:
+            cur_adm = agent_state.candidate_admiration[:, target_cand].copy()
+            cur_adm[exposure_mask] = np.clip(cur_adm[exposure_mask] * (1.0 - 0.45 * rejection_pull), 0.0, 1.0)
+            agent_state.candidate_admiration[:, target_cand] = cur_adm

@@ -172,12 +172,20 @@ def traditional_media_exposure_kernel_jit(
     n_agents, n_dims = opinions.shape
     n_vehicles = vehicle_modality.shape[0]
     if n_vehicles == 0:
-        return 0, 0, 0
+        return 0, 0, 0, 0, 0
+
+    max_mod = 0
+    for v in range(n_vehicles):
+        if vehicle_modality[v] > max_mod:
+            max_mod = vehicle_modality[v]
+    n_mods = max_mod + 1
 
     inv_sqrt_d = 1.0 / math.sqrt(float(n_dims))
     tv_reached = 0
     radio_reached = 0
     press_reached = 0
+    outdoor_reached = 0
+    rally_reached = 0
     delta_reg = 0.12
 
     for i in prange(n_agents):
@@ -207,21 +215,43 @@ def traditional_media_exposure_kernel_jit(
         elif p_press > 0.65:
             p_press = 0.65
 
+        # 4. Outdoor Marketing (Billboards / OOH): Ambient urban transit exposure
+        p_outdoor = 0.35 + 0.25 * (1.0 - math.fabs(age_norm - 0.45) / 0.45) + 0.05 * ses_i
+        if p_outdoor < 0.10:
+            p_outdoor = 0.10
+        elif p_outdoor > 0.70:
+            p_outdoor = 0.70
+
+        # 5. Public Rallies & Municipal Gatherings: Episodic civic mobilization
+        p_rally = 0.04 + 0.14 * (1.0 - age_norm) + 0.08 * (1.0 - ses_i)
+        if p_rally < 0.02:
+            p_rally = 0.02
+        elif p_rally > 0.30:
+            p_rally = 0.30
+
         total_shift = np.zeros(n_dims, dtype=np.float64)
         agent_exposed = 0
 
-        # Evaluate each of the 3 modalities (0=TV, 1=Radio, 2=Press)
-        for mod_id in range(3):
+        # Evaluate modalities present in ecosystem
+        for mod_id in range(n_mods):
             if mod_id == 0:
                 reach_p = p_tv
+                mod_selectivity = selectivity_beta
             elif mod_id == 1:
                 reach_p = p_radio
-            else:
+                mod_selectivity = selectivity_beta
+            elif mod_id == 2:
                 reach_p = p_press
+                mod_selectivity = selectivity_beta
+            elif mod_id == 3:
+                reach_p = p_outdoor
+                mod_selectivity = 0.15
+            else:
+                reach_p = p_rally
+                mod_selectivity = selectivity_beta * 1.8
 
-            # uniform_draws has shape (n_agents, 6): cols 0..2 for access, cols 3..5 for group selection
+            # uniform_draws has shape (n_agents, 2 * n_mods): cols 0..n_mods-1 for access, cols n_mods..2*n_mods-1 for group selection
             if uniform_draws[i, mod_id] < reach_p:
-                # Select among the M vehicle groups for this modality weighted by active intensity & proximity
                 total_w = 0.0
                 chosen_v = -1
                 for v in range(n_vehicles):
@@ -235,11 +265,11 @@ def traditional_media_exposure_kernel_jit(
                         diff = opinions[i, d] - active_framing[v, d]
                         d_sq += diff * diff
                     dist_v = math.sqrt(d_sq) * inv_sqrt_d
-                    w_v = inten * math.pow(dist_v + delta_reg, -selectivity_beta)
+                    w_v = inten * math.pow(dist_v + delta_reg, -mod_selectivity)
                     total_w += w_v
 
                 if total_w > 0.0:
-                    target = uniform_draws[i, mod_id + 3] * total_w
+                    target = uniform_draws[i, mod_id + n_mods] * total_w
                     cum = 0.0
                     for v in range(n_vehicles):
                         if vehicle_modality[v] != mod_id:
@@ -252,7 +282,7 @@ def traditional_media_exposure_kernel_jit(
                             diff = opinions[i, d] - active_framing[v, d]
                             d_sq += diff * diff
                         dist_v = math.sqrt(d_sq) * inv_sqrt_d
-                        w_v = inten * math.pow(dist_v + delta_reg, -selectivity_beta)
+                        w_v = inten * math.pow(dist_v + delta_reg, -mod_selectivity)
                         cum += w_v
                         if cum >= target:
                             chosen_v = v
@@ -266,18 +296,14 @@ def traditional_media_exposure_kernel_jit(
                     dist_chosen = math.sqrt(d_sq) * inv_sqrt_d
 
                     gamma_v = vehicle_credibility[chosen_v]
-                    # Institutional credibility widens effective confidence bound (McCombs & Shaw, 1972)
                     eff_eps = epsilon[i] * (1.0 + 1.10 * gamma_v)
 
                     if dist_chosen <= eff_eps:
                         overlap = 1.0 - (dist_chosen / (eff_eps + 1e-12))
-                        # Decayed salience factor saturates smoothly at 1.0: 1 - exp(-intensity)
                         salience_mod = 1.0 - math.exp(-active_intensity[chosen_v])
-                        # Confirmatory assimilation boost
                         conf_boost = math.exp(
                             0.25 * assimilation_bias[i] * (0.5 - dist_chosen)
                         )
-                        # Institutional broadcast/press persuades across age cohorts (with mild inertia moderation)
                         eff_susc = 0.35 + 0.65 * susceptibility[i]
                         pull = (
                             broadcast_strength
@@ -295,8 +321,12 @@ def traditional_media_exposure_kernel_jit(
                             tv_reached += 1
                         elif mod_id == 1:
                             radio_reached += 1
-                        else:
+                        elif mod_id == 2:
                             press_reached += 1
+                        elif mod_id == 3:
+                            outdoor_reached += 1
+                        else:
+                            rally_reached += 1
 
         if agent_exposed > 0:
             exposure_count[i] += agent_exposed
@@ -326,7 +356,7 @@ def traditional_media_exposure_kernel_jit(
                 u_new = 0.05
             uncertainty[i] = u_new
 
-    return tv_reached, radio_reached, press_reached
+    return tv_reached, radio_reached, press_reached, outdoor_reached, rally_reached
 
 
 @njit(parallel=True, fastmath=True)

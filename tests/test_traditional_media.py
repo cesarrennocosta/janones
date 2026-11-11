@@ -165,3 +165,51 @@ def test_tendentiousness_1group_and_asymmetric_2groups() -> None:
     assert m_2g_asym["pop_cm_d0"] > m_2g_sym["pop_cm_d0"] + 0.04
     assert m_2g_asym["frac_closer_to_g0"] > m_2g_sym["frac_closer_to_g0"]
 
+
+def test_extended_modalities_outdoor_and_rallies() -> None:
+    """Verify extended 5-modality ecosystem: TV, Radio, Press, Outdoor Marketing, and Rallies."""
+    from src.core.news_entity import MODALITY_OUTDOOR, MODALITY_RALLY
+    rng = np.random.default_rng(2026)
+    eco = TraditionalMediaEcosystem.initialize(
+        n_groups=1,
+        n_dims=4,
+        group_centers=[[0.70, 0.70, 0.70, 0.70]],
+        fact_rate=2.5,
+        seed=rng,
+        include_extended_modalities=True,
+    )
+    assert eco.n_vehicles == 5
+    assert set(eco.vehicle_modality.tolist()) == {
+        MODALITY_TV,
+        MODALITY_RADIO,
+        MODALITY_PRESS,
+        MODALITY_OUTDOOR,
+        MODALITY_RALLY,
+    }
+
+    # Verify decay rates: Outdoor decays slowest (0.08), Rallies decay fast (0.70)
+    out_idx = int(np.where(eco.vehicle_modality == MODALITY_OUTDOOR)[0][0])
+    ral_idx = int(np.where(eco.vehicle_modality == MODALITY_RALLY)[0][0])
+    assert eco.vehicle_decay_rate[out_idx] == 0.08
+    assert eco.vehicle_decay_rate[ral_idx] == 0.70
+
+    # Test full simulation run with extended modalities enabled
+    cfg_ext = {
+        "simulation": {"n_agents": 400, "n_dims": 4, "n_steps": 15, "init_mode": "uniform_random"},
+        "media": {
+            "enabled": True,
+            "traditional_enabled": True,
+            "social_enabled": False,
+            "n_vehicle_groups": 1,
+            "fact_rate": 2.0,
+            "broadcast_strength": 0.12,
+            "include_extended_modalities": True,
+        },
+    }
+    res = SimulationEngine(config=cfg_ext, base_seed=42, task_id=0).run()
+    metrics = res["final_metrics"]
+    assert metrics["broadcast_reached"] > 0
+    assert metrics["outdoor_reached"] > 0
+    assert metrics["rally_reached"] > 0
+
+

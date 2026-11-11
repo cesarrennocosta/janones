@@ -1,0 +1,160 @@
+{
+  "simulation_metadata": {
+    "model_version": "OmniOpinion 2.0 - Brazilian Presidential First Round Calibration",
+    "campaign_window": "August 16 to October 4, 2026 (50 days)",
+    "n_agents": 40000,
+    "n_dims": 4,
+    "seed": 2026,
+    "empirical_benchmarks": [
+      "Datafolha 2024 Political Identification",
+      "TSE Official Election Results 2026 (1st Round)",
+      "Bites / ICL Notícias Digital Tracking",
+      "Quaest IPD (Digital Popularity Index)",
+      "TSE Meta Ad Spend Transparency Declarations"
+    ]
+  },
+  "candidate_ideological_profiles": {
+    "lula": {
+      "name": "Luiz Inácio Lula da Silva",
+      "bloc": "PT / Center-Left",
+      "coordinates": [
+        -0.25,
+        -0.2,
+        -0.35,
+        -0.15
+      ],
+      "dimensions": [
+        "Economy: -0.25",
+        "Culture/Religion: -0.20",
+        "Social/Welfare: -0.35",
+        "Security/Institutions: -0.15"
+      ]
+    },
+    "flavio": {
+      "name": "Flávio Bolsonaro",
+      "bloc": "PL / Extreme-Right",
+      "coordinates": [
+        0.65,
+        0.7,
+        0.6,
+        0.65
+      ],
+      "dimensions": [
+        "Economy: +0.65",
+        "Culture/Religion: +0.70",
+        "Social/Welfare: +0.60",
+        "Security/Institutions: +0.65"
+      ]
+    },
+    "others": {
+      "name": "Third-Way Centrists",
+      "bloc": "Center-Right",
+      "coordinates": [
+        0.2,
+        0.25,
+        0.1,
+        0.3
+      ],
+      "dimensions": [
+        "Economy: +0.20",
+        "Culture/Religion: +0.25",
+        "Social/Welfare: +0.10",
+        "Security/Institutions: +0.30"
+      ]
+    }
+  },
+  "digital_ecosystem_parameters": {
+    "congressional_allied_footprint": {
+      "pl_bolsonaro_followers_millions": 210.0,
+      "pt_lula_allies_followers_millions": 72.0,
+      "footprint_asymmetry_ratio": 2.917
+    },
+    "follower_growth_aug16_oct3": {
+      "flavio_new_followers_millions": 2.19,
+      "lula_new_followers_millions": 1.29,
+      "acquisition_speedup_ratio": 1.698,
+      "platform_leaders": {
+        "instagram": "Flávio",
+        "facebook": "Flávio",
+        "youtube": "Flávio",
+        "tiktok": "Lula"
+      }
+    },
+    "daily_engagement_september": {
+      "monitored_days": 17,
+      "flavio_daily_wins": 14,
+      "lula_daily_wins": 3,
+      "win_rate_flavio": "82.4%"
+    },
+    "election_day_engagement_oct4": {
+      "flavio_interactions_millions": 3.9,
+      "lula_interactions_millions": 0.17,
+      "engagement_advantage_ratio": 22.9
+    },
+    "quaest_digital_popularity_index_oct4": {
+      "flavio_ipd_points": 80.0,
+      "lula_ipd_points": 70.7,
+      "ipd_gap_points": 9.3
+    },
+    "meta_paid_ad_injection": {
+      "total_declared_meta_spend_millions_brl": 167.3,
+      "flavio_strategy": "Direct personal algorithmic feed injection (highest candidate spend on Meta)",
+      "lula_strategy": "Traditional PR agency production (Delta3) and television broadcast airtime",
+      "flavio_meta_boost_intensity": 0.052,
+      "lula_meta_boost_intensity": 0.012
+    },
+    "post_production_vs_resonance": {
+      "flavio_mean_posts_per_day": 5.0,
+      "lula_mean_posts_per_day": 14.0,
+      "flavio_mean_resonance_per_post_thousands": 179.5,
+      "lula_mean_resonance_per_post_thousands": 57.2
+    }
+  },
+  "traditional_media_parameters": {
+    "lula_tv_investment_weight": 0.58,
+    "flavio_tv_investment_weight": 0.32,
+    "traditional_media_editorial_center": [
+      0.22,
+      0.18,
+      0.12,
+      0.25
+    ],
+    "demographic_reach_curves": "IBGE PNAD 2022 calibrated (p_tv, p_radio, p_press)"
+  },
+  "network_and_electoral_dynamics": {
+    "multiplex_physical_layers": [
+      "L1_household",
+      "L2_workplace_school",
+      "L3_religious_congregation",
+      "L4_friends_small_world",
+      "L5_transit_weak_ties"
+    ],
+    "whatsapp_groups_count": 3750,
+    "whatsapp_group_capacity": "<= 256 members",
+    "adm_dist_threshold": 0.6,
+    "rej_dist_threshold": 0.6,
+    "adm_gain_rate": 0.08,
+    "adm_decay_rate": 0.05,
+    "rej_gain_rate": 0.1,
+    "rej_decay_rate": 0.04,
+    "turnout_min_adm": 0.14,
+    "clear_margin_threshold": 0.1,
+    "clear_adm_threshold": 0.28,
+    "strong_rej_threshold": 0.52,
+    "pre_election_blitz_window": "Days 41-50 (Final 10 days, peak last 48 hours)",
+    "blitz_whatsapp_activation_rate": 0.65
+  },
+  "final_fitted_results_oct4_2026": {
+    "valid_popular_votes": {
+      "flavio_share": 0.47,
+      "lula_share": 0.4516,
+      "others_share": 0.0784
+    },
+    "electorate_breakdown": {
+      "abstention_rate_registered": 0.209,
+      "blank_null_rate_attending": 0.048,
+      "blank_null_rate_registered": 0.038,
+      "valid_rate_registered": 0.753
+    }
+  }
+}

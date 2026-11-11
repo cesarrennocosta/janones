@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "source": "Tribunal Superior Eleitoral (TSE) / DivulgaCandContas / Lei nº 9.504/1997",
+    "election_cycle": "2026 Brazilian Presidential Election",
+    "scope": "Horário Gratuito de Propaganda Eleitoral (HGPE / TV e Rádio) e Financiamento de Campanha (Fundo Eleitoral, Fundo Partidário e Recursos Privados)"
+  },
+  "television_and_radio_share_hgpe": {
+    "legal_framework": "Lei nº 9.504/1997 e Resolução do TSE. Tempo de rádio e TV distribuído com base na representatividade das coligações na Câmara dos Deputados no 1º Turno, e divisão rigorosamente igualitária (50/50) no 2º Turno.",
+    "first_round_daily_blocks": {
+      "broadcasting_period": "28 de agosto a 01 de outubro de 2026",
+      "total_block_length_minutes": "12m30s (veiculados às 13h e 20h30, segundas, quartas e sextas)",
+      "lula_pt_coalition": {
+        "coalition_name": "Brasil Pronto para Mais (PT, PCdoB, PV, PSB, PDT, Federação PSOL-Rede)",
+        "time_per_block": "5m 31s",
+        "time_per_block_seconds": 331,
+        "share_of_total_block": 44.13,
+        "share_between_top2": 55.91,
+        "daily_30s_spots_total_campaign": 433,
+        "notes": "Maior tempo de antena do pleito devido à ampla coligação de 7 legendas com representação na Câmara."
+      },
+      "flavio_bolsonaro_pl": {
+        "coalition_name": "Partido Liberal (PL isolado / alianças pontuais)",
+        "time_per_block": "4m 20s",
+        "time_per_block_seconds": 260,
+        "share_of_total_block": 34.67,
+        "share_between_top2": 44.09,
+        "daily_30s_spots_total_campaign": 339,
+        "notes": "Segundo maior tempo, sustentado pela expressiva bancada própria do PL eleita em 2022 (99 deputados federais)."
+      },
+      "other_candidates": {
+        "time_per_block": "2m 39s",
+        "time_per_block_seconds": 159,
+        "share_of_total_block": 21.20,
+        "daily_30s_spots_total_campaign": 208,
+        "candidates": "Ronaldo Caiado (PSD) e Augusto Cury (Avante)"
+      }
+    },
+    "second_round_daily_blocks": {
+      "broadcasting_period": "10 de outubro a 24 de outubro de 2026",
+      "legal_rule": "Divisão estritamente igualitária (50% x 50%)",
+      "total_block_length_minutes": "10m00s (5m00s para cada candidato em dois blocos diários de segunda a sábado)",
+      "lula_pt": {
+        "time_per_block": "5m 00s",
+        "daily_30s_spots": 25,
+        "daily_insertion_time": "12m 30s",
+        "share": 50.0
+      },
+      "flavio_bolsonaro_pl": {
+        "time_per_block": "5m 00s",
+        "daily_30s_spots": 25,
+        "daily_insertion_time": "12m 30s",
+        "share": 50.0,
+        "opening_prerogative": "Flávio abriu a propaganda no primeiro dia por ter terminado em 1º lugar no 1º turno, seguido de rodízio diário."
+      }
+    }
+  },
+  "campaign_finance_and_public_funds": {
+    "tse_spending_limits_presidential_2026": {
+      "round_1_spending_ceiling_brl": 88944030.80,
+      "round_2_spending_ceiling_additional_brl": 44472015.40,
+      "total_spending_ceiling_brl": 133416046.20,
+      "notes": "Teto legal fixado pelo TSE atualizado pelo IPCA."
+    },
+    "global_public_party_funds_2026": {
+      "total_fefc_fundo_eleitoral_brl": 4961519777.00,
+      "pl_party_macro_fefc_brl": 881657477.34,
+      "pl_party_fefc_share_pct": 17.77,
+      "pt_party_macro_fefc_brl": 615424314.08,
+      "pt_party_fefc_share_pct": 12.40,
+      "pt_federation_with_pcdob_pv_brl": 692812490.15,
+      "fundo_partidario_annual_budget_brl": 1180000000.00
+    },
+    "presidential_campaign_receipts_declared": {
+      "lula_da_silva_pt": {
+        "total_receipts_brl": 128600000.00,
+        "public_funds": {
+          "fefc_fundo_eleitoral_brl": 123800000.00,
+          "fundo_partidario_repasses_brl": 0.00,
+          "share_of_total_receipts_pct": 96.27
+        },
+        "private_funds": {
+          "total_private_donations_brl": 4800000.00,
+          "individual_donations_pf_brl": 3250000.00,
+          "crowdfunding_vaquinha_brl": 1550000.00,
+          "own_resources_candidate_brl": 0.00,
+          "share_of_total_receipts_pct": 3.73
+        },
+        "expenditure_profile": "Forte concentração em produção audiovisual para HGPE, eventos presenciais e comícios, e impulsionamento institucional em redes sociais."
+      },
+      "flavio_bolsonaro_pl": {
+        "total_receipts_brl": 90200000.00,
+        "public_funds": {
+          "fefc_fundo_eleitoral_brl": 47000000.00,
+          "fundo_partidario_repasses_brl": 0.00,
+          "share_of_total_receipts_pct": 52.11
+        },
+        "private_funds": {
+          "total_private_donations_brl": 43200000.00,
+          "individual_donations_pf_brl": 41800000.00,
+          "crowdfunding_vaquinha_brl": 1100000.00,
+          "own_resources_candidate_brl": 300000.00,
+          "share_of_total_receipts_pct": 47.89
+        },
+        "expenditure_profile": "Investimento maciço em estratégias de tráfego pago, impulsionamento em redes sociais, produção de conteúdo curto (cortes) e infraestrutura de mensageria."
+      }
+    }
+  }
+}

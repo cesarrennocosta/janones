@@ -43,7 +43,9 @@ import numpy as np
 MODALITY_TV = 0
 MODALITY_RADIO = 1
 MODALITY_PRESS = 2
-MODALITY_NAMES = ("tv", "radio", "press")
+MODALITY_OUTDOOR = 3
+MODALITY_RALLY = 4
+MODALITY_NAMES = ("tv", "radio", "press", "outdoor", "rally")
 
 # Social Media Platform Type Constants (Brazilian Digital Media Ecosystem)
 SOCIAL_PLATFORM_VISUAL_INFLUENCER = 0  # Instagram / TikTok (Creator/Influencer Graph + Algorithmic Reels/ForYou)
@@ -221,8 +223,9 @@ class TraditionalMediaEcosystem:
         framing_noise_std: float = 0.05,
         seed: int | np.random.Generator | None = None,
         fact_bias_mode: str = "neutral",
+        include_extended_modalities: bool = False,
     ) -> "TraditionalMediaEcosystem":
-        """Build M vehicle groups (each with TV, Radio, and Press) with configurable tendentiousness."""
+        """Build M vehicle groups (each with TV, Radio, Press, and optionally Outdoor & Rallies) with configurable tendentiousness."""
         n_groups = max(0, int(n_groups))
         if group_centers is not None:
             centers = np.ascontiguousarray(np.asarray(group_centers, dtype=np.float64))
@@ -260,7 +263,21 @@ class TraditionalMediaEcosystem:
         else:
             ecosystem_center = np.zeros(n_dims, dtype=np.float64)
 
-        n_vehicles = 3 * n_groups
+        # Modality specifications based on Leskovec et al. (2009) & Wu & Huberman (2007)
+        # (mod_id, lag, period, pub_p, slant_mult, decay, cred)
+        mod_specs = [
+            (MODALITY_TV, 1, 1, 0.85, 1.00, 0.30, 0.75),
+            (MODALITY_RADIO, 0, 1, 0.92, 0.90, 0.45, 0.62),
+            (MODALITY_PRESS, 2, 2, 0.75, 1.10, 0.18, 0.82),
+        ]
+        if include_extended_modalities:
+            mod_specs.extend([
+                (MODALITY_OUTDOOR, 0, 1, 0.95, 1.20, 0.08, 0.45),
+                (MODALITY_RALLY, 0, 10, 0.35, 1.40, 0.70, 0.80),
+            ])
+
+        n_mods = len(mod_specs)
+        n_vehicles = n_mods * n_groups
         vehicle_group_id = np.zeros(n_vehicles, dtype=np.int32)
         vehicle_modality = np.zeros(n_vehicles, dtype=np.int32)
         vehicle_centers = np.zeros((n_vehicles, n_dims), dtype=np.float64)
@@ -272,18 +289,10 @@ class TraditionalMediaEcosystem:
         vehicle_decay_rate = np.zeros(n_vehicles, dtype=np.float64)
         vehicle_credibility = np.zeros(n_vehicles, dtype=np.float64)
 
-        # Modality specifications (TV=0, Radio=1, Press=2) based on Leskovec et al. (2009) & Wu & Huberman (2007)
-        # slant_mult scales the group's tendentiousness tau_g: Radio (0.90), TV (1.00), Press (1.10)
-        mod_specs = (
-            (MODALITY_TV, 1, 1, 0.85, 1.00, 0.30, 0.75),
-            (MODALITY_RADIO, 0, 1, 0.92, 0.90, 0.45, 0.62),
-            (MODALITY_PRESS, 2, 2, 0.75, 1.10, 0.18, 0.82),
-        )
-
         for g in range(n_groups):
             tau_g = float(tend_arr[g])
-            for mod_id, lag, period, pub_p, slant_mult, decay, cred in mod_specs:
-                v_idx = g * 3 + mod_id
+            for m_idx, (mod_id, lag, period, pub_p, slant_mult, decay, cred) in enumerate(mod_specs):
+                v_idx = g * n_mods + m_idx
                 vehicle_group_id[v_idx] = g
                 vehicle_modality[v_idx] = mod_id
                 vehicle_centers[v_idx, :] = centers[g, :]
@@ -614,6 +623,7 @@ class NewsEntityPool:
         fact_bias_mode: str = "neutral",
         agent_opinions: np.ndarray | None = None,
         agent_innate_beliefs: np.ndarray | None = None,
+        include_extended_modalities: bool = False,
     ) -> "NewsEntityPool":
         """Create an initial pool of news items, influencer tendentiousness profiles, and TraditionalMediaEcosystem."""
         if isinstance(seed, np.random.Generator):
@@ -801,6 +811,7 @@ class NewsEntityPool:
             gatekeeping_sigma=gatekeeping_sigma,
             seed=rng,
             fact_bias_mode=fact_bias_mode,
+            include_extended_modalities=include_extended_modalities,
         )
 
         # Keep broadcast_orientations synchronized with vehicle centers for backward compatibility

@@ -364,6 +364,13 @@ def main() -> None:
             master_filename="all_conviction_dynamics_metrics.parquet",
             max_seeds=100,
         )
+        consolidate_scenario_suite(
+            suite_dir=root_dir / "janones_2026_100k",
+            output_dir=out_dir,
+            suite_prefix="janones2026",
+            master_filename="all_janones_2026_metrics.parquet",
+            max_seeds=100,
+        )
     elif args.all_trad_media:
         out_dir = Path(args.scratch_base).parent / "consolidated"
         consolidate_all_trad_media_groups(

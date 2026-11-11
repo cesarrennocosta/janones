@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "title": "First Round 2026 Sensitivity Analysis & Digital Dominance Dataset",
+    "campaign_window": "August 16 to October 4, 2026 (50 days)",
+    "electoral_outcomes": {
+      "datafolha_baseline_aug16": {
+        "lula": 45.4,
+        "flavio": 33.6,
+        "others": 21.0
+      },
+      "model_inertia_if_nothing_happened": {
+        "lula": 49.1,
+        "flavio": 36.5,
+        "others": 14.4
+      },
+      "official_actual_1st_round_oct4": {
+        "flavio": 47.0,
+        "lula": 45.16,
+        "others": 7.84
+      }
+    }
+  },
+  "digital_dominance_pillars": {
+    "daily_engagement_september": {
+      "flavio_wins": 14,
+      "lula_wins": 3,
+      "total_monitored_days": 17,
+      "flavio_win_rate_percent": 82.35,
+      "source": "Bites / ICL Notícias"
+    },
+    "oct4_election_day_interactions": {
+      "flavio_interactions": 3900000,
+      "lula_interactions": 170000,
+      "ratio_flavio_to_lula": 22.94,
+      "source": "Vero Notícias / Bites"
+    },
+    "follower_growth_campaign_window": {
+      "flavio_new_followers": 2190000,
+      "lula_new_followers": 1290000,
+      "speedup_ratio": 1.7,
+      "channel_dominance": {
+        "flavio": [
+          "Instagram",
+          "Facebook",
+          "YouTube"
+        ],
+        "lula": [
+          "TikTok"
+        ]
+      },
+      "source": "TV Sim Brasil / Bites"
+    },
+    "quaest_ipd_digital_popularity": {
+      "flavio_ipd_oct4": 80.0,
+      "lula_ipd_oct4": 70.7,
+      "gap_points": 9.3,
+      "source": "Quaest"
+    },
+    "congressional_multiplex_footprint": {
+      "pl_conservative_bench_followers": 210000000,
+      "pt_allied_bench_followers": 72000000,
+      "asymmetry_ratio": 2.917,
+      "source": "Bites"
+    },
+    "meta_paid_ad_saturation": {
+      "total_meta_spend_sep24": "R$ 167.3 Million (Surpassing entire 2022 campaign)",
+      "flavio_strategy": "Highest individual candidate spend on Meta direct feed injection",
+      "lula_strategy": "Prioritized traditional media / PR agencies (Delta3) and TV airtime",
+      "source": "TSE Declarations / NSC Total"
+    }
+  },
+  "five_mechanisms_marginal_contributions": {
+    "Congressional Multiplex Network (2.91x Footprint)": 2.9,
+    "Meta Paid Algorithmic Feed Saturation": 2.4,
+    "Per-Post Outrage Virality (3.6x Resonance)": 2.2,
+    "Pre-Election Dark-Social WhatsApp Cascade": 1.9,
+    "Algorithmic Valence & Digital Popularity (+9.3 IPD)": 1.1
+  },
+  "ablation_analysis": {
+    "All Mechanisms Active (Actual Fit)": 47.0,
+    "Minus Congressional Network (Parity)": 44.1,
+    "Minus Meta Paid Boosting": 44.6,
+    "Minus Outrage Resonance Advantage": 44.8,
+    "Minus Dark-Social WhatsApp Blitz": 45.1,
+    "Minus Algorithmic Valence / IPD Lead": 45.9,
+    "Neutral Baseline (If Nothing Happened)": 36.5
+  },
+  "solo_activation_analysis": {
+    "Congressional Multiplex Footprint Only": 39.4,
+    "Meta Paid Feed Saturation Only": 38.9,
+    "Per-Post Outrage Virality Only": 38.7,
+    "Dark-Social WhatsApp Blitz Only": 38.4,
+    "Algorithmic IPD Valence Only": 37.6
+  }
+}

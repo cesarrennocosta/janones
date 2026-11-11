@@ -74,6 +74,8 @@ class MediaEngine:
         tv_reached = 0
         radio_reached = 0
         press_reached = 0
+        outdoor_reached = 0
+        rally_reached = 0
         broadcast_reached = 0
         facts_count = 0
         published_notices = 0
@@ -125,8 +127,9 @@ class MediaEngine:
                 mean_fact_longevity = float(cycle_info.get("mean_fact_longevity", 1.0))
                 mean_fact_relevance = float(cycle_info.get("mean_fact_relevance", 0.65))
 
-                u_draws = np.ascontiguousarray(rng.random((n_agents, 6), dtype=np.float64))
-                tv_reached, radio_reached, press_reached = traditional_media_exposure_kernel_jit(
+                n_mods = max(3, int(np.max(trad_eco.vehicle_modality)) + 1) if trad_eco.n_vehicles > 0 else 3
+                u_draws = np.ascontiguousarray(rng.random((n_agents, 2 * n_mods), dtype=np.float64))
+                reach_res = traditional_media_exposure_kernel_jit(
                     agent_state.opinions,
                     agent_state.innate_beliefs,
                     agent_state.uncertainty,
@@ -145,7 +148,12 @@ class MediaEngine:
                     self.broadcast_strength,
                     self.traditional_selectivity_beta,
                 )
-                broadcast_reached = tv_reached + radio_reached + press_reached
+                tv_reached = reach_res[0]
+                radio_reached = reach_res[1]
+                press_reached = reach_res[2]
+                outdoor_reached = reach_res[3] if len(reach_res) > 3 else 0
+                rally_reached = reach_res[4] if len(reach_res) > 4 else 0
+                broadcast_reached = tv_reached + radio_reached + press_reached + outdoor_reached + rally_reached
             elif news_pool.n_broadcast > 0:
                 b_draws = np.ascontiguousarray(rng.random(n_agents, dtype=np.float64))
                 broadcast_reached = broadcast_exposure_kernel_jit(
@@ -447,6 +455,8 @@ class MediaEngine:
             "tv_reached": float(tv_reached),
             "radio_reached": float(radio_reached),
             "press_reached": float(press_reached),
+            "outdoor_reached": float(outdoor_reached),
+            "rally_reached": float(rally_reached),
             "facts_count": float(facts_count),
             "published_notices": float(published_notices),
             "dictated_trad_share": float(dictated_trad_share),

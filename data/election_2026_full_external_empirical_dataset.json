@@ -1,0 +1,217 @@
+{
+  "metadata": {
+    "title": "Unified Empirical & Model Dataset: 2026 Brazilian Presidential Election (Horizontal 5x1 Matrix Layout)",
+    "campaign_period": "August 16 to October 25, 2026 (71 Days)",
+    "layout_structure": {
+      "column_1": "Panel a: Electoral Outcomes & Non-Voter Bars",
+      "column_2": "Panel b: Longitudinal Vote Intentions (71 Days)",
+      "column_3": "Panel c: Datafolha Candidate Rejection Dynamics",
+      "column_4": "Panels d & e Stacked: Top d (Quaest IPD Waves), Bottom e (Average Daily Interactions)",
+      "column_5": "Panel f Full Column: Digital Follower Ecosystem, Top-5 Average & Est. Unique Reach"
+    },
+    "illustrator_compatibility": {
+      "pdf_fonttype": 42,
+      "ps_fonttype": 42,
+      "svg_fonttype": "none",
+      "text_rendering": "Single text object layout without intra-word kerning breaks",
+      "supported_formats": [
+        "PDF",
+        "SVG",
+        "PNG"
+      ]
+    },
+    "empirical_sources": [
+      "Quaest Consultoria (IPD Digital Popularity Index - 175 metrics)",
+      "Bites Consultancy (Digital tracking, followers, surrogate networks)",
+      "ICL Notícias (Daily engagement monitoring)",
+      "Vero Notícias (First round election day interaction counts)",
+      "Poder360 (Band presidential debate engagement tracking and Quaest reports)",
+      "TV Sim Brasil (First round follower acquisition by platform)",
+      "NSC Total (WhatsApp closed groups and TSE Meta spend declarations)",
+      "Datafolha (Vote intentions and candidate rejection polling waves)",
+      "TSE - Tribunal Superior Eleitoral (Official election results, turnout, blank/nulls)"
+    ]
+  },
+  "electoral_outcomes": {
+    "first_round": {
+      "datafolha_baseline_aug16": {
+        "lula": 45.4,
+        "flavio": 33.6,
+        "others": 21.0,
+        "non_voters": 24.7
+      },
+      "neutral_model_inertia": {
+        "lula": 49.1,
+        "flavio": 36.5,
+        "others": 14.4,
+        "non_voters": 24.7
+      },
+      "official_tse_result_oct4": {
+        "flavio": 47.0,
+        "lula": 45.16,
+        "others": 7.84,
+        "abstention_rate": 20.9,
+        "blank_null_rate_attending": 4.8,
+        "non_voters_sum_registered": 24.7,
+        "valid_rate": 75.3
+      }
+    },
+    "second_round": {
+      "neutral_model_initial_datafolha_poll": {
+        "lula": 53.5,
+        "flavio": 46.5,
+        "non_voters": 24.5
+      },
+      "official_tse_result_oct25": {
+        "lula": 51.8,
+        "flavio": 48.2,
+        "abstention_rate": 19.2,
+        "blank_null_rate_attending": 3.2,
+        "non_voters_sum_registered": 21.79,
+        "valid_rate": 78.21
+      },
+      "mobilization_impact": {
+        "non_voters_compression": -2.91,
+        "abstention_compression": -1.7,
+        "blank_null_compression_attending": -1.6
+      }
+    }
+  },
+  "quaest_ipd_exact_benchmark_waves": {
+    "pre_1st_round_eve_oct4_5": {
+      "lula": 70.7,
+      "flavio": 80.0,
+      "margin": "Flávio +9.3",
+      "sources": [
+        "Quaest",
+        "Poder360",
+        "Vero Notícias"
+      ]
+    },
+    "post_1st_round_oct15": {
+      "lula": 82.6,
+      "flavio": 76.4,
+      "margin": "Lula +6.2 (Inversion)",
+      "sources": [
+        "Quaest",
+        "Poder360",
+        "ICL Notícias",
+        "Vero Notícias"
+      ]
+    },
+    "post_first_debate_oct19": {
+      "lula": 83.3,
+      "flavio": 76.6,
+      "margin": "Lula +6.7",
+      "sources": [
+        "Quaest",
+        "Poder360"
+      ]
+    },
+    "net_change": {
+      "lula": 12.6,
+      "flavio": -3.4,
+      "net_swing": 16.0
+    }
+  },
+  "daily_average_social_interactions": {
+    "september_daily_wins": {
+      "flavio": 14,
+      "lula": 3,
+      "total_monitored": 17,
+      "win_rate_flavio": 82.35,
+      "source": "Bites / ICL Notícias"
+    },
+    "oct4_election_day_shock_1d": {
+      "flavio_daily": 3900000,
+      "lula_daily": 170000,
+      "ratio": 22.94,
+      "period_days": 1,
+      "source": "Vero Notícias / Bites"
+    },
+    "post_band_debate_24h_1d": {
+      "lula_daily": 25500000,
+      "flavio_daily": 5000000,
+      "ratio": 5.1,
+      "period_days": 1,
+      "source": "Poder360 / Bites"
+    },
+    "oct5_to_17_runoff_window_13d_avg": {
+      "lula_daily_avg": 8515385,
+      "flavio_daily_avg": 2407692,
+      "lula_gross": 110700000,
+      "flavio_gross": 31300000,
+      "period_days": 13,
+      "ratio": 3.54,
+      "source": "Bites"
+    }
+  },
+  "follower_growth_and_infrastructure": {
+    "candidate_official_base_round2": {
+      "lula": 39000000,
+      "flavio": 24100000,
+      "ratio": 1.62,
+      "lula_breakdown": {
+        "instagram": 18200000,
+        "x_twitter": 9100000,
+        "facebook": 5200000,
+        "tiktok": 4600000,
+        "youtube": 1900000
+      },
+      "flavio_breakdown": {
+        "instagram": 13500000,
+        "facebook": 4000000,
+        "x_twitter": 3200000,
+        "tiktok": 2000000,
+        "youtube": 1400000
+      },
+      "source": "Bites / Public Accounts"
+    },
+    "party_official_handles": {
+      "pt_brasil": 4800000,
+      "pl_nacional": 3500000,
+      "ratio": 1.37,
+      "source": "Meta / X / TSE Filings"
+    },
+    "closed_whatsapp_network_members": {
+      "exercito_do_lula_janones": 10000000,
+      "tropa_do_flavio": 2000000,
+      "ratio": 5.0,
+      "source": "NSC Total / Campaign filings"
+    },
+    "surrogate_bench_top5_most_followed": {
+      "pl_top5_leaders": {
+        "nikolas_ferreira": 52000000,
+        "eduardo_bolsonaro": 13200000,
+        "gustavo_gayer": 7800000,
+        "carla_zambelli": 7400000,
+        "damares_alves": 6400000,
+        "top5_sum": 86800000,
+        "top5_average": 17360000
+      },
+      "pt_allies_top5_leaders": {
+        "andre_janones": 17200000,
+        "guilherme_boulos": 8400000,
+        "erika_hilton": 4200000,
+        "gleisi_hoffmann": 3100000,
+        "randolfe_rodrigues": 2700000,
+        "top5_sum": 35600000,
+        "top5_average": 7120000
+      },
+      "top5_average_ratio": 2.438,
+      "source": "Bites / Poder360 / Platform Verification"
+    },
+    "surrogate_bench_gross_vs_deduplicated": {
+      "pl_gross_sum": 210000000,
+      "pt_allies_gross_sum": 72000000,
+      "gross_ratio": 2.917,
+      "estimated_unique_reach": {
+        "pl_unique_individuals": 82000000,
+        "pt_allies_unique_individuals": 32500000,
+        "unique_reach_ratio": 2.523,
+        "deduplication_methodology": "Empirical Jaccard inter-account audience overlap (~60% intra-caucus overlap)"
+      },
+      "source": "Bites / Poder360 / Network Science Modeling"
+    }
+  }
+}

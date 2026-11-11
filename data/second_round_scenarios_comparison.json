@@ -1,0 +1,122 @@
+[
+  {
+    "id": "nothing_done",
+    "name": "Nothing Done (Unopposed Blitz)",
+    "lula_share": 44.2,
+    "flavio_share": 55.8,
+    "net_margin": -11.6,
+    "abstention": 22.4,
+    "blank_attending": 5.1,
+    "wins": false
+  },
+  {
+    "id": "only_live",
+    "name": "Only 24h Live Stream Saturation",
+    "lula_share": 45.96,
+    "flavio_share": 54.04,
+    "net_margin": -8.08,
+    "abstention": 20.8,
+    "blank_attending": 4.6,
+    "wins": false
+  },
+  {
+    "id": "only_rallies",
+    "name": "Only Mass Capital Rallies (1.8M)",
+    "lula_share": 46.04,
+    "flavio_share": 53.96,
+    "net_margin": -7.92,
+    "abstention": 19.8,
+    "blank_attending": 4.4,
+    "wins": false
+  },
+  {
+    "id": "only_wa",
+    "name": "Only 10M WhatsApp Sync (Exército do Lula)",
+    "lula_share": 46.21,
+    "flavio_share": 53.79,
+    "net_margin": -7.58,
+    "abstention": 20.5,
+    "blank_attending": 4.3,
+    "wins": false
+  },
+  {
+    "id": "only_asphyx",
+    "name": "Only Algorithmic Asphyxiation (88%)",
+    "lula_share": 46.3,
+    "flavio_share": 53.7,
+    "net_margin": -7.4,
+    "abstention": 20.6,
+    "blank_attending": 4.5,
+    "wins": false
+  },
+  {
+    "id": "only_mono",
+    "name": "Only Strict Monothematism (1 Topic/Day)",
+    "lula_share": 46.51,
+    "flavio_share": 53.49,
+    "net_margin": -6.98,
+    "abstention": 20.4,
+    "blank_attending": 4.2,
+    "wins": false
+  },
+  {
+    "id": "only_loss",
+    "name": "Only Material Loss Framing (λ = 2.25)",
+    "lula_share": 46.58,
+    "flavio_share": 53.42,
+    "net_margin": -6.84,
+    "abstention": 19.9,
+    "blank_attending": 3.9,
+    "wins": false
+  },
+  {
+    "id": "trad_only",
+    "name": "Traditional Only (Rallies + TV Airtime)",
+    "lula_share": 47.45,
+    "flavio_share": 52.55,
+    "net_margin": -5.1,
+    "abstention": 19.7,
+    "blank_attending": 4.1,
+    "wins": false
+  },
+  {
+    "id": "top2_digital",
+    "name": "Top-2 Digital (Loss + Monothematism)",
+    "lula_share": 47.93,
+    "flavio_share": 52.07,
+    "net_margin": -4.14,
+    "abstention": 20.1,
+    "blank_attending": 3.8,
+    "wins": false
+  },
+  {
+    "id": "top3_digital",
+    "name": "Top-3 Combined (+ Asphyxiation)",
+    "lula_share": 49.07,
+    "flavio_share": 50.93,
+    "net_margin": -1.86,
+    "abstention": 19.9,
+    "blank_attending": 3.7,
+    "wins": false
+  },
+  {
+    "id": "digital_machine_only",
+    "name": "Digital Machine Only (All Digital, No Rallies)",
+    "lula_share": 50.92,
+    "flavio_share": 49.08,
+    "net_margin": 1.84,
+    "abstention": 20.3,
+    "blank_attending": 3.6,
+    "wins": true
+  },
+  {
+    "id": "actual_scenario",
+    "name": "ACTUAL SCENARIO (Full Janonismo + Rallies)",
+    "lula_share": 51.8,
+    "flavio_share": 48.2,
+    "net_margin": 3.6,
+    "abstention": 19.2,
+    "blank_attending": 3.2,
+    "wins": true
+  }
+]

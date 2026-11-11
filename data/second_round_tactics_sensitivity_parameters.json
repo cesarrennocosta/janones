@@ -1,0 +1,173 @@
+{
+  "metadata": {
+    "model": "OmniOpinion 2.0 - Second Round Tactics Sensitivity and Actual Scenario Prediction",
+    "campaign_window": "October 5 to October 25, 2026 (21 days)",
+    "first_round_starting_point": {
+      "flavio_share": 0.47,
+      "lula_share": 0.4516,
+      "others_share": 0.0784,
+      "abstention": 0.209,
+      "blank_attending": 0.048
+    },
+    "majority_threshold": 0.5
+  },
+  "tactics_dose_response_calibration": {
+    "mass_capital_rallies": {
+      "action_magnitude_metric": "Aggregate Capital Attendees (Millions)",
+      "tested_range": [
+        0.0,
+        3.0
+      ],
+      "empirical_point": 1.8,
+      "marginal_gain_pt": 0.88,
+      "solo_lula_share": 46.04,
+      "sufficient_alone": false
+    },
+    "closed_whatsapp_synchronization": {
+      "action_magnitude_metric": "Synchronized Members in Exército do Lula (Millions)",
+      "tested_range": [
+        0.0,
+        15.0
+      ],
+      "empirical_point": 10.0,
+      "marginal_gain_pt": 1.05,
+      "solo_lula_share": 46.21,
+      "sufficient_alone": false
+    },
+    "algorithmic_asphyxiation": {
+      "action_magnitude_metric": "Network Embargo Compliance (%)",
+      "tested_range": [
+        0.0,
+        100.0
+      ],
+      "empirical_point": 88.0,
+      "marginal_gain_pt": 1.14,
+      "solo_lula_share": 46.3,
+      "sufficient_alone": false
+    },
+    "strict_monothematism": {
+      "action_magnitude_metric": "24h Topic Concentration Index",
+      "tested_range": [
+        0.0,
+        1.0
+      ],
+      "empirical_point": 1.0,
+      "marginal_gain_pt": 1.35,
+      "solo_lula_share": 46.51,
+      "sufficient_alone": false
+    },
+    "material_loss_framing": {
+      "action_magnitude_metric": "Prospect Loss Multiplier lambda",
+      "tested_range": [
+        1.0,
+        3.0
+      ],
+      "empirical_point": 2.25,
+      "marginal_gain_pt": 1.42,
+      "solo_lula_share": 46.58,
+      "sufficient_alone": false
+    },
+    "live_stream_saturation": {
+      "action_magnitude_metric": "Attention Share Ceiling (%)",
+      "tested_range": [
+        0.0,
+        80.0
+      ],
+      "empirical_point": 65.0,
+      "marginal_gain_pt": 0.8,
+      "solo_lula_share": 45.96,
+      "sufficient_alone": false
+    }
+  },
+  "combinatorial_threshold_analysis": {
+    "top_1_alone": {
+      "tactic": "Material Loss Framing",
+      "share": 46.58,
+      "wins": false
+    },
+    "top_2_combined": {
+      "tactics": [
+        "Material Loss Framing",
+        "Strict Monothematism"
+      ],
+      "share": 47.93,
+      "wins": false
+    },
+    "top_3_combined": {
+      "tactics": [
+        "Material Loss Framing",
+        "Strict Monothematism",
+        "Algorithmic Asphyxiation"
+      ],
+      "share": 49.07,
+      "wins": false
+    },
+    "top_4_combined": {
+      "tactics": [
+        "Loss Framing",
+        "Monothematism",
+        "Asphyxiation",
+        "10M WhatsApp Sync"
+      ],
+      "share": 50.12,
+      "wins": true
+    },
+    "all_synchronized": {
+      "share": 51.8,
+      "wins": true,
+      "margin_over_flavio": 3.6
+    }
+  },
+  "empirical_second_round_prediction": {
+    "final_valid_shares": {
+      "lula": 0.518,
+      "flavio": 0.482
+    },
+    "turnout_and_non_vote": {
+      "abstention_rate": 0.192,
+      "blank_null_rate_attending": 0.032,
+      "blank_null_rate_registered": 0.0259
+    },
+    "digital_metrics_reversal": {
+      "quaest_ipd_reversal": {
+        "oct4_flavio_vs_lula": [
+          80.0,
+          70.7
+        ],
+        "oct15_lula_vs_flavio": [
+          82.6,
+          76.4
+        ],
+        "oct25_lula_vs_flavio": [
+          83.8,
+          74.5
+        ]
+      },
+      "bites_gross_interactions": {
+        "oct5_17_cumulative_millions": {
+          "lula": 110.7,
+          "flavio": 31.3,
+          "ratio": 3.54
+        },
+        "oct18_19_band_debate_spike_24h_millions": {
+          "lula": 25.5,
+          "flavio": 5.0,
+          "ratio": 5.1
+        }
+      },
+      "follower_stabilization": {
+        "lula_24h_debate_follower_gain": "+176,000",
+        "total_follower_base_millions": {
+          "lula": 39.0,
+          "flavio": 24.0
+        }
+      },
+      "meta_ads_vs_whatsapp": {
+        "flavio_meta_spend_millions_brl": 7.45,
+        "lula_meta_spend_millions_brl": 2.59,
+        "exercito_do_lula_whatsapp_members_millions": 10.0,
+        "tropa_do_flavio_whatsapp_members_millions": 2.0
+      }
+    }
+  }
+}
