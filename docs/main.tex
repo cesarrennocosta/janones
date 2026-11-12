@@ -228,22 +228,31 @@ Notwithstanding these boundaries, the core behavioral mechanisms identified in t
 \section*{Methods}
 \label{sec:methods}
 
-\subsection*{Concept space geometry and cognitive coupling}
-Citizens, candidates, and media outlets are positioned within a $D$-dimensional continuous concept hypercube $\Omega = [-1, 1]^D$ ($D = 4$), representing economic redistribution ($d=0$), moral customs ($d=1$), environmental regulation ($d=2$), and public security ($d=3$) (Supplementary Note~1). The normalized distance between vectors $\mathbf{u}, \mathbf{v} \in \Omega$ is defined as
+\subsection*{Model architecture and concept hypercube geometry}
+Citizens, political candidates, and media outlets are positioned within a $D$-dimensional continuous concept hypercube $\Omega = [-1, 1]^D$ ($D = 4$), whose coordinate axes represent the primary cleavages structuring contemporary democratic deliberation in Brazil: state economic redistribution and fiscal policy ($d=0$), moral, cultural, and religious customs ($d=1$), environmental governance and Amazonian preservation ($d=2$), and public security and firearms regulation ($d=3$) (Supplementary Note~1). The normalized distance between any two belief vectors $\mathbf{u}, \mathbf{v} \in \Omega$ is normalized by the maximal Euclidean diameter $2\sqrt{D}$:
 \begin{equation}
     d(\mathbf{u}, \mathbf{v}) = \frac{1}{\sqrt{D}} \|\mathbf{u} - \mathbf{v}\|_2 \in [0, 2],
     \label{eq:methods_distance}
 \end{equation}
-such that individual conviction extremity is measured by distance from the ideological origin: $E(\mathbf{u}) \equiv d(\mathbf{u}, \mathbf{0}) \in [0, 1]$. Cross-issue ideological constraint is enforced via a row-normalized cognitive coupling matrix $\mathbf{C} = [C_{dd'}] \in \mathbb{R}^{D \times D}$ satisfying decaying off-diagonal constraints (Supplementary Note~1).
+such that individual conviction extremity is measured by the metric distance from the ideological origin:
+\begin{equation}
+    E(\mathbf{u}) \equiv d(\mathbf{u}, \mathbf{0}) = \frac{1}{\sqrt{D}} \|\mathbf{u}\|_2 \in [0, 1].
+    \label{eq:methods_extremity}
+\end{equation}
+Ideological cross-issue constraint is enforced via a row-normalized cognitive coupling matrix $\mathbf{C} = [C_{dd'}] \in \mathbb{R}^{D \times D}$ satisfying decaying off-diagonal constraints (Supplementary Note~1). The strong cross-coupling between moral conservatism ($d=1$), environmental deregulation ($d=2$), and punitive security ($d=3$) directly reflects empirical roll-call voting alignments in the Brazilian National Congress.
 
-\subsection*{Demographic sampling and behavioral heterogeneity}
-Each agent $i \in \{1, \dots, N\}$ is assigned an age $a_i \in [16, 90]$ sampled from the empirical IBGE 2022 Census pyramid with Gaussian kernel smoothing ($\sigma_a = 1.35$~years), yielding normalized age $\tilde{a}_i = (a_i - 16)/74 \in [0, 1]$. Socioeconomic status is drawn from $\mathrm{SES}_i \sim \mathrm{Beta}(2.0, 3.0)$. Each agent maintains two coupled attitudinal states: an internalized slow-moving conviction vector $\mathbf{s}_i(t) \in \Omega$ and a fast-moving publicly expressed opinion vector $\mathbf{x}_i(t) \in \Omega$. Conviction extremity is defined as $E_i(t) = \|\mathbf{s}_i(t)\|_2 / \sqrt{D} \in [0, 1]$. Heterogeneous psychological parameters governing social susceptibility $\alpha_i$, bounded confidence threshold $\epsilon_i$, attitude uncertainty $u_i(t)$, and confirmation bias $b_i$ are conditioned on age, SES, and conviction extremity (full parameter distributions and functional specifications in Supplementary Note~1).
+\subsection*{Multiplex interpersonal attitude network}
+Everyday interpersonal interactions unfold across a five-layer multiplex network $\mathcal{M} = \{\mathcal{L}_1, \dots, \mathcal{L}_5\}$ stored in Compressed Sparse Row (CSR) format, capturing the structural domains of urban social life (Supplementary Note~1):
+Layer 1 ($\mathcal{L}_1$, Households): Disjoint fully connected cliques calibrated to national census statistics ($2.79$ residents per household, strong tie weight $w_1 = 0.36$);
+Layer 2 ($\mathcal{L}_2$, Workplaces and Schools): Circular regular lattices with localized peer clustering ($\langle k^{[2]} \rangle = 10$, tie weight $w_2 = 0.26$);
+Layer 3 ($\mathcal{L}_3$, Religious Congregations and Community Groups): Bipartite affiliation networks linking citizens to neighborhood churches and civic associations ($\langle k^{[3]} \rangle = 8$, weight $w_3 = 0.14$);
+Layer 4 ($\mathcal{L}_4$, Friendship Circles): Small-world graphs with Watts--Strogatz rewiring probability $p_{\mathrm{ws}} = 0.15$ ($\langle k^{[4]} \rangle = 6$, weight $w_4 = 0.14$);
+Layer 5 ($\mathcal{L}_5$, Public Transit and Incidental Weak Ties): Erd\H{o}s--R\'enyi random graphs representing transient weak ties in public transit ($\langle k^{[5]} \rangle = 4$, weight $w_5 = 0.10$).
 
-\subsection*{Multiplex interpersonal network construction}
-Interpersonal encounters unfold across a five-layer multiplex network $\mathcal{M} = \{\mathcal{L}_1, \dots, \mathcal{L}_5\}$ stored in Compressed Sparse Row (CSR) format: Layer 1 (Household cliques, size distribution calibrated to $2.79$ residents/household, weight $w_1 = 0.36$); Layer 2 (Workplace and school circular lattice peers, $\langle k^{[2]} \rangle = 10$, $w_2 = 0.26$); Layer 3 (Religious congregations and community groups, $\langle k^{[3]} \rangle = 8$, $w_3 = 0.14$); Layer 4 (Small-world friendship circles with Watts--Strogatz rewiring $p_{\mathrm{ws}} = 0.15$, $\langle k^{[4]} \rangle = 6$, $w_4 = 0.14$); and Layer 5 (Erd\H{o}s--R\'enyi transit weak ties, $\langle k^{[5]} \rangle = 4$, $w_5 = 0.10$). Composite edge weights $W_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]} / \sum_k \sum_\ell w_\ell A_{ik}^{[\ell]}$ yield a mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ ties per citizen (Supplementary Note~1).
+Composite inter-agent edge weights $W_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]} / \sum_k \sum_\ell w_\ell A_{ik}^{[\ell]}$ yield an empirical mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ contacts per citizen. Inter-cohort contact is governed by the empirical contact matrix $M_{ab}$ across six adult age brackets, balancing generational clustering in workplaces against cross-generational mixing within households and religious assemblies (Supplementary Note~1).
 
 \subsection*{Two-timescale opinion and conviction dynamics}
-At each discrete step $\Delta t = 0.15$, citizen $i$ interacts with peers $j \in \mathcal{N}_i$ satisfying $d_{ij}(t) = \frac{1}{\sqrt{D}}\|\mathbf{x}_j(t) - \mathbf{x}_i(t)\|_2 \le \epsilon_i + 0.5\,u_i(t)$. Effective peer weights combine relative agreement uncertainty overlap $\phi_{ij}^{\mathrm{RA}}(t)$ and biased assimilation cosine similarity $\phi_{ij}^{\mathrm{BA}}(t)$:
+At each discrete integration step $\Delta t = 0.15$, citizen $i$ engages in peer deliberation with neighbors $j \in \mathcal{N}_i$ satisfying the bounded-confidence acceptance condition $d_{ij}(t) = \frac{1}{\sqrt{D}}\|\mathbf{x}_j(t) - \mathbf{x}_i(t)\|_2 \le \epsilon_i + 0.5\,u_i(t)$. Effective peer weights combine Relative Agreement (RA) uncertainty overlap $\phi_{ij}^{\mathrm{RA}}(t)$ and Biased Assimilation (BA) cosine similarity $\phi_{ij}^{\mathrm{BA}}(t)$:
 \begin{equation}
     \tilde{w}_{ij}(t) = W_{ij} \big(0.40 + 0.60\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \, \mathbb{I}\!\big(d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)\big).
     \label{eq:methods_peer_weight}
@@ -253,45 +262,54 @@ The interpersonal social shift $\Delta \mathbf{x}_i^{\mathrm{soc}}(t) = \sum_{j}
     \mathbf{x}_i^{\mathrm{int}}(t) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{x}_i(t) + \Delta t \big[(1 - \alpha_i)(\mathbf{s}_i(t) - \mathbf{x}_i(t)) + \alpha_i \mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)\big] + \boldsymbol{\xi}_i(t)\Big),
     \label{eq:methods_fj}
 \end{equation}
-with noise $\boldsymbol{\xi}_i(t) \sim \mathcal{N}(\mathbf{0}, \sigma_{\xi}^2 \mathbf{I}_D)$ ($\sigma_{\xi} = 0.012$). When an exogenous fact impulse $\mathbf{b}_{\mathrm{fact}}(t)$ is present, opinions pull toward it with sensitivity $\gamma_i(t) = \gamma_0 (1.30 - 0.72 E_i)(1.18 - 0.48\tilde{a}_i)(0.85 + 0.30\,\mathrm{SES}_i)$, yielding intermediate opinion $\tilde{\mathbf{x}}_i(t)$. Opinions are elastically bounded around convictions within radius $\Delta_{\max, i}(t)$ via radial hyperbolic-tangent tethering:
+with intrinsic cognitive noise $\boldsymbol{\xi}_i(t) \sim \mathcal{N}(\mathbf{0}, \sigma_{\xi}^2 \mathbf{I}_D)$ ($\sigma_{\xi} = 0.012$). When an exogenous factual impulse $\mathbf{b}_{\mathrm{fact}}(t)$ is present, opinions pull toward it with sensitivity $\gamma_i(t) = \gamma_0 (1.30 - 0.72 E_i)(1.18 - 0.48\tilde{a}_i)(0.85 + 0.30\,\mathrm{SES}_i)$, yielding intermediate opinion $\tilde{\mathbf{x}}_i(t)$.
+
+Opinions cannot depart indefinitely from internal convictions. The maximal allowable departure is defined by an individual tether radius $\Delta_{\max, i}(t) = \Delta_0 (1.25 - 0.55\tilde{a}_i)(1.30 - 0.75 E_i)(0.90 + 0.25\,\mathrm{SES}_i)$. Radial elastic restraint is enforced via hyperbolic-tangent bounding:
 \begin{align}
     g_i^{\mathrm{eff}}(t) &= \Delta_{\max, i}(t) \tanh\!\left(\frac{\frac{1}{\sqrt{D}}\|\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\|_2}{\Delta_{\max, i}(t)}\right), \label{eq:methods_tether_radius} \\
     \mathbf{x}_i(t+1) &= \mathrm{clip}_{[-1, 1]^D}\!\left(\mathbf{s}_i(t) + \frac{g_i^{\mathrm{eff}}(t)}{g_i(t) + 10^{-12}}\big(\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\big)\right). \label{eq:methods_tether_update}
 \end{align}
-Convictions adapt slowly via crystallization and sustained-tension rates:
+Convictions adapt over substantially slower timescales through baseline crystallization drift $\eta_{\mathrm{cryst}, i}(t)$ and sustained-tension restructuring $\eta_{\mathrm{sust}, i}(t)$:
 \begin{align}
     \eta_{\mathrm{cryst}, i}(t) &= \eta_0 [1 + (t/\tau_c)^{1.15}]^{-1}(1.25 - 0.75\tilde{a}_i)(1.22 - 0.68 E_i)(1.10 - 0.25\,\mathrm{SES}_i), \label{eq:methods_cryst} \\
     \eta_{\mathrm{sust}, i}(t) &= 0.28\eta_0 (g_i^{\mathrm{eff}} / \Delta_{\max, i})^2(1.18 - 0.58\tilde{a}_i)(1.20 - 0.62 E_i), \label{eq:methods_sust}
 \end{align}
-with baseline scale $\eta_0 = 0.0024$ and characteristic timescale $\tau_c = 280$ steps:
+with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and crystallization timescale $\tau_c = 280$ steps:
 \begin{equation}
     \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
     \label{eq:methods_conviction}
 \end{equation}
 
-\subsection*{Traditional mass media and editorial tendentiousness}
-Media conglomerates $g \in \{1, \dots, M\}$ operate across five modalities $v \in \{0, 1, 2, 3, 4\}$ (TV, Radio, Press, Outdoor, Rallies) with empirical demographic reach probabilities $P_v(a_i, \mathrm{SES}_i)$ (Supplementary Note~2). Outlets project factual events $\mathbf{f}_k(t)$ toward their editorial ideological centers $\mathbf{m}_g \in \Omega$ through tendentiousness parameter $\tau_g \in [0, 1]$:
+\subsection*{Traditional mass media and editorial gatekeeping}
+Media conglomerates $g \in \{1, \dots, M\}$ operate across five modalities $v \in \{0, 1, 2, 3, 4\}$ (Broadcast Television, Radio, Print, Outdoor Signage, and Rallies) with demographic reach probabilities $P_v(a_i, \mathrm{SES}_i)$ (Supplementary Note~2). When a factual event $\mathbf{f}_k(t) \in \Omega$ occurs, outlet $g$ projects the notice toward its ideological center $\mathbf{m}_g \in \Omega$ through tendentiousness parameter $\tau_g \in [0, 1]$:
 \begin{equation}
     \mathbf{y}_{k,g,v}(t) = (1 - \eta_{g,v})\,\mathbf{f}_k(t) + \eta_{g,v}\,\mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \qquad \eta_{g,v} = \mathrm{clip}_{[0, 1]}(\tau_g \mu_v),
     \label{eq:methods_media_projection}
 \end{equation}
-with baseline reach $\mu_v$ and noise $\sigma_{\mathrm{media}} = 0.03$. Active notices decay exponentially as $I_v(t+1) = I_v(t)\exp(-\delta_v)$. Citizens select active vehicles via distance-weighted softmax exposure and update opinions within credibility-expanded confidence bounds $d(\mathbf{x}_i, \mathbf{y}_v) \le \epsilon_i (1 + 1.10\,\gamma_v)$ (Supplementary Note~2).
+where $\mu_v$ is modal baseline reach and $\sigma_{\mathrm{media}} = 0.03$. Published notices decay exponentially as $I_v(t+1) = I_v(t)\exp(-\delta_v)$. Citizens select active notices via distance-weighted softmax selective exposure:
+\begin{equation}
+    P(g, v \mid i) = \frac{P_v(a_i, \mathrm{SES}_i) \cdot I_{g,v}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g,v}(t))\right)}{\sum_{g',v'} P_{v'}(a_i, \mathrm{SES}_i) \cdot I_{g',v'}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g',v'}(t))\right) + \kappa_0},
+    \label{eq:methods_selective_exposure}
+\end{equation}
+updating opinions within credibility-expanded confidence bounds $d(\mathbf{x}_i, \mathbf{y}_v) \le \epsilon_i (1 + 1.10\,\gamma_v)$ with coupling efficiency $\kappa_{\mathrm{trad}} = 0.08$ (Supplementary Note~2).
 
-\subsection*{Algorithmic platforms, engagement, and cascades}
-Digital media encompasses four platform modalities $p \in \{0, 1, 2, 3\}$ (Instagram/TikTok, YouTube/X, Facebook, WhatsApp). Content creators accumulate followers via preferential attachment $\Pi_k \propto k_i (0.65 + 0.70\tau_{\mathrm{inf}, k})$, generating power-law in-degrees $P(k) \sim k^{-1.15}$ (Gini $0.73$). Feed algorithms recommend posts with probability $q_{ij} \propto (d(\mathbf{x}_i, \mathbf{y}_j) + \delta)^{-\beta}(1 + 1.5 e_j)\ln(1 + \mathrm{pop}_j)(0.5 + 0.5\ln(1 + k_{\mathrm{inf}}))$ with homophily $\beta = 2.0$. Reactions branch into likes ($d \le \epsilon_{\mathrm{like}, i}$, assimilating toward $\mathbf{y}_j$) and dislikes/outrage ($d \ge \tau_{\mathrm{dislike}, i}$, triggering backfire repulsion away from $\mathbf{y}_j$; Supplementary Note~3). Algorithmic relevance scores compound dual-valence engagement symmetrically:
+\subsection*{Algorithmic social platforms, dual-valence engagement, and cascades}
+Digital media encompasses four platform modalities $p \in \{0, 1, 2, 3\}$ (Instagram/TikTok, YouTube/X, Facebook, and WhatsApp). Content creators accumulate followers via preferential attachment $\Pi_k \propto k_i (0.65 + 0.70\tau_{\mathrm{inf}, k})$, generating scale-free in-degrees $P(k) \sim k^{-1.15}$ with an empirical Gini coefficient of $0.73$ (Supplementary Note~3). Feed recommendation engines score candidate posts via homophily weighting $q_{ij} \propto (d(\mathbf{x}_i, \mathbf{y}_j) + \delta)^{-\beta_{\mathrm{cur}}}(1 + 1.5 e_j)\ln(1 + \mathrm{pop}_j)(0.5 + 0.5\ln(1 + k_{\mathrm{inf}}))$ with homophily exponent $\beta_{\mathrm{cur}} = 2.0$.
+
+Reactions branch into affirmative likes ($d \le \epsilon_{\mathrm{like}, i}$, assimilating toward $\mathbf{y}_j$) and moral outrage ($d \ge \tau_{\mathrm{dislike}, i}$, triggering backfire repulsion away from $\mathbf{y}_j$). Algorithmic relevance scores compound dual-valence engagement symmetrically:
 \begin{equation}
     R_m = \mathrm{Likes}_m + \omega \cdot \mathrm{Dislikes}_m, \qquad \omega = 1.0,
     \label{eq:methods_relevance}
 \end{equation}
-maximizing viral discovery along the diagonal of controversy (Supplementary Note~3).
+maximizing viral discovery along the diagonal of controversy (Supplementary Note~3). Information propagates through a three-stage cascade: open-feed broadcast injection, algorithmic recommendation discovery, and dark-social closed micro-group forwarding ($K \le 256$ participants per group, peer trust multiplier $\tau_{\mathrm{WA}} = 0.85$, $2.8\times$ persuasion efficiency).
 
-\subsection*{Electoral decision calculus}
-Candidates $k \in \{L, F, O\}$ are positioned at fixed coordinates $\mathbf{c}_k \in \Omega$. Candidate affinity $A_{ik}(t)$ and aversion $R_{ik}(t)$ evolve with asymmetric parameters ($\lambda_A = 0.12, \delta_A = 0.06; \lambda_R = 0.14, \delta_R = 0.04$):
+\subsection*{Electoral decision calculus, candidate evaluation, and turnout}
+Candidates $k \in \{L, F, O\}$ occupy fixed ideological coordinates $\mathbf{c}_k \in \Omega$. Candidate affinity $A_{ik}(t)$ and aversion $R_{ik}(t)$ evolve with asymmetric parameters ($\lambda_A = 0.12, \delta_A = 0.06; \lambda_R = 0.14, \delta_R = 0.04$):
 \begin{align}
     A_{ik}(t+1) &= (1 - \delta_A)\,A_{ik}(t) + \lambda_A \max\!\left(0, \frac{0.62 - d_{ik}(t)}{0.62}\right)^2, \label{eq:methods_adm} \\
     R_{ik}(t+1) &= (1 - \delta_R)\,R_{ik}(t) + \lambda_R \max\!\left(0, \frac{d_{ik}(t) - 0.78}{1.22}\right)^{1.5}. \label{eq:methods_rej}
 \end{align}
-Candidate utility is penalized quadratically by aversion:
+Net candidate utility is penalized quadratically by aversion:
 \begin{equation}
     U_{ik}(t) = A_{ik}(t) - \theta_{\mathrm{rej}} R_{ik}(t)^2, \qquad \theta_{\mathrm{rej}} = 1.65.
     \label{eq:methods_utility}
@@ -308,8 +326,49 @@ with choice sensitivity $\beta_{\mathrm{vote}} = 3.2$. Turnout probability is mo
 \end{equation}
 with steepness $\mu_{\mathrm{turn}} = 4.5$ and free transit subsidy $\delta_{\mathrm{transit}} = -0.15$ (Supplementary Note~4).
 
-\subsection*{Simulation execution and evaluation metrics}
-Simulations were executed across $S = 100$ independent Monte Carlo realizations at population scale $N = 100{,}000$ using JIT-compiled Numba kernels (Supplementary Note~5). Metrics include multidimensional Esteban--Ray polarization $P_{\mathrm{ER}}$ ($\alpha_{\mathrm{ER}} = 1.3$, $\kappa_{\mathrm{ER}} = 1.0$), Sarle's bimodality coefficient $\mathrm{BC}$, cross-issue Pearson correlation alignment $\bar{|\rho|}$, and Roy's eigenvalue participation ratio $\mathrm{PR}(\Sigma)$. All time-series trajectories report ensemble means with $95\%$ confidence intervals ($\bar{\mu} \pm 1.96\,\hat{\sigma}/\sqrt{S}$) or full simulation ranges $[\min, \max]$.
+\subsection*{Tripartite parameterization and empirical calibration strategy}
+To maintain rigorous methodological transparency, all model parameters are explicitly partitioned into three distinct classes (Supplementary Table~1 and Supplementary Table~2):
+
+First, \emph{parameters fixed a priori from Brazilian demographic, institutional, and media records} are calibrated directly from empirical benchmark sources without free optimization:
+(1) Citizen age distribution $a_i \in [16, 90]$ sampled from the official IBGE 2022 Census pyramid with Gaussian smoothing ($\sigma_a = 1.35$~years), socioeconomic status $\mathrm{SES}_i \sim \mathrm{Beta}(2.0, 3.0)$, and average household size of $2.79$ residents per domicile in Layer $\mathcal{L}_1$ \citep{ibge2022censo};
+(2) Workplace and educational cohort sizes ($\langle k^{[2]} \rangle = 10$) drawn from INEP 2023 School Census and MTE/RAIS 2023 Formal Labor Registries \citep{inep2023censo, mte2023rais};
+(3) Traditional media reach curves for television, radio, print, and outdoor signage calibrated to Kantar IBOPE Media Book 2023 audience surveys \citep{kantar2023inside};
+(4) Digital platform penetration profiles across Instagram/TikTok, YouTube/X, Facebook, and WhatsApp ($K \le 256$ forwarding limit) derived from the Reuters Institute Digital News Report 2023 \citep{reuters2023digital};
+(5) Statutory electoral parameters established by the Superior Electoral Court (TSE) under Lei n\textordmasculine~9.504/1997, comprising daily HGPE broadcast minutes (Lula 5m~31s vs.\ Fl\'avio 4m~20s in Round~1; strict 5m~00s parity in Round~2), presidential spending ceilings ($\mathrm{R}\$$~88.9M in Round~1; $\mathrm{R}\$$~133.4M in Round~2), and party allocations from the $\mathrm{R}\$$~4.96B FEFC public pool (Supplementary Note~4);
+(6) Candidate ideological centroids in concept space $\Omega$: Lula $\mathbf{c}_L = (-0.65, -0.45, -0.70, -0.30)^{\top}$, Fl\'avio Bolsonaro $\mathbf{c}_F = (+0.70, +0.80, +0.75, +0.85)^{\top}$, and Third-Way Centrists $\mathbf{c}_O = (+0.15, -0.10, +0.10, +0.05)^{\top}$, derived from party manifesto content analyses and legislative roll-call matrices.
+
+Second, \emph{parameters anchored in established cognitive and complex network literature} are set according to documented behavioral benchmarks:
+(1) Friedkin--Johnsen social influence weighting and row-stochastic cognitive issue coupling matrix $\mathbf{C}$ \citep{friedkin1990social, friedkin2016network};
+(2) Deffuant--Weisbuch bounded confidence threshold $\bar{\epsilon} = 0.45$ and Relative Agreement uncertainty dynamics \citep{deffuant2000mixing, deffuant2002how};
+(3) Lord--Ross--Lepper biased assimilation cosine weighting $b_i$ \citep{lord1979biased, dandekar2013biased};
+(4) Kahneman--Tversky prospect theory loss aversion multiplier $\lambda_{\mathrm{loss}} \in [2.0, 2.5]$ \citep{kahneman1979prospect};
+(5) Watts--Strogatz small-world rewiring probability $p_{\mathrm{ws}} = 0.15$ in friendship networks ($\mathcal{L}_4$) \citep{watts1998collective};
+(6) Granovetter weak-tie mixing in transit layer $\mathcal{L}_5$ \citep{granovetter1973strength};
+(7) Barab\'asi--Albert preferential attachment scaling exponent $\gamma_{\mathrm{pl}} = 1.15$ and Gini coefficient $0.73$ for digital influencers \citep{barabasi1999emergence, bianconi2001competition};
+(8) Hyperbolic-tangent elastic tethering $g_i^{\mathrm{eff}}$ enforcing Sherif--Hovland latitudes of rejection around convictions \citep{sherif1961social, howe2017attitude}.
+
+Third, \emph{free parameters fitted to longitudinal 2026 Datafolha tracking surveys and TSE ballot totals} are estimated via bounded grid search and Markov Chain Monte Carlo (MCMC) sampling:
+(1) Fast opinion discrete integration step size $\Delta t = 0.15$ and cognitive perturbation noise $\sigma_{\xi} = 0.012$;
+(2) Baseline conviction adaptation drift rate $\eta_0 = 0.0024 \text{ step}^{-1}$ and crystallization timescale $\tau_c = 280$ simulation steps;
+(3) Direct exogenous fact pull coefficient $\gamma_0 = 0.055 \text{ step}^{-1}$;
+(4) Candidate affinity and aversion kinetic rates ($\lambda_A = 0.12, \delta_A = 0.06; \lambda_R = 0.14, \delta_R = 0.04$), establishing the key kinetic asymmetry ratio $\lambda_R / \delta_R = 3.5\times$ and aversion penalty $\theta_{\mathrm{rej}} = 1.65$;
+(5) Multinomial logit voting sensitivity $\beta_{\mathrm{vote}} = 3.2$, base abstention threshold $\tau_{\mathrm{abst}} = 0.38$, logistic steepness $\mu_{\mathrm{turn}} = 4.5$, and transit subsidy $\delta_{\mathrm{transit}} = -0.15$.
+
+The optimization objective minimizes weighted squared error across all survey waves and official election totals:
+\begin{equation}
+    L(\boldsymbol{\theta}) = \sum_{w=1}^W \sum_{k \in \{L, F, O\}} \big(V_k^{\mathrm{model}}(t_w; \boldsymbol{\theta}) - V_k^{\mathrm{Datafolha}}(t_w)\big)^2 + \omega_{\mathrm{ballot}} \sum_{k} \big(V_k^{\mathrm{model}}(t_{\mathrm{election}}; \boldsymbol{\theta}) - V_k^{\mathrm{TSE}}\big)^2,
+    \label{eq:methods_loss_function}
+\end{equation}
+with ballot weight $\omega_{\mathrm{ballot}} = 3.0$, yielding $\mathrm{RMSE} = 0.85$ percentage points ($R^2 = 0.9955$) across Round~1 and $\mathrm{RMSE} = 0.56$ percentage points ($R^2 = 0.9128$) across Round~2. Profile likelihood intervals, Hessian conditioning, parameter identifiability, and Sobol global sensitivity analyses are detailed extensively in Supplementary Note~4 and Supplementary Note~5. Operational translations of the Janones tactical suite into graph mechanics are reported in Supplementary Table~3.
+
+\subsection*{Simulation execution, HPC implementation, and statistical evaluation}
+Simulations were executed across $S = 100$ independent Monte Carlo realizations at population scale $N = 100{,}000$ agents using just-in-time (JIT) compiled Numba 0.59 kernels in Python 3.11 with parallel multi-threading across 64 CPU cores (AMD EPYC 7763, 2.45 GHz, 512 GB RAM) (Supplementary Note~5). All agent attributes are laid out as contiguous 1D and 2D C-ordered NumPy arrays in CPU cache memory, with network topology represented in CSR format. At $N = 100{,}000$, a 100-step trajectory executes in $4.2$ seconds. Municipal scaling experiments ($N = 10^4$ to $10^7$) confirm that finite-size stochasticity vanishes into a scale-invariant thermodynamic limit for $N \ge 10^5$ (Supplementary Note~5).
+
+Macroscopic system trajectories are monitored through four statistical evaluation metrics:
+(1) Multidimensional Esteban--Ray polarization index $P_{\mathrm{ER}}(t) = \kappa_{\mathrm{ER}} \sum_{c, c'} \pi_c^{1 + \alpha_{\mathrm{ER}}} \pi_{c'} d(\bar{\mathbf{x}}_c, \bar{\mathbf{x}}_{c'})$ ($\alpha_{\mathrm{ER}} = 1.30$, $\kappa_{\mathrm{ER}} = 1.0$) \citep{esteban1994measurement};
+(2) Sarle's Bimodality Coefficient $\mathrm{BC} = (\gamma^2 + 1) / (\kappa + 3 \frac{(n-1)^2}{(n-2)(n-3)})$;
+(3) Participation Ratio of the belief covariance matrix $\mathrm{PR}(\Sigma) = (\mathrm{Tr}\,\Sigma)^2 / \mathrm{Tr}(\Sigma^2) \in [1, D]$ measuring effective ideological dimensionality \citep{roy1953useful};
+(4) Mean absolute pairwise issue alignment $\langle |\rho| \rangle = \frac{2}{D(D-1)} \sum_{k < l} |\rho_{kl}|$. All time-series trajectories report ensemble means with $95\%$ confidence intervals ($\bar{\mu} \pm 1.96\,\hat{\sigma}/\sqrt{S}$) or full simulation ranges $[\min, \max]$.
 
 \section*{Data availability}
 The empirical demographic, polling, broadcast airtime, and election result datasets supporting the findings of this study are archived and publicly available at \url{https://github.com/cesarrennocosta/janones}.

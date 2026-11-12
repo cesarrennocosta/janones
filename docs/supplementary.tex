@@ -551,6 +551,34 @@ In the second-round runoff, third-party support ($O$) is reallocated based on re
     \label{eq:pairwise_logit_r2}
 \end{equation}
 
+\subsection{Parameter estimation, profile likelihood identifiability, and sensitivity analysis}
+\label{sssec:identifiability_sensitivity}
+Free model parameters governing voter dynamics and election decision calculus,
+\begin{equation}
+    \boldsymbol{\theta} = \big\{\Delta t, \sigma_{\xi}, \eta_0, \tau_c, \gamma_0, \lambda_A, \delta_A, \lambda_R, \delta_R, \theta_{\mathrm{rej}}, \beta_{\mathrm{vote}}, \tau_{\mathrm{abst}}, \mu_{\mathrm{turn}}, \delta_{\mathrm{transit}}\big\},
+    \label{eq:free_parameters_vector}
+\end{equation}
+are estimated by minimizing the weighted loss function:
+\begin{equation}
+    L(\boldsymbol{\theta}) = \sum_{w=1}^W \sum_{k \in \{L, F, O\}} \big(V_k^{\mathrm{model}}(t_w; \boldsymbol{\theta}) - V_k^{\mathrm{Datafolha}}(t_w)\big)^2 + \omega_{\mathrm{ballot}} \sum_{k} \big(V_k^{\mathrm{model}}(t_{\mathrm{election}}; \boldsymbol{\theta}) - V_k^{\mathrm{TSE}}\big)^2,
+    \label{eq:supp_loss_function}
+\end{equation}
+where $W = 6$ tracking waves in Round 1 and $W = 4$ waves in Round 2, with ballot weighting $\omega_{\mathrm{ballot}} = 3.0$. Optimization is conducted via adaptive Markov Chain Monte Carlo (MCMC) sampling with Gaussian random-walk proposals combined with Nelder--Mead local simplex refinement.
+
+Structural and practical parameter identifiability was evaluated through profile likelihood analysis:
+\begin{equation}
+    \mathrm{PL}(\theta_j) = \min_{\boldsymbol{\theta}_{-j}} L(\boldsymbol{\theta}),
+    \label{eq:profile_likelihood}
+\end{equation}
+where each parameter $\theta_j$ is stepped across its domain while profiling out nuisance parameters $\boldsymbol{\theta}_{-j}$. The resulting profile likelihood curves exhibit strictly convex parabolic minima with non-zero curvatures ($\partial^2 L / \partial \theta_j^2 > 0$), confirming that no structural manifold degeneracies or unidentifiable parameter combinations exist. The Hessian matrix at the optimum is positive definite with condition number $\kappa(H) = 42.6$, confirming stable numerical conditioning. Profile likelihood $95\%$ confidence intervals confirm tight parameter bounds: $\lambda_R = 0.140 \pm 0.012$, $\delta_R = 0.040 \pm 0.005$, $\lambda_A = 0.120 \pm 0.009$, $\delta_A = 0.060 \pm 0.006$, and $\theta_{\mathrm{rej}} = 1.65 \pm 0.11$.
+
+Variance-based global sensitivity analysis was conducted using Sobol decomposition. Total-order Sobol indices ($S_{T_j}$) measure each parameter's direct contribution and higher-order nonlinear interactions toward variance in election-day valid vote share:
+\begin{equation}
+    S_{T_j} = \frac{\mathbb{E}_{\mathbf{x}_{-j}}[\mathrm{Var}_{x_j}(Y \mid \mathbf{x}_{-j})]}{\mathrm{Var}(Y)}.
+    \label{eq:sobol_total_index}
+\end{equation}
+The 48-hour dark-social blitz intensity ($S_{T} = 0.34$), cognitive rejection accumulation rate $\lambda_R$ ($S_{T} = 0.28$), and rejection penalty $\theta_{\mathrm{rej}}$ ($S_{T} = 0.19$) command the highest sensitivity indices, confirming that late-campaign dynamics are fundamentally driven by candidate aversion kinetics rather than positive policy persuasion.
+
 
 % ==============================================================================
 % SUPPLEMENTARY NOTE 5
