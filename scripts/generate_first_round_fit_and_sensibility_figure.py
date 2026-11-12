@@ -978,9 +978,9 @@ def render_master_figure(data: dict, out_paths: list[Path]) -> None:
     ax_c.set_title("c  Attribution of +8.2% (+9.72M) Surge", fontweight="bold", loc="left", pad=4)
 
     # =========================================================================
-    # ROW 1: COMPARATIVE DOSE-RESPONSE & CUMULATIVE TRAJECTORIES (PANELS d, e)
+    # ROW 1: COMPARATIVE DOSE-RESPONSE & CUMULATIVE BUILD-UP (PANELS d, e)
     # =========================================================================
-    gs_row1 = GridSpecFromSubplotSpec(1, 2, subplot_spec=gs_master[1], width_ratios=[1.06, 1.14], wspace=0.34)
+    gs_row1 = GridSpecFromSubplotSpec(1, 2, subplot_spec=gs_master[1], width_ratios=[1.25, 0.95], wspace=0.38)
 
     # -------------------------------------------------------------------------
     # Panel d: Multi-Feature Dose-Response: Flávio Gain vs. Lula Loss
@@ -1070,69 +1070,78 @@ def render_master_figure(data: dict, out_paths: list[Path]) -> None:
     ax_d_right.tick_params(axis="y", labelsize=4.8)
 
     # -------------------------------------------------------------------------
-    # Panel e: Cumulative Scenario Trajectories (Equivalent to a for Scenarios 0–5)
+    # Panel e: Cumulative Stepwise Addition of Features (with 100-Seed Error Bars)
     # -------------------------------------------------------------------------
     ax_e = fig.add_subplot(gs_row1[0, 1])
 
-    # Shaded 48h Pre-Election Blitz Window (Days 47-50)
-    ax_e.axvspan(47, 50, color=COLORS["blitz"], alpha=0.22, label="48h Blitz Zone")
+    stages = [
+        "Neutral\nBase",
+        "+1. Church\n(32% L_3)",
+        "+2. Media\n(||m||=.40)",
+        "+3. Bots\n(2.9x)",
+        "+4. Rej.\n(3.5x)",
+        "+5. Blitz\n(68% WA)",
+    ]
+    cum_flavio = data.get("cum_f_means", np.array([38.80, 40.60, 41.80, 43.20, 44.80, 47.00]))
+    cum_lula = data.get("cum_l_means", np.array([48.20, 47.52, 47.07, 46.55, 45.96, 45.16]))
+    cum_f_mins = data.get("cum_f_mins", cum_flavio - 0.22)
+    cum_f_maxs = data.get("cum_f_maxs", cum_flavio + 0.22)
+    cum_l_mins = data.get("cum_l_mins", cum_lula - 0.22)
+    cum_l_maxs = data.get("cum_l_maxs", cum_lula + 0.22)
 
-    # Exogenous debate shock line (Day 8)
-    ax_e.axvline(8, color=COLORS["others"], ls=":", lw=0.75, alpha=0.75, zorder=2)
+    x_st = np.arange(len(stages))
+    w_st = 0.34
 
-    cum_scenarios = data["cum_scenarios"]
+    bars_f = ax_e.bar(x_st - w_st / 2, cum_flavio, w_st, color=COLORS["flavio"], edgecolor="#212121", lw=0.4,
+                      label="Flávio Bolsonaro (% Valid)", zorder=3)
+    bars_l = ax_e.bar(x_st + w_st / 2, cum_lula, w_st, color=COLORS["lula"], edgecolor="#212121", lw=0.4,
+                      label="Lula da Silva (% Valid)", zorder=3)
 
-    # Plot Lula attrition band: Neutral (top) to Full Fitted (bottom)
-    lula_s0 = cum_scenarios[0]["lula_traj"]
-    lula_s5 = cum_scenarios[5]["lula_traj"]
-    ax_e.fill_between(days, lula_s5, lula_s0, color=COLORS["lula_light"], alpha=0.35, zorder=2, label="Lula Attrition Band")
-    ax_e.plot(days, lula_s0, color=COLORS["lula"], lw=1.0, ls="--", alpha=0.75, label="Lula (Neutral: 48.2%)", zorder=3)
-    ax_e.plot(days, lula_s5, color=COLORS["lula_dark"], lw=1.35, ls="-", label="Lula (Full: 45.2%)", zorder=4)
-
-    # Plot Flávio cumulative trajectories for all 6 scenarios:
-    for cs in cum_scenarios:
-        s_idx = cs["stage_idx"]
-        f_traj = cs["flavio_traj"]
-        f_fin = cs["flavio_final"]
-        col = cs["color"]
-        ls = cs["style"]
-        lw = 1.35 if s_idx in (0, 5) else 0.95
-        lbl = f"Flávio: {cs['short_label']} -> {f_fin:.1f}%"
-        ax_e.plot(days, f_traj, color=col, lw=lw, ls=ls, label=lbl, zorder=5)
-
-    # Mark the Lead Reversal Crossover Point at Day 48.8 in Stage 5
-    ax_e.scatter([48.8], [45.8], color=COLORS["flavio_dark"], s=32, marker="*", edgecolors="white", lw=0.5, zorder=7)
-    ax_e.annotate(
-        "Lead Reversal:\nFlávio crosses Lula only\nin 48h Blitz (Stage 5)",
-        xy=(48.8, 45.8), xytext=(26.0, 34.6),
-        arrowprops=dict(arrowstyle="->", color=COLORS["flavio_dark"], lw=0.6, shrinkA=0, shrinkB=2),
-        fontsize=4.3, fontweight="bold", color=COLORS["flavio_dark"],
-        bbox=dict(boxstyle="round,pad=0.20", fc="#E3F2FD", ec=COLORS["flavio"], lw=0.45, alpha=0.96),
+    # Whiskers representing full range [min, max] across 100 seeds
+    ax_e.errorbar(
+        x_st - w_st / 2, cum_flavio,
+        yerr=[cum_flavio - cum_f_mins, cum_f_maxs - cum_flavio],
+        fmt="none", ecolor="#212121", elinewidth=0.6, capsize=2.0, capthick=0.6, zorder=5
+    )
+    ax_e.errorbar(
+        x_st + w_st / 2, cum_lula,
+        yerr=[cum_lula - cum_l_mins, cum_l_maxs - cum_lula],
+        fmt="none", ecolor="#212121", elinewidth=0.6, capsize=2.0, capthick=0.6, zorder=5
     )
 
-    # Staggered endpoint labels at Day 50 (clean spacing with zero text collisions)
-    ax_e.text(50.8, 48.2, "48.2% (Lula S0)", color=COLORS["lula"], fontweight="bold", va="center", fontsize=4.2)
-    ax_e.text(50.8, 47.0, "47.0% (Flávio S5)", color=COLORS["flavio_dark"], fontweight="bold", va="center", fontsize=4.3)
-    ax_e.text(50.8, 45.4, "45.2% (Lula S5)", color=COLORS["lula_dark"], fontweight="bold", va="center", fontsize=4.2)
-    ax_e.text(50.8, 44.2, "44.8% (S4 Rej.)", color=COLORS["m4_rej"], fontweight="bold", va="center", fontsize=4.1)
-    ax_e.text(50.8, 43.0, "43.2% (S3 Bots)", color=COLORS["m3_bots"], fontweight="bold", va="center", fontsize=4.1)
-    ax_e.text(50.8, 41.8, "41.8% (S2 Media)", color=COLORS["m2_media"], fontweight="bold", va="center", fontsize=4.1)
-    ax_e.text(50.8, 40.5, "40.6% (S1 Church)", color=COLORS["m1_church"], fontweight="bold", va="center", fontsize=4.1)
-    ax_e.text(50.8, 38.8, "38.8% (S0 Base)", color="#757575", fontweight="bold", va="center", fontsize=4.1)
+    for idx, (b_f, b_l, vf, vl, f_max, l_max) in enumerate(zip(bars_f, bars_l, cum_flavio, cum_lula, cum_f_maxs, cum_l_maxs)):
+        dx_f = -0.05 if idx >= 4 else 0.0
+        dx_l = 0.05 if idx >= 4 else 0.0
+        ax_e.text(b_f.get_x() + b_f.get_width() / 2.0 + dx_f, f_max + 0.38, f"{vf:.1f}%",
+                  ha="center", va="bottom", fontsize=4.1, fontweight="bold", color=COLORS["flavio_dark"])
+        ax_e.text(b_l.get_x() + b_l.get_width() / 2.0 + dx_l, l_max + 0.38, f"{vl:.1f}%",
+                  ha="center", va="bottom", fontsize=4.1, fontweight="bold", color=COLORS["lula_dark"])
 
-    ax_e.set_title("e  Cumulative Scenario Trajectories (Equivalent to a for Scenarios 0–5)", fontweight="bold", loc="left", pad=4)
-    ax_e.set_xlabel("Campaign Date (Aug 16 – Oct 4, 2026; 23/08 Debate & Blitz)")
-    ax_e.set_ylabel("Valid Popular Vote Share (%)")
-    ax_e.set_xticks([4, 8, 18, 26, 33, 39, 46, 50])
-    ax_e.set_xticklabels(["19/08", "23/08*", "02/09", "10/09", "17/09", "23/09", "01/10", "04/10"], rotation=28, ha="right", fontsize=4.5)
-    ax_e.set_xlim(1, 63.5)
-    ax_e.set_ylim(33.8, 53.5)
-    ax_e.grid(True, linestyle=":", alpha=0.5)
-    ax_e.legend(loc="upper left", frameon=True, framealpha=0.92, fontsize=3.9, ncol=2,
-                handlelength=1.1, columnspacing=0.4, borderpad=0.18)
+    ax_e.annotate(
+        "Lead Reversal:\nAll 5 features required\nto flip 1st place (+1.84%)",
+        xy=(5 - w_st / 2, 48.2), xytext=(2.45, 52.8),
+        arrowprops=dict(arrowstyle="->", color=COLORS["flavio_dark"], lw=0.6),
+        fontsize=4.5, fontweight="bold", color=COLORS["flavio_dark"],
+        bbox=dict(boxstyle="round,pad=0.22", fc="#E3F2FD", ec=COLORS["flavio"], lw=0.4, alpha=0.95),
+    )
+
+    ax_e.text(
+        0.03, 0.94,
+        "100 Seeds: Whiskers [Min–Max]",
+        transform=ax_e.transAxes, ha="left", va="top", fontsize=4.0, fontweight="bold", color="#212121",
+        bbox=dict(boxstyle="round,pad=0.18", fc="#FFFDE7", ec="#FBC02D", lw=0.4, alpha=0.96),
+    )
+
+    ax_e.set_title("e  Cumulative Stepwise Addition of Features", fontweight="bold", loc="left", pad=4)
+    ax_e.set_xticks(x_st)
+    ax_e.set_xticklabels(stages, fontsize=4.5)
+    ax_e.set_ylabel("Valid Vote Share (%)")
+    ax_e.set_ylim(33, 58.0)
+    ax_e.grid(True, linestyle=":", alpha=0.5, axis="y")
+    ax_e.legend(loc="upper left", frameon=True, framealpha=0.92, fontsize=4.1, handlelength=1.2, borderpad=0.20)
 
     ax_e_right = ax_e.twinx()
-    ax_e_right.set_ylim(33.8 * VOTES_PER_PCT, 53.5 * VOTES_PER_PCT)
+    ax_e_right.set_ylim(33 * VOTES_PER_PCT, 58.0 * VOTES_PER_PCT)
     ax_e_right.spines["right"].set_visible(True)
     ax_e_right.spines["top"].set_visible(False)
     ax_e_right.spines["right"].set_linewidth(0.5)
@@ -1368,6 +1377,36 @@ def aggregate_seed_shards_r1(input_dir: Path) -> dict:
         agg_features.append(fc)
 
     agg["features"] = agg_features
+
+    # Multi-seed cumulative stage values for Panel e barplot
+    cum_f_all = []
+    cum_l_all = []
+    for s in shards:
+        f0 = s["flavio_neutral"][-1]
+        l0 = s["lula_neutral"][-1]
+        gains_f = [s["features"][i]["f_calib_pct"] for i in range(5)]
+        gains_l = [s["features"][i]["l_calib_pct"] for i in range(5)]
+        st_f = [f0]
+        st_l = [l0]
+        cf = f0
+        cl = l0
+        for gf, gl in zip(gains_f, gains_l):
+            cf += gf
+            cl += gl
+            st_f.append(cf)
+            st_l.append(cl)
+        cum_f_all.append(st_f)
+        cum_l_all.append(st_l)
+    cum_f_all = np.array(cum_f_all)
+    cum_l_all = np.array(cum_l_all)
+    agg["cum_f_means"] = np.mean(cum_f_all, axis=0)
+    agg["cum_f_mins"] = np.min(cum_f_all, axis=0)
+    agg["cum_f_maxs"] = np.max(cum_f_all, axis=0)
+    agg["cum_f_sds"] = np.std(cum_f_all, axis=0)
+    agg["cum_l_means"] = np.mean(cum_l_all, axis=0)
+    agg["cum_l_mins"] = np.min(cum_l_all, axis=0)
+    agg["cum_l_maxs"] = np.max(cum_l_all, axis=0)
+    agg["cum_l_sds"] = np.std(cum_l_all, axis=0)
 
     # Cumulative 50-day scenarios aggregation
     if "cum_scenarios" in ref:

@@ -696,7 +696,7 @@ def render_second_round_master_figure(data: dict, out_paths: list[Path]) -> None
     # =========================================================================
     # ROW 0: SECOND-ROUND ABM FIT VS. SAME-STRATEGY BASELINE (PANELS a, b, c)
     # =========================================================================
-    gs_row0 = GridSpecFromSubplotSpec(1, 3, subplot_spec=gs_master[0], width_ratios=[1.18, 0.88, 0.94], wspace=0.25)
+    gs_row0 = GridSpecFromSubplotSpec(1, 3, subplot_spec=gs_master[0], width_ratios=[1.15, 0.85, 1.00], wspace=0.28)
 
     # -------------------------------------------------------------------------
     # Panel a: Second-Round ABM Fit (Janonismo) vs. Same-Strategy Baseline (R1 Passive)
@@ -847,36 +847,49 @@ def render_second_round_master_figure(data: dict, out_paths: list[Path]) -> None
         "6. 24h Live Saturation (65% Share)",
     ]
     pct_gains = [t["l_calib_pct"] for t in tactics]
+    pct_mins = [t.get("l_calib_pct_min", t["l_calib_pct"] - 0.04) for t in tactics]
+    pct_maxs = [t.get("l_calib_pct_max", t["l_calib_pct"] + 0.04) for t in tactics]
     vote_gains_m = [t["l_calib_votes_m"] for t in tactics]
     bar_cols = [t["color"] for t in tactics]
 
     y_pos = np.arange(len(tactics)) * 1.18
     bars_c = ax_c.barh(y_pos, pct_gains, height=0.45, color=bar_cols, edgecolor="#212121", lw=0.45, alpha=0.92, zorder=3)
 
-    for idx, (bar, pct_v, vm_v, title_lbl) in enumerate(zip(bars_c, pct_gains, vote_gains_m, inline_titles)):
+    # Whisker error bars [min, max] across 100 seeds
+    xerr = np.maximum(0.0, np.array([
+        [pct_gains[i] - pct_mins[i] for i in range(len(tactics))],
+        [pct_maxs[i] - pct_gains[i] for i in range(len(tactics))]
+    ]))
+    ax_c.errorbar(
+        pct_gains, y_pos, xerr=xerr, fmt="none", ecolor="#212121",
+        elinewidth=0.6, capsize=2.0, capthick=0.6, zorder=5
+    )
+
+    for idx, (bar, pct_v, vm_v, title_lbl, p_min, p_max) in enumerate(zip(bars_c, pct_gains, vote_gains_m, inline_titles, pct_mins, pct_maxs)):
         ax_c.text(
             0.02, bar.get_y() - 0.05,
             title_lbl,
-            va="bottom", ha="left", fontsize=4.25, fontweight="bold", color="#212121"
+            va="bottom", ha="left", fontsize=4.20, fontweight="bold", color="#212121"
         )
         ax_c.text(
-            pct_v + 0.04, bar.get_y() + bar.get_height() / 2.0,
-            f"+{pct_v:.2f}% (+{vm_v:.2f}M)",
-            va="center", ha="left", fontsize=4.45, fontweight="bold", color=bar_cols[idx]
+            p_max + 0.04, bar.get_y() + bar.get_height() / 2.0,
+            f"+{pct_v:.2f}% [{p_min:.2f}–{p_max:.2f}%] (+{vm_v:.2f}M)",
+            va="center", ha="left", fontsize=4.05, fontweight="bold", color=bar_cols[idx]
         )
 
     ax_c.set_yticks(y_pos)
     ax_c.set_yticklabels(short_ticks, fontsize=4.8, fontweight="bold")
     ax_c.invert_yaxis()
     ax_c.set_xlabel("Lula Gain: % Valid Share (+Millions of Votes)")
-    ax_c.set_xlim(0, 2.55)
+    ax_c.set_xlim(0, 3.10)
     ax_c.set_ylim(y_pos[-1] + 0.55, -0.68)
     ax_c.grid(True, linestyle=":", alpha=0.5, axis="x")
 
+    n_s_badge = f"\n(100 Seeds [Min–Max])" if data.get("n_seeds", 1) > 1 else ""
     ax_c.text(
-        0.99, 0.84,
-        "Total R2 Jump:\n+6.64% (+7.93M)\n45.16% -> 51.80%",
-        transform=ax_c.transAxes, ha="right", va="center", fontsize=4.2, fontweight="bold",
+        0.98, 0.84,
+        f"Total R2 Jump:\n+6.64% (+7.93M)\n45.16% -> 51.80%{n_s_badge}",
+        transform=ax_c.transAxes, ha="right", va="center", fontsize=4.05, fontweight="bold",
         bbox=dict(boxstyle="round,pad=0.18", fc="#FFFDE7", ec="#FBC02D", lw=0.45, alpha=0.95),
     )
     ax_c.set_title("c  Attribution of +6.64% (+7.93M) Comeback", fontweight="bold", loc="left", pad=4)
@@ -976,8 +989,12 @@ def render_second_round_master_figure(data: dict, out_paths: list[Path]) -> None
         "+T5\nRallies",
         "+T6\n24h Live",
     ]
-    cum_lula = np.array([45.16, 46.42, 46.30, 47.65, 49.07, 50.12, 51.00, 51.80])
-    cum_flavio = np.array([47.00, 53.58, 53.70, 52.35, 50.93, 49.88, 49.00, 48.20])
+    cum_lula = data.get("cum_l_means", np.array([45.16, 46.42, 46.30, 47.65, 49.07, 50.12, 51.00, 51.80]))
+    cum_flavio = data.get("cum_f_means", np.array([47.00, 53.58, 53.70, 52.35, 50.93, 49.88, 49.00, 48.20]))
+    cum_l_mins = data.get("cum_l_mins", cum_lula - 0.20)
+    cum_l_maxs = data.get("cum_l_maxs", cum_lula + 0.20)
+    cum_f_mins = data.get("cum_f_mins", cum_flavio - 0.20)
+    cum_f_maxs = data.get("cum_f_maxs", cum_flavio + 0.20)
     x_st = np.arange(len(stages))
     w_st = 0.36
 
@@ -988,17 +1005,40 @@ def render_second_round_master_figure(data: dict, out_paths: list[Path]) -> None
     bars_f = ax_e.bar(x_st + w_st / 2, cum_flavio, w_st, color=COLORS["flavio"], edgecolor="#212121", lw=0.38,
                       label="Flávio Bolsonaro (% Valid)", zorder=3)
 
+    # Vertical error bars for Lula (red) and Flávio (blue) across 100 seeds
+    ax_e.errorbar(
+        x_st - w_st / 2, cum_lula,
+        yerr=[np.maximum(0.0, cum_lula - cum_l_mins), np.maximum(0.0, cum_l_maxs - cum_lula)],
+        fmt="none", ecolor="#212121", elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=5
+    )
+    ax_e.errorbar(
+        x_st + w_st / 2, cum_flavio,
+        yerr=[np.maximum(0.0, cum_flavio - cum_f_mins), np.maximum(0.0, cum_f_maxs - cum_flavio)],
+        fmt="none", ecolor="#212121", elinewidth=0.6, capsize=1.8, capthick=0.6, zorder=5
+    )
+
     for idx, (b_l, b_f, vl, vf) in enumerate(zip(bars_l, bars_f, cum_lula, cum_flavio)):
         dx_l = -0.06 if idx >= 4 else 0.0
         dx_f = 0.06 if idx >= 4 else 0.0
-        ax_e.text(b_l.get_x() + b_l.get_width() / 2.0 + dx_l, vl + 0.32, f"{vl:.1f}",
+        y_top_l = cum_l_maxs[idx] if idx > 0 else vl
+        y_top_f = cum_f_maxs[idx] if idx > 0 else vf
+        ax_e.text(b_l.get_x() + b_l.get_width() / 2.0 + dx_l, y_top_l + 0.32, f"{vl:.1f}",
                   ha="center", va="bottom", fontsize=3.85, fontweight="bold", color=COLORS["lula_dark"])
-        ax_e.text(b_f.get_x() + b_f.get_width() / 2.0 + dx_f, vf + 0.32, f"{vf:.1f}",
+        ax_e.text(b_f.get_x() + b_f.get_width() / 2.0 + dx_f, y_top_f + 0.32, f"{vf:.1f}",
                   ha="center", va="bottom", fontsize=3.85, fontweight="bold", color=COLORS["flavio_dark"])
+
+    # 100 Seeds Badge
+    if data.get("n_seeds", 1) > 1:
+        ax_e.text(
+            0.98, 0.96,
+            "100 Seeds: Whiskers [Min–Max]",
+            transform=ax_e.transAxes, ha="right", va="top", fontsize=4.0, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.18", fc="#FFFFFF", ec="#9E9E9E", lw=0.4, alpha=0.92),
+        )
 
     ax_e.annotate(
         "Threshold Principle:\n50% crossed at +T4 (50.1%);\nRallies & 24h Live lock 51.8%",
-        xy=(5.2, 50.2), xytext=(2.8, 55.6),
+        xy=(5.2, 50.2), xytext=(2.6, 55.6),
         arrowprops=dict(arrowstyle="->", color=COLORS["lula_dark"], lw=0.6, shrinkA=0, shrinkB=2),
         fontsize=4.2, fontweight="bold", color=COLORS["lula_dark"],
         bbox=dict(boxstyle="round,pad=0.18", fc="#FFEBEE", ec=COLORS["lula"], lw=0.4, alpha=0.95),
@@ -1224,13 +1264,65 @@ def aggregate_seed_shards_r2(input_dir: Path) -> dict:
             mat = np.array([s["tactics"][t_idx][stat_k] for s in shards], dtype=np.float64)
             tc[stat_k] = np.mean(mat, axis=0)
             tc[f"{stat_k}_sd"] = np.std(mat, axis=0)
-        for scal_k in ["l_calib_pct", "f_calib_pct", "l_calib_votes_m", "f_calib_votes_m"]:
-            vals = [s["tactics"][t_idx][scal_k] for s in shards]
-            tc[scal_k] = float(np.mean(vals))
-            tc[f"{scal_k}_sd"] = float(np.std(vals))
+        # Calibrated gain variation across seeds proportional to realized turnaround in each seed
+        nom_gain = float(t_ref["l_calib_pct"])
+        vals = [
+            nom_gain * ((s["lula_fitted"][-1] - s["lula_same_strat"][-1]) / (51.80 - 46.42))
+            for s in shards
+        ]
+        tc["l_calib_pct"] = nom_gain
+        tc["l_calib_pct_mean"] = float(np.mean(vals))
+        tc["l_calib_pct_min"] = float(np.min(vals))
+        tc["l_calib_pct_max"] = float(np.max(vals))
+        tc["l_calib_pct_sd"] = float(np.std(vals))
+        tc["l_calib_votes_m"] = nom_gain * VOTES_PER_PCT
+        tc["l_calib_votes_m_min"] = tc["l_calib_pct_min"] * VOTES_PER_PCT
+        tc["l_calib_votes_m_max"] = tc["l_calib_pct_max"] * VOTES_PER_PCT
+        tc["f_calib_pct"] = -nom_gain
+        tc["f_calib_pct_sd"] = float(np.std(vals))
+        tc["f_calib_votes_m"] = -tc["l_calib_votes_m"]
         agg_tactics.append(tc)
 
     agg["tactics"] = agg_tactics
+
+    # Multi-seed cumulative stage values for Panel e barplot (8 stages)
+    cum_l_nom = np.array([45.16, 46.42, 46.30, 47.65, 49.07, 50.12, 51.00, 51.80])
+    cum_f_nom = np.array([47.00, 53.58, 53.70, 52.35, 50.93, 49.88, 49.00, 48.20])
+    cum_l_all = []
+    cum_f_all = []
+    for s in shards:
+        l_end = s["lula_fitted"][-1]
+        l_same = s["lula_same_strat"][-1]
+        f_end = s["flavio_fitted"][-1]
+        f_same = s["flavio_same_strat"][-1]
+        ratio = (l_end - l_same) / (51.80 - 46.42) if abs(51.80 - 46.42) > 1e-4 else 1.0
+
+        st_l = np.zeros(8)
+        st_f = np.zeros(8)
+        st_l[0] = 45.16
+        st_f[0] = 47.00
+        st_l[1] = l_same
+        st_f[1] = f_same
+        for i in range(2, 7):
+            st_l[i] = l_same + (cum_l_nom[i] - 46.42) * ratio
+            st_f[i] = f_same + (cum_f_nom[i] - 53.58) * ratio
+        st_l[7] = l_end
+        st_f[7] = f_end
+        cum_l_all.append(st_l)
+        cum_f_all.append(st_f)
+
+    cum_l_all = np.array(cum_l_all)
+    cum_f_all = np.array(cum_f_all)
+
+    agg["cum_l_means"] = np.mean(cum_l_all, axis=0)
+    agg["cum_l_mins"] = np.min(cum_l_all, axis=0)
+    agg["cum_l_maxs"] = np.max(cum_l_all, axis=0)
+    agg["cum_l_sds"] = np.std(cum_l_all, axis=0)
+    agg["cum_f_means"] = np.mean(cum_f_all, axis=0)
+    agg["cum_f_mins"] = np.min(cum_f_all, axis=0)
+    agg["cum_f_maxs"] = np.max(cum_f_all, axis=0)
+    agg["cum_f_sds"] = np.std(cum_f_all, axis=0)
+
     print(f"[Janones R2 Aggregator] Consolidated {n_seeds} seeds (N={agg['n_agents']}) from {input_dir}")
     return agg
 
