@@ -1,0 +1,663 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{doi}
+\usepackage{times}
+\usepackage{tocloft}
+\setlength{\cftsecnumwidth}{3.8cm}
+\setlength{\cftsubsecnumwidth}{1.2cm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=blue!70!black,
+    urlcolor=blue!70!black,
+    pdftitle={Supplementary Information: Algorithmic Political Warfare and Democratic Resilience},
+    pdfauthor={César Rennó-Costa}
+}
+
+% Supplementary counters and naming
+\renewcommand{\thesection}{Supplementary Note \arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\theequation}{S\arabic{equation}}
+
+\title{\textbf{\Large Supplementary Information: \\ Algorithmic Political Warfare and Democratic Resilience: \\ A Digital Twin of the 2026 Brazilian Presidential Election}}
+
+\author{
+    \textbf{César Rennó-Costa}$^{1,*}$ \\[0.8em]
+    $^{1}$Digital Metropolis Institute, Federal University of Rio Grande do Norte, Natal, RN, Brazil \\
+    $^{*}$Corresponding author. Email: \texttt{cesar@imd.ufrn.br}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\vspace{1.5em}
+\hrule
+\vspace{1.5em}
+
+% ==============================================================================
+% SUPPLEMENTARY NOTE 1
+% ==============================================================================
+\section{Demographic Calibration, Multidimensional Concept Space, and Multiplex Interpersonal Network Topology}
+\label{snote:demographics_concept_multiplex}
+
+\subsection{Multidimensional concept hypercube and cognitive coupling geometry}
+\label{sssec:concept_space_math}
+The continuous ideological and policy space within which citizens, media outlets, and political candidates interact is represented by a $D$-dimensional metric hypercube:
+\begin{equation}
+    \Omega = [-1, 1]^D,
+    \label{eq:concept_hypercube}
+\end{equation}
+where $D = 4$. The four coordinate axes correspond to the core cleavages structuring contemporary democratic deliberation in Brazil:
+$d = 0$: Economic and fiscal policy (state redistribution, social welfare programs, privatization, taxation; ranging from socialist/statist at $-1.0$ to laissez-faire free market at $+1.0$);
+$d = 1$: Moral, cultural, and religious customs (secular progressivism, LGBTQ+ and reproductive rights at $-1.0$ to traditionalist Christian conservatism at $+1.0$);
+$d = 2$: Environmental governance and extractive development (strict Amazonian conservation and indigenous demarcations at $-1.0$ to agribusiness deregulation and mining expansion at $+1.0$);
+$d = 3$: Public security, penal policy, and firearms regulation (human rights guarantees and gun control at $-1.0$ to punitive militarized policing and civilian firearm access at $+1.0$).
+
+The metric distance between any two belief vectors $\mathbf{u}, \mathbf{v} \in \Omega$ is normalized by the maximal Euclidean diameter $\sqrt{4D} = 2\sqrt{D}$:
+\begin{equation}
+    d(\mathbf{u}, \mathbf{v}) = \frac{1}{\sqrt{D}} \|\mathbf{u} - \mathbf{v}\|_2 \in [0, 2],
+    \label{eq:metric_distance}
+\end{equation}
+guaranteeing that the metric distance between any coordinate and the ideological origin $\mathbf{0} = (0, 0, 0, 0)^{\top}$ is bounded within the unit interval:
+\begin{equation}
+    E(\mathbf{u}) \equiv d(\mathbf{u}, \mathbf{0}) = \frac{1}{\sqrt{D}} \|\mathbf{u}\|_2 \in [0, 1].
+    \label{eq:extremity_metric}
+\end{equation}
+The scalar $E(\mathbf{u})$ provides an objective measurement of ideological extremity.
+
+Ideological constraint across disparate policy dimensions is mediated by a cognitive issue-coupling matrix $\mathbf{C} = [C_{dd'}] \in \mathbb{R}^{D \times D}$. In unconstrained belief systems, issue evaluations drift independently ($C_{dd'} = \delta_{dd'}$). Under ideological packaging, attitudes exhibit systemic cross-dimensional correlation:
+\begin{equation}
+    \mathbf{C} = \begin{pmatrix}
+        1.00 & 0.45 & 0.38 & 0.42 \\
+        0.45 & 1.00 & 0.52 & 0.60 \\
+        0.38 & 0.52 & 1.00 & 0.48 \\
+        0.42 & 0.60 & 0.48 & 1.00
+    \end{pmatrix},
+    \label{eq:coupling_matrix}
+\end{equation}
+satisfying row-stochastic normalization $\sum_{d'} C_{dd'} = 1$ when applied to interpersonal and exogenous influence vectors. The strong cross-coupling between moral conservatism ($d=1$), environmental deregulation ($d=2$), and punitive security ($d=3$) directly reflects the empirical ideological alignment of the conservative coalition in the Brazilian National Congress.
+
+\subsection{Empirical demographic sampling and behavioral heterogeneity}
+\label{sssec:demographics_sampling}
+Each citizen $i \in \{1, \dots, N\}$ is assigned an age $a_i \in [16, 90]$ sampled from the official IBGE 2022 National Population Census pyramid. To avoid discrete age-bin artifacts, the empirical distribution is smoothed via Gaussian kernel estimation with standard deviation $\sigma_a = 1.35$ years. Normalized age is defined on the unit interval:
+\begin{equation}
+    \tilde{a}_i = \frac{a_i - 16}{74} \in [0, 1].
+    \label{eq:normalized_age}
+\end{equation}
+Individual socioeconomic status is drawn from a calibrated Beta distribution:
+\begin{equation}
+    \mathrm{SES}_i \sim \mathrm{Beta}(2.0, 3.0) \in [0, 1],
+    \label{eq:ses_distribution}
+\end{equation}
+reproducing the characteristic right-skewed income and educational attainment distribution of the urban Brazilian electorate.
+
+Each individual maintains two coupled mental states:
+1. An internalized, slow-moving conviction vector $\mathbf{s}_i(t) \in \Omega$, capturing core identity, normative values, and long-term socialization;
+2. A fast-moving, publicly expressed opinion vector $\mathbf{x}_i(t) \in \Omega$, subject to immediate social desirability, communicative exposure, and rhetorical framing.
+
+Conviction extremity is given by:
+\begin{equation}
+    E_i(t) = \frac{\|\mathbf{s}_i(t)\|_2}{\sqrt{D}} \in [0, 1].
+    \label{eq:individual_extremity}
+\end{equation}
+Citizens exhibit behavioral heterogeneity across four cognitive and psychological traits conditioned on age, SES, and conviction extremity:
+
+1. \emph{Social Susceptibility} $\alpha_i \in [0.05, 0.98]$: Governs openness to interpersonal peer influence versus autonomous conviction anchoring, exhibiting monotonic decline with age:
+\begin{equation}
+    \alpha(a_i) = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min})(1 - \tilde{a}_i)^{\nu_\alpha}, \qquad \alpha_i \sim \mathcal{N}(\alpha(a_i), 0.08^2),
+    \label{eq:susceptibility}
+\end{equation}
+with $\alpha_{\min} = 0.15$, $\alpha_{\max} = 0.85$, and exponent $\nu_\alpha = 1.40$.
+
+2. \emph{Bounded Confidence Latitude} $\epsilon_i \in [0.10, 1.50]$: Defines the metric threshold beyond which peer opinions are dismissed as discordant:
+\begin{equation}
+    \epsilon_i = \bar{\epsilon} \cdot (1.28 - 0.55\tilde{a}_i) \cdot (1.30 - 0.70 E_i) \cdot (0.85 + 0.30\,\mathrm{SES}_i),
+    \label{eq:bounded_confidence}
+\end{equation}
+with baseline mean $\bar{\epsilon} = 0.45$. Individuals with extreme convictions maintain narrow acceptance latitudes ($\epsilon_i \approx 0.15$), whereas moderate youth exhibit broad tolerance ($\epsilon_i \approx 0.75$).
+
+3. \emph{Attitude Uncertainty} $u_i(t) \in [0.02, 1.00]$: Scales the effective interaction width under Relative Agreement dynamics:
+\begin{equation}
+    u_i(t) = \mathrm{clip}_{[0.02, 1.00]}\big(u_0 (1.20 - 0.50\tilde{a}_i)(1.35 - 0.85 E_i(t))(1.15 - 0.30\,\mathrm{SES}_i)\big),
+    \label{eq:uncertainty_update}
+\end{equation}
+with baseline uncertainty $u_0 = 0.32$.
+
+4. \emph{Confirmation Bias Strength} $b_i \in [0.00, 5.00]$: Modulates the selective discounting of ideologically distant messages:
+\begin{equation}
+    b_i = \bar{b} \cdot (0.60 + 0.80\tilde{a}_i) \cdot (0.50 + 1.20 E_i) \cdot (1.20 - 0.40\,\mathrm{SES}_i),
+    \label{eq:assimilation_bias}
+\end{equation}
+with baseline mean $\bar{b} = 1.25$. Older, lower-SES partisans exhibit elevated confirmation bias, actively discounting conflicting evidence.
+
+\subsection{Five-layer multiplex interpersonal network architecture}
+\label{sssec:multiplex_network_topology}
+Interpersonal encounters unfold across a multiplex network $\mathcal{M} = \{\mathcal{L}_1, \dots, \mathcal{L}_5\}$ comprising five distinct social layers, stored in Compressed Sparse Row (CSR) format:
+
+\begin{enumerate}
+    \item \emph{Layer 1: Household Cliques ($\mathcal{L}_1$)}: Disjoint fully connected cliques representing domestic cohabitants. Household sizes $s_h$ follow an empirical shifted Poisson distribution calibrated to national census statistics ($2.79$ residents per domicile, maximum size 8). Inter-agent ties represent strong bonds with weight $w_1 = 0.36$.
+    \item \emph{Layer 2: Workplace and Educational Institutions ($\mathcal{L}_2$)}: Circular regular lattices with localized clustering representing daily occupational and school cohorts. Mean peer degree is set to $\langle k^{[2]} \rangle = 10$, with tie weight $w_2 = 0.26$.
+    \item \emph{Layer 3: Religious Congregations and Community Groups ($\mathcal{L}_3$)}: Bipartite affiliation networks where citizens affiliate with local churches, labor unions, and neighborhood associations with probability proportional to age and ideological conservatism. Mean degree is $\langle k^{[3]} \rangle = 8$, with tie weight $w_3 = 0.14$.
+    \item \emph{Layer 4: Small-World Friendship Circles ($\mathcal{L}_4$)}: Watts--Strogatz small-world graphs exhibiting high local clustering and low path length ($p_{\mathrm{ws}} = 0.15$), capturing self-selected personal social circles. Mean degree is $\langle k^{[4]} \rangle = 6$, with tie weight $w_4 = 0.14$.
+    \item \emph{Layer 5: Public Transit and Incidental Urban Weak Ties ($\mathcal{L}_5$)}: Erd\H{o}s--R\'enyi random graphs representing casual encounters on public transit and urban spaces ($\langle k^{[5]} \rangle = 4$, weight $w_5 = 0.10$).
+\end{enumerate}
+
+Composite inter-agent edge weights $W_{ij}$ combine contributions across all five layers:
+\begin{equation}
+    W_{ij} = \frac{\sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]}}{\sum_{k} \sum_{\ell=1}^5 w_\ell A_{ik}^{[\ell]}},
+    \label{eq:composite_edge_weight}
+\end{equation}
+yielding an empirical mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ contacts per citizen.
+
+Age assortativity is governed by the empirical contact matrix $M_{ab}$ across age cohorts $a, b \in \{1, \dots, 6\}$ (16--24, 25--34, 35--44, 45--54, 55--64, 65+). Diagonal elements represent strong intragenerational mixing ($M_{aa} \approx 0.52$), while off-diagonal elements capture intergenerational family contact:
+\begin{equation}
+    h_{\mathrm{age}} = \frac{\sum_{i,j} W_{ij} \mathbb{I}(c_i = c_j)}{\sum_{i,j} W_{ij}} \approx 0.44.
+    \label{eq:age_homophily_metric}
+\end{equation}
+Ideological assortativity across interpersonal layers emerges from selective homophily in friendship ($\mathcal{L}_4$, $r_{\mathrm{ideol}} = 0.38$) and religious circles ($\mathcal{L}_3$, $r_{\mathrm{ideol}} = 0.46$), while household ($\mathcal{L}_1$, $r_{\mathrm{ideol}} = 0.24$) and transit ties ($\mathcal{L}_5$, $r_{\mathrm{ideol}} \approx 0.02$) provide cross-cutting exposure.
+
+\subsection{Two-timescale opinion and conviction dynamics}
+\label{sssec:two_timescale_derivations}
+At each discrete integration step $\Delta t = 0.15$, citizen $i$ engages in peer deliberation with neighbors $j \in \mathcal{N}_i$. The interaction condition requires the metric distance between opinions to fall within the uncertainty-broadened latitude:
+\begin{equation}
+    d_{ij}(t) = \frac{1}{\sqrt{D}}\|\mathbf{x}_j(t) - \mathbf{x}_i(t)\|_2 \le \epsilon_i + 0.5\,u_i(t).
+    \label{eq:peer_interaction_condition}
+\end{equation}
+
+When Eq.~\eqref{eq:peer_interaction_condition} holds, the interaction weight combines Relative Agreement (RA) and Biased Assimilation (BA):
+\begin{align}
+    \phi_{ij}^{\mathrm{RA}}(t) &= \max\!\left(0, \frac{\min(x_i + u_i, x_j + u_j) - \max(x_i - u_i, x_j - u_j)}{2 u_j}\right), \label{eq:ra_overlap} \\
+    \phi_{ij}^{\mathrm{BA}}(t) &= \exp\!\left(-b_i \cdot d_{ij}(t)^2\right) \cdot \max\!\left(0, \frac{\mathbf{x}_i(t) \cdot \mathbf{x}_j(t)}{\|\mathbf{x}_i(t)\|_2 \|\mathbf{x}_j(t)\|_2 + 10^{-12}}\right)^{0.5}. \label{eq:ba_cosine}
+\end{align}
+The normalized effective peer weight is:
+\begin{equation}
+    \tilde{w}_{ij}(t) = W_{ij} \big(0.40 + 0.60\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \, \mathbb{I}\!\big(d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)\big).
+    \label{eq:effective_peer_weight_full}
+\end{equation}
+
+The interpersonal social shift $\Delta \mathbf{x}_i^{\mathrm{soc}}(t) = \sum_{j \in \mathcal{N}_i} \tilde{w}_{ij}(t)(\mathbf{x}_j(t) - \mathbf{x}_i(t)) / \sum_{j} \tilde{w}_{ij}(t)$ drives the Friedkin--Johnsen opinion update:
+\begin{equation}
+    \mathbf{x}_i^{\mathrm{int}}(t) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{x}_i(t) + \Delta t \big[(1 - \alpha_i)(\mathbf{s}_i(t) - \mathbf{x}_i(t)) + \alpha_i \mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)\big] + \boldsymbol{\xi}_i(t)\Big),
+    \label{eq:fj_opinion_update}
+\end{equation}
+where $\boldsymbol{\xi}_i(t) \sim \mathcal{N}(\mathbf{0}, \sigma_{\xi}^2 \mathbf{I}_D)$ with intrinsic cognitive noise $\sigma_{\xi} = 0.012$.
+
+When an exogenous factual impulse $\mathbf{b}_{\mathrm{fact}}(t) \in \Omega$ is introduced into the public sphere, opinions experience a direct pull:
+\begin{align}
+    \gamma_i(t) &= \gamma_0 (1.30 - 0.72 E_i(t)) (1.18 - 0.48\tilde{a}_i) (0.85 + 0.30\,\mathrm{SES}_i), \label{eq:fact_pull_sensitivity} \\
+    \tilde{\mathbf{x}}_i(t) &= \mathrm{clip}_{[-1, 1]^D}\!\big((1 - \gamma_i(t))\,\mathbf{x}_i^{\mathrm{int}}(t) + \gamma_i(t)\,\mathbf{b}_{\mathrm{fact}}(t)\big), \label{eq:fact_pulled_opinion}
+\end{align}
+with baseline sensitivity $\gamma_0 = 0.055$.
+
+Opinions cannot depart indefinitely from internal convictions. The maximal allowable deviation is defined by the tether radius:
+\begin{equation}
+    \Delta_{\max, i}(t) = \Delta_0 (1.25 - 0.55\tilde{a}_i)(1.30 - 0.75 E_i(t))(0.90 + 0.25\,\mathrm{SES}_i),
+    \label{eq:tether_radius}
+\end{equation}
+with baseline $\Delta_0 = 0.34$. Elastic restraint is enforced via radial hyperbolic-tangent bounding:
+\begin{align}
+    g_i(t) &= \frac{1}{\sqrt{D}}\|\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\|_2, \label{eq:raw_deviation} \\
+    g_i^{\mathrm{eff}}(t) &= \Delta_{\max, i}(t) \tanh\!\left(\frac{g_i(t)}{\Delta_{\max, i}(t)}\right), \label{eq:effective_deviation} \\
+    \mathbf{x}_i(t+1) &= \mathrm{clip}_{[-1, 1]^D}\!\left(\mathbf{s}_i(t) + \frac{g_i^{\mathrm{eff}}(t)}{g_i(t) + 10^{-12}}\big(\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\big)\right). \label{eq:final_opinion_tethered}
+\end{align}
+
+Internal convictions adapt over much slower timescales through two distinct biophysical mechanisms:
+1. \emph{Crystallization drift} $\eta_{\mathrm{cryst}, i}(t)$: Slow baseline integration of persistent public opinions into core identity, decelerating with historical time and individual age:
+\begin{equation}
+    \eta_{\mathrm{cryst}, i}(t) = \eta_0 \left[1 + \left(\frac{t}{\tau_c}\right)^{1.15}\right]^{-1} (1.25 - 0.75\tilde{a}_i)(1.22 - 0.68 E_i(t))(1.10 - 0.25\,\mathrm{SES}_i),
+    \label{eq:crystallization_rate}
+\end{equation}
+with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and characteristic consolidation timescale $\tau_c = 280$ simulation steps.
+
+2. \emph{Sustained-tension plastic restructuring} $\eta_{\mathrm{sust}, i}(t)$: Accelerated conviction remodeling triggered when public discourse maintains prolonged tension near the tether boundary:
+\begin{equation}
+    \eta_{\mathrm{sust}, i}(t) = 0.28 \eta_0 \left(\frac{g_i^{\mathrm{eff}}(t)}{\Delta_{\max, i}(t)}\right)^2 (1.18 - 0.58\tilde{a}_i)(1.20 - 0.62 E_i(t)).
+    \label{eq:sustained_tension_rate}
+\end{equation}
+
+The coupled conviction update is:
+\begin{equation}
+    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
+    \label{eq:conviction_update_full}
+\end{equation}
+Because $\eta_0 \ll \Delta t$, transient communicative shocks shift opinions $\mathbf{x}_i$ while convictions $\mathbf{s}_i$ remain anchored. Only sustained, multi-week informational pressure permanently alters electoral identity.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of population demographics, interpersonal multiplex network, and two-timescale conviction--opinion parameters.}
+\label{tab:supp_model_parameters}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lp{5.1cm}p{3.6cm}p{3.8cm}}
+\toprule
+\textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
+\midrule
+\multicolumn{4}{l}{\textit{Global Simulation \& Concept Space}} \\
+$N$ & City population size & $\{10^4, 10^5, 10^6, 10^7\}$ & \cite{bettencourt2007growth} \\
+$D$ & Number of policy/concept dimensions & $4$ ($\Omega = [-1, 1]^4$) & \cite{converse1964nature} \\
+$T, \Delta t$ & Horizon and integration step size & $T \in \{100, 1500\}$, $\Delta t = 0.15$ & \cite{friedkin1990social} \\
+$S$ & Monte Carlo realizations per scenario & $100$ & This study \\
+$\mathbf{C}$ & Cognitive issue-coupling matrix & $\mathbb{R}^{4 \times 4}$, Eq.~\eqref{eq:coupling_matrix} & \cite{friedkin2016network} \\
+\midrule
+\multicolumn{4}{l}{\textit{Citizen Demographics \& Psychological Traits}} \\
+$a_i, \tilde{a}_i$ & Citizen age (years) and normalized age & $[16, 90]$, $\tilde{a}_i \in [0, 1]$ & \cite{ibge2022censo} \\
+$\mathrm{SES}_i$ & Socioeconomic and educational index & $\mathrm{Beta}(2, 3) \in [0, 1]$ & \cite{ibge2022censo} \\
+$\mathbf{s}_i(t)$ & Deep conviction vector of citizen $i$ & $[-1, 1]^D$ & \cite{converse1964nature, kiley2020measuring} \\
+$\mathbf{x}_i(t)$ & Current opinion vector of citizen $i$ & $[-1, 1]^D$ & \cite{zaller1992nature} \\
+$E_i(t)$ & Conviction extremity ($\|\mathbf{s}_i(t)\|_2 / \sqrt{D}$) & $[0, 1]$ & \cite{howe2017attitude} \\
+$\alpha_i$ & Interpersonal social susceptibility & $[0.05, 0.98]$, Eq.~\eqref{eq:susceptibility} & \cite{friedkin1990social, alwin1991aging} \\
+$\epsilon_i$ & Bounded confidence (base $\bar{\epsilon}=0.45$) & $[0.10, 1.50]$, Eq.~\eqref{eq:bounded_confidence} & \cite{deffuant2000mixing, hegselmann2002opinion} \\
+$u_i(t)$ & Attitude uncertainty (Relative Agreement) & $[0.02, 1.00]$, Eq.~\eqref{eq:uncertainty_update} & \cite{deffuant2002how} \\
+$b_i$ & Biased assimilation (base $\bar{b}=1.25$) & $[0.00, 5.00]$, Eq.~\eqref{eq:assimilation_bias} & \cite{lord1979biased, dandekar2013biased} \\
+\midrule
+\multicolumn{4}{l}{\textit{Five-Layer Multiplex Interpersonal Network}} \\
+$w_1, \langle s_h \rangle$ & Layer 1 (\texttt{family}): household clique & $w_1 = 0.36$, $\langle s_h \rangle = 2.79$ & \cite{ibge2022censo} \\
+$w_2, \langle k^{[2]} \rangle$ & Layer 2 (\texttt{work\_school}): peer degree & $w_2 = 0.26$, $\langle k^{[2]} \rangle = 10$ & \cite{inep2023censo, mte2023rais} \\
+$w_3, \langle k^{[3]} \rangle$ & Layer 3 (\texttt{church\_community}): degree & $w_3 = 0.14$, $\langle k^{[3]} \rangle = 8$ & \cite{mcpherson2001birds} \\
+$w_4, \langle k^{[4]} \rangle, p_{\mathrm{ws}}$ & Layer 4 (\texttt{friends}): small-world circle & $w_4 = 0.14$, $\langle k^{[4]} \rangle = 6$, $p_{\mathrm{ws}}=0.15$ & \cite{watts1998collective} \\
+$w_5, \langle k^{[5]} \rangle$ & Layer 5 (\texttt{weak\_ties}): transit ties & $w_5 = 0.10$, $\langle k^{[5]} \rangle = 4$ & \cite{granovetter1973strength, ibge2022censo} \\
+\midrule
+\multicolumn{4}{l}{\textit{Two-Timescale Conviction--Opinion \& Fact Parameters}} \\
+$\Delta_0, \Delta_{\max, i}$ & Base and individual opinion tether radius & $\Delta_0 = 0.34$, Eq.~\eqref{eq:tether_radius} & \cite{sherif1961social, howe2017attitude} \\
+$\eta_0$ & Base conviction adaptation drift rate & $0.0024 \text{ step}^{-1}$ & \cite{kiley2020measuring} \\
+$\tau_c$ & Conviction crystallization timescale & $280 \text{ steps}$ & \cite{alwin1991aging} \\
+$\gamma_0$ & Direct exogenous fact pull coefficient & $0.055 \text{ step}^{-1}$ & \cite{mullainathan2005market, zaller1992nature} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ==============================================================================
+% SUPPLEMENTARY NOTE 2
+% ==============================================================================
+\section{Traditional Mass Media Ecosystem, Modalities, and Editorial Tendentiousness Derivations}
+\label{snote:traditional_media_ecosystem}
+
+\subsection{Modalities and demographic reach calibrations}
+\label{sssec:media_modalities}
+Traditional mass media conglomerates $g \in \{1, \dots, M\}$ operate across five physical communicative modalities $v \in \{0, 1, 2, 3, 4\}$, representing broadcast television ($v=0$), broadcast radio ($v=1$), printed journalism and legacy news portals ($v=2$), outdoor billboards and urban banners ($v=3$), and mass physical campaign rallies ($v=4$).
+
+Demographic penetration rates $P_v(a_i, \mathrm{SES}_i)$ are calibrated to Kantar IBOPE 2023 Media Book and Reuters Institute Digital News Report survey benchmarks:
+\begin{align}
+    P_0(a_i, \mathrm{SES}_i) &= \frac{0.88}{1 + \exp(-0.06(a_i - 38))} \cdot (0.85 + 0.25\,\mathrm{SES}_i), \label{eq:reach_tv} \\
+    P_1(a_i, \mathrm{SES}_i) &= \frac{0.64}{1 + \exp(-0.04(a_i - 32))} \cdot (1.15 - 0.35\,\mathrm{SES}_i), \label{eq:reach_radio} \\
+    P_2(a_i, \mathrm{SES}_i) &= 0.12 + 0.65\,\mathrm{SES}_i^{1.6} \cdot (0.60 + 0.008 a_i), \label{eq:reach_press} \\
+    P_3(a_i, \mathrm{SES}_i) &= 0.72 \cdot (1.10 - 0.30|\tilde{a}_i - 0.40|), \label{eq:reach_outdoor} \\
+    P_4(a_i, \mathrm{SES}_i) &= 0.08 \cdot E_i(t)^{1.8} \cdot (1.30 - 0.50\,\mathrm{SES}_i). \label{eq:reach_rally}
+\end{align}
+Television viewing increases steeply with age, reaching $82\%$ among citizens aged 60+ while falling below $30\%$ among youth aged 16--24. Radio penetration is elevated among lower-SES working cohorts, while printed press consumption is concentrated among educated, upper-income strata. Political rallies attract highly committed partisans with elevated baseline extremity $E_i$.
+
+\subsection{Editorial projection, tendentiousness, and modal reach}
+\label{sssec:editorial_projection}
+When a political event or factual notice $\mathbf{f}_k(t) \in \Omega$ occurs, outlet $g$ projects the notice toward its ideological centroid $\mathbf{m}_g \in \Omega$ modulated by its editorial tendentiousness $\tau_g \in [0, 1]$ and modal channel fidelity $\mu_v$:
+\begin{align}
+    \eta_{g,v} &= \mathrm{clip}_{[0, 1]}(\tau_g \mu_v), \label{eq:effective_bias_modality} \\
+    \mathbf{y}_{k,g,v}(t) &= (1 - \eta_{g,v})\,\mathbf{f}_k(t) + \eta_{g,v}\,\mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \label{eq:media_projection_vector}
+\end{align}
+where $\boldsymbol{\xi}_{k,g,v} \sim \mathcal{N}(\mathbf{0}, \sigma_{\mathrm{media}}^2 \mathbf{I}_D)$ with journalistic noise $\sigma_{\mathrm{media}} = 0.03$. Channel baseline reach is parameterized as $\mu = (0.75, 0.48, 0.32, 0.22, 0.15)^{\top}$.
+
+\subsection{Notice attention dynamics and selective exposure}
+\label{sssec:notice_attention_selective_exposure}
+Broadcast notices enter active circulation with initial intensity $I_{k,g,v}(0) = I_0$ and decay exponentially:
+\begin{equation}
+    I_{k,g,v}(t+1) = I_{k,g,v}(t) \exp(-\delta_v),
+    \label{eq:notice_exponential_decay}
+\end{equation}
+where half-lives $\ln(2)/\delta_v$ reflect modality cycles: TV news cycles decay rapidly ($\delta_0 = 0.40$), radio exhibits intermediate persistence ($\delta_1 = 0.25$), print portals maintain prolonged archival visibility ($\delta_2 = 0.12$), outdoor advertising exhibits high physical inertia ($\delta_3 = 0.05$), and campaign rallies operate as discrete delta shocks ($\delta_4 = 0.70$).
+
+Citizen exposure to competing media notices is governed by distance-weighted softmax selective exposure:
+\begin{equation}
+    P(g, v \mid i) = \frac{P_v(a_i, \mathrm{SES}_i) \cdot I_{g,v}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g,v}(t))\right)}{\sum_{g',v'} P_{v'}(a_i, \mathrm{SES}_i) \cdot I_{g',v'}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g',v'}(t))\right) + \kappa_0},
+    \label{eq:selective_exposure_softmax}
+\end{equation}
+with homophily selectivity parameter $\beta_{\mathrm{media}} = 1.45$ and non-exposure background offset $\kappa_0 = 0.05$.
+
+When exposed, the citizen updates opinions if the projected message lies within their credibility-expanded latitude:
+\begin{equation}
+    d(\mathbf{x}_i(t), \mathbf{y}_{g,v}(t)) \le \epsilon_i \cdot (1 + 1.10\,\gamma_v),
+    \label{eq:credibility_expanded_latitude}
+\end{equation}
+where $\gamma_v$ represents the institutional credibility of modality $v$ ($\gamma_0 = 0.78$ for broadcast television, $\gamma_2 = 0.82$ for print journalism, and $\gamma_3 = 0.45$ for outdoor advertising). The resulting opinion shift is:
+\begin{equation}
+    \Delta \mathbf{x}_i^{\mathrm{trad}}(t) = \kappa_{\mathrm{trad}} \cdot \gamma_v \cdot \exp\!\left(-b_i d(\mathbf{x}_i, \mathbf{y}_{g,v})^2\right) \big(\mathbf{y}_{g,v}(t) - \mathbf{x}_i(t)\big),
+    \label{eq:traditional_opinion_shift}
+\end{equation}
+with coupling efficiency $\kappa_{\mathrm{trad}} = 0.08$.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of traditional mass media and algorithmic social media platform parameters.}
+\label{tab:supp_media_parameters}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lp{5.1cm}p{3.6cm}p{3.8cm}}
+\toprule
+\textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
+\midrule
+\multicolumn{4}{l}{\textit{Traditional Mass Media Ecosystem}} \\
+$M, \mathbf{m}_g, \tau_g$ & Media groups, ideological centers, tendentiousness & $M \in \{0, 1, 2, 3, 4, 12\}, \tau_g \in [0, 1]$ & \cite{mullainathan2005market, gentzkow2006media} \\
+$v \in \{0, 1, 2, 3, 4\}$ & Modalities (TV, Radio, Press, Outdoor, Rally) & 5 channels per conglomerate & \cite{kantar2023inside, reuters2023digital} \\
+$\gamma_v, \delta_v$ & Modality credibility and attention decay rate & $\gamma \in [0.45, 0.82], \delta \in [0.08, 0.70]$ & \cite{wu2007novelty, downs1972up} \\
+$\beta_m, \kappa_0$ & Media selective exposure beta and broadcast strength & $\beta_m \in [0.15, 2.16], \kappa_0 = 0.05$ & \cite{dandekar2013biased, dellavigna2007fox} \\
+\midrule
+\multicolumn{4}{l}{\textit{Algorithmic Social Media Platforms \& Influencers}} \\
+$p \in \{0, 1, 2, 3\}$ & Platforms (Instagram/TikTok, YouTube/X, FB, WhatsApp) & 4 platform modalities & \cite{reuters2023digital, cinelli2021echo} \\
+$\alpha, \mathrm{Gini}$ & Influencer follower power-law exponent and Gini & $\alpha \approx 1.15, \mathrm{Gini} \approx 0.73$ & \cite{barabasi1999emergence, bianconi2001competition} \\
+$\beta, \mu_{\mathrm{emo}}$ & Algorithmic curation homophily and emotional boost & $\beta = 2.0, \mu_{\mathrm{emo}} = 1.5$ & \cite{brady2017emotion, vosoughi2018spread} \\
+$\omega, R_m$ & Dual-valence engagement weight and relevance & $\omega = 1.0, R_m = \mathrm{Likes} + \omega\,\mathrm{Dislikes}$ & \cite{crockett2017moral, bail2018exposure} \\
+$K_{\mathrm{WA}}, \tau_{\mathrm{WA}}$ & WhatsApp group capacity limit and peer trust weight & $K \le 256, \tau_{\mathrm{WA}} = 0.85$ & \cite{resende2019whatsapp, garimella2020images} \\
+$\tau_{\mathrm{inf}}$ & Influencer creator tendentiousness & $[0.10, 0.90]$ & \cite{sasahara2021social, tucker2018social} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ==============================================================================
+% SUPPLEMENTARY NOTE 3
+% ==============================================================================
+\section{Algorithmic Social Media Platforms, Influencer Degree Dynamics, and Dual-Valence Viral Cascades}
+\label{snote:algorithmic_social_media}
+
+\subsection{Platform modalities and influencer power-law network topology}
+\label{sssec:platforms_power_law}
+Digital media encompasses four distinct platform environments $p \in \{0, 1, 2, 3\}$:
+$p = 0$: Algorithmic short-video feeds (Instagram Reels and TikTok), characterized by high discovery velocity, audiovisual engagement, and young demographic skew;
+$p = 1$: Public video and microblogging platforms (YouTube and X), functioning as the primary arenas of elite political debate, ideological commentary, and journalistic agenda-setting;
+$p = 2$: Social feed networks (Facebook), dominated by mature cohorts, local community groups, and family networks;
+$p = 3$: Closed encrypted dark-social messaging (WhatsApp and Telegram), operating through private peer-to-peer forwarding, group chats, and broadcast channels shielded from external content moderation.
+
+Across open platforms ($p \in \{0, 1, 2\}$), content creators and political influencers accumulate followers via preferential attachment modified by creator tendentiousness:
+\begin{equation}
+    \Pi_k = \frac{k_i (0.65 + 0.70\tau_{\mathrm{inf}, k})}{\sum_j k_j (0.65 + 0.70\tau_{\mathrm{inf}, j})},
+    \label{eq:preferential_attachment_influencer}
+\end{equation}
+yielding an asymptotic scale-free in-degree distribution:
+\begin{equation}
+    P(k) \propto k^{-\gamma_{\mathrm{pl}}}, \qquad \gamma_{\mathrm{pl}} = 1.15 \pm 0.04,
+    \label{eq:power_law_distribution}
+\end{equation}
+with an in-degree Gini coefficient of $0.73$, reproducing the empirical hyper-concentration of social reach in the Brazilian political ecosystem.
+
+\subsection{Algorithmic feed curation and homophily scoring}
+\label{sssec:feed_scoring}
+When citizen $i$ accesses platform feed $p$, candidate posts $j$ are ranked according to algorithmic recommendation probability:
+\begin{equation}
+    q_{ij} \propto \frac{(1 + 1.5 e_j) \cdot \ln(1 + \mathrm{pop}_j) \cdot (0.5 + 0.5\ln(1 + k_{\mathrm{inf}, j}))}{(d(\mathbf{x}_i, \mathbf{y}_j) + \delta)^{\beta_{\mathrm{cur}}}},
+    \label{eq:feed_recommendation_score}
+\end{equation}
+where $e_j \in [0, 1]$ represents moral-emotional framing intensity, $\mathrm{pop}_j$ is current interaction volume, $k_{\mathrm{inf}, j}$ is creator follower count, $\delta = 0.08$ is a regularization constant, and $\beta_{\mathrm{cur}} = 2.0$ is the algorithmic homophily exponent.
+
+\subsection{Dual-valence reactions and the controversy diagonal}
+\label{sssec:dual_valence_mechanics}
+Upon exposure to post $j$, user reactions branch into two mutually exclusive behavioral channels:
+1. \emph{Affirmative engagement (Likes and Retweets)}: Triggered when ideological distance falls within the acceptance threshold $d(\mathbf{x}_i, \mathbf{y}_j) \le \epsilon_{\mathrm{like}, i} = 0.85 \epsilon_i$:
+\begin{align}
+    \mathrm{Like}_{ij} &= 1, \label{eq:like_trigger} \\
+    \Delta \mathbf{x}_i^{\mathrm{dig}}(t) &= \kappa_{\mathrm{dig}} \cdot \exp\!\left(-b_i d(\mathbf{x}_i, \mathbf{y}_j)^2\right) \big(\mathbf{y}_j - \mathbf{x}_i(t)\big). \label{eq:like_assimilation}
+\end{align}
+
+2. \emph{Antagonistic engagement (Moral outrage, Quote-tweets, Angry replies)}: Triggered when ideological distance exceeds the outrage threshold $d(\mathbf{x}_i, \mathbf{y}_j) \ge \tau_{\mathrm{dislike}, i} = 1.35 \epsilon_i$:
+\begin{align}
+    \mathrm{Dislike}_{ij} &= 1, \label{eq:dislike_trigger} \\
+    \Delta \mathbf{x}_i^{\mathrm{dig}}(t) &= -\kappa_{\mathrm{rep}} \cdot \frac{\mathbf{y}_j - \mathbf{x}_i(t)}{\|\mathbf{y}_j - \mathbf{x}_i(t)\|_2 + 10^{-12}} \cdot \min(0.25, d(\mathbf{x}_i, \mathbf{y}_j)), \label{eq:dislike_repulsion}
+\end{align}
+where $\kappa_{\mathrm{rep}} = 0.04$ produces active psychological reactance, driving the citizen's opinion away from the provocative post.
+
+Algorithmic ranking systems compute total post relevance score $R_m$ by compounding engagement across both valences:
+\begin{equation}
+    R_m = \mathrm{Likes}_m + \omega \cdot \mathrm{Dislikes}_m, \qquad \omega = 1.0.
+    \label{eq:relevance_metric_full}
+\end{equation}
+Because the algorithm values hostile comments and quote-retweets equally with supportive shares ($\omega = 1.0$), content positioned along the \emph{diagonal of controversy} ($\mathrm{Likes} \approx \mathrm{Dislikes}$) receives maximal algorithmic amplification. Provocative claims that polarize audiences yield twice the distribution of nuanced discourse, creating structural platform incentives for affective radicalization.
+
+\subsection{Three-stage viral cascades and dark-social propagation}
+\label{sssec:viral_cascades_dark_social}
+Information spread across the digital substrate follows a three-stage cascade:
+\begin{equation}
+    \text{Broadcast Injection} \xrightarrow{\quad\beta_{\mathrm{alg}}\quad} \text{Algorithmic Feed Discovery} \xrightarrow{\quad\beta_{\mathrm{WA}}\quad} \text{Dark-Social Closed Forwarding}.
+    \label{eq:cascade_stages}
+\end{equation}
+In closed WhatsApp networks ($p=3$), messages propagate across micro-cliques with statutory forwarding limits ($K \le 256$ participants per group). Because messages are received from personal contacts rather than institutional handles, peer trust is elevated:
+\begin{equation}
+    \tau_{\mathrm{WA}} = 0.85,
+    \label{eq:whatsapp_trust_weight}
+\end{equation}
+increasing persuasion efficiency by $2.8\times$ relative to public feeds ($\kappa_{\mathrm{WA}} = 0.14$). Dark-social networks operate as ideological echo chambers where unverified narratives circulate rapidly without counter-speech.
+
+Hybrid intermedia agenda-setting couples digital virality with legacy journalism. When aggregate social media volume $\mathcal{V}_{\mathrm{soc}}(t) = \sum_m R_m(t)$ surpasses journalistic salience thresholds, television and print newsrooms are compelled to cover the trending controversy, creating a feedback loop that injects digital disinformation into the national broadcast sphere.
+
+
+% ==============================================================================
+% SUPPLEMENTARY NOTE 4
+% ==============================================================================
+\section{Institutional Architecture, Statutory Rules, and Financial Campaign Ecology of the 2026 Brazilian Election}
+\label{snote:institutional_2026_brazil}
+
+\subsection{Brazilian electoral system and statutory legal architecture}
+\label{sssec:electoral_legal_framework}
+Brazil is a presidential federative republic characterized by compulsory voting for citizens aged 18 to 70 and optional voting for 16--17 year-olds and senior citizens aged 70+. General elections occur simultaneously every four years to elect the President, Federal Deputies, Senators, State Governors, and State Representatives under the regulatory oversight of the Superior Electoral Court (\emph{Tribunal Superior Eleitoral}, TSE).
+
+Under Brazilian Federal Law (Lei n\textordmasculine~9.504/1997), presidential contests employ a two-round majoritarian runoff system. If no candidate secures an absolute majority ($>50\%$) of valid votes (excluding blank and null ballots) in the first round, the two leading contenders advance to a definitive runoff three weeks later.
+
+\subsection{Free broadcast airtime (HGPE) statutory distribution and parity transition}
+\label{sssec:hgpe_statutory_details}
+Under Lei n\textordmasculine~9.504/1997 (Articles 47--51), direct purchase of television and radio advertising by political parties is strictly illegal. Instead, campaigns are allocated statutory broadcast airtime through the Free Electoral Advertising Guide (\emph{Hor{\'a}rio Gratuito de Propaganda Eleitoral}, HGPE), broadcast daily across all national television and radio networks.
+
+In the first round, presidential airtime comprises two daily blocks of 12 minutes and 30 seconds (750 seconds total per block):
+\begin{enumerate}
+    \item 10\% of total airtime is distributed equally among all registered candidates;
+    \item 90\% is distributed strictly proportional to the number of seats held by the candidate's governing coalition in the Federal Chamber of Deputies at the start of the legislative session.
+\end{enumerate}
+
+In the 2026 contest, incumbent president Luiz In{\'a}cio Lula da Silva formed a broad seven-party coalition (\emph{Brasil da Esperan{\c{c}}a}: PT, PCdoB, PV, PSB, PDT, PSD, MDB), securing 5 minutes and 31 seconds per daily block ($44.1\%$ of total airtime; 433 30-second insertions). In contrast, Senator Fl{\'a}vio Bolsonaro headed a right-wing coalition (\emph{Frente Conservadora}: PL, PP, Republicanos), receiving 4 minutes and 20 seconds ($34.7\%$; 339 insertions). Third-way candidates shared the remaining 2 minutes and 39 seconds ($21.2\%$). This awarded Lula an initial $+27.3\%$ airtime advantage throughout the first-round campaign.
+
+In the second round, statutory rules mandate absolute equality (Lei n\textordmasculine~9.504/1997, Art.~49). Total daily airtime is compressed to 10 minutes per block (5 minutes and 00 seconds each, 25 30-second spots per day), eliminating the broadcast asymmetry and forcing the campaign to compete on equal ground.
+
+\subsection{Campaign finance architecture: FEFC public funding and private fundraising}
+\label{sssec:campaign_finance_details}
+Following the 2015 Federal Supreme Court (STF) ruling banning corporate campaign donations (ADI 4650), Brazilian campaigns are financed through public funds and individual physical donations. The primary financial vehicle is the Special Campaign Financing Fund (\emph{Fundo Especial de Financiamento de Campanha}, FEFC), established by Law 13.487/2017:
+\begin{equation}
+    \mathrm{FEFC}_{\mathrm{global}} = R\$\,4.96 \text{ billion in 2026}.
+    \label{eq:fefc_global}
+\end{equation}
+FEFC resources are distributed based on congressional strength:
+\begin{enumerate}
+    \item 2\% divided equally among all registered parties;
+    \item 35\% divided proportional to votes received in the last Chamber election;
+    \item 48\% divided proportional to Chamber seats;
+    \item 15\% divided proportional to Federal Senate seats.
+\end{enumerate}
+
+Due to its historic congressional triumph in 2022, Fl{\'a}vio Bolsonaro's Liberal Party (PL) controlled the largest national allocation: $R\$$~881.7 million (17.8\% of the total pool), while Lula's Workers' Party (PT) controlled $R\$$~503.2 million (10.1\%).
+
+However, national campaigns operate under strict statutory spending ceilings established by the TSE:
+\begin{align}
+    \mathrm{Cap}_{\mathrm{Round1}} &= R\$\,88.9 \text{ million}, \label{eq:spending_cap_r1} \\
+    \mathrm{Cap}_{\mathrm{Round2}} &= R\$\,133.4 \text{ million (cumulative)}. \label{eq:spending_cap_r2}
+\end{align}
+
+Crucially, the two presidential tickets exhibited sharply divergent revenue architectures:
+\begin{itemize}
+    \item \emph{Lula da Silva}: Deployed a centralized, state-financed budget. Of $R\$$~128.6 million in total declared expenditures, $R\$$~123.8 million ($96.3\%$) was financed directly through party fund transfers (FEFC), with only $R\$$~4.8 million raised through individual donations.
+    \item \emph{Fl{\'a}vio Bolsonaro}: Deployed a decentralized hybrid financing model. The PL national leadership transferred $R\$$~47.0 million ($52.1\%$), reserving party capital for congressional races. To finance the presidential ticket, the campaign mobilized a grassroots digital fundraising apparatus that raised $R\$$~43.2 million through physical individual donations and micro-crowdfunding (\emph{vaquinha virtual}), generating a $9.0\times$ private capital advantage over Lula.
+\end{itemize}
+
+\subsection{Digital bench architecture and dark-social surrogate networks}
+\label{sssec:digital_bench_details}
+The structural digital asymmetry between the campaigns was anchored in legislative surrogate networks:
+\begin{enumerate}
+    \item \emph{Candidate Direct Accounts}: Lula maintained a larger direct personal following across public social platforms (39.0 million aggregate followers vs.\ 24.1 million for Fl{\'a}vio Bolsonaro).
+    \item \emph{Legislative Surrogate Bench}: Fl{\'a}vio possessed an overwhelming multiplier in congressional bench strength. The top-5 digital surrogates aligned with Bolsonarismo (led by Federal Deputy Nikolas Ferreira with 52.0 million cross-platform followers) averaged 17.4 million followers per figure, compared to 7.1 million for PT-aligned surrogates, yielding a $2.44\times$ bench volume multiplier for the conservative coalition.
+    \item \emph{Closed Messaging Infrastructure}: Lula's campaign constructed a centralized WhatsApp and Telegram network (\emph{Ex{\'e}rcito do Lula}) comprising 10.0 million registered voters organized into hierarchical communication cells, counterbalancing Fl{\'a}vio's organic dark-social network (\emph{Tropa do Fl{\'a}vio}, 2.0 million direct subscribers).
+\end{enumerate}
+
+\subsection{Electoral decision calculus, affinity-aversion dynamics, and turnout mobilization}
+\label{sssec:electoral_decision_calculus}
+Candidate positions in the four-dimensional hypercube $\Omega$ are fixed:
+\begin{align}
+    \text{Lula: } \mathbf{c}_L &= (-0.65, -0.45, -0.70, -0.30)^{\top}, \label{eq:coord_lula} \\
+    \text{Fl\'avio Bolsonaro: } \mathbf{c}_F &= (+0.70, +0.80, +0.75, +0.85)^{\top}, \label{eq:coord_flavio} \\
+    \text{Third-Way: } \mathbf{c}_O &= (+0.15, -0.10, +0.10, +0.05)^{\top}. \label{eq:coord_thirdway}
+\end{align}
+
+Each voter $i$ updates dynamic candidate affinity $A_{ik}(t) \in [0, 1]$ and aversion $R_{ik}(t) \in [0, 1]$:
+\begin{align}
+    A_{ik}(t+1) &= (1 - \delta_A)\,A_{ik}(t) + \lambda_A \max\!\left(0, \frac{0.62 - d_{ik}(t)}{0.62}\right)^2, \label{eq:affinity_evolution} \\
+    R_{ik}(t+1) &= (1 - \delta_R)\,R_{ik}(t) + \lambda_R \max\!\left(0, \frac{d_{ik}(t) - 0.78}{1.22}\right)^{1.5}, \label{eq:aversion_evolution}
+\end{align}
+with asymmetric accumulation parameters: $\lambda_A = 0.12, \delta_A = 0.06$ versus $\lambda_R = 0.14, \delta_R = 0.04$. The ratio $(\lambda_R / \delta_R) / (\lambda_A / \delta_A) = 1.75$ establishes that candidate aversion accumulates faster and decays slower than positive affinity.
+
+Candidate utility combines affinity and quadratic rejection penalties:
+\begin{equation}
+    U_{ik}(t) = A_{ik}(t) - \theta_{\mathrm{rej}} R_{ik}(t)^2, \qquad \theta_{\mathrm{rej}} = 1.65.
+    \label{eq:candidate_utility}
+\end{equation}
+
+In Round 1, conditional on participating, vote choice is modeled via multinomial logit:
+\begin{equation}
+    P(\text{Vote } k \mid i, \text{turnout}) = \frac{\exp(\beta_{\mathrm{vote}} U_{ik}(t))}{\sum_{k' \in \{L, F, O\}} \exp(\beta_{\mathrm{vote}} U_{ik'}(t))},
+    \label{eq:multinomial_logit_r1}
+\end{equation}
+with choice sensitivity $\beta_{\mathrm{vote}} = 3.2$.
+
+Turnout probability is governed by maximum candidate utility and socioeconomic barriers:
+\begin{equation}
+    P(\text{Turnout} \mid i) = \frac{1}{1 + \exp\!\big(-\mu_{\mathrm{turn}}\big[\max_k U_{ik}(t) - (\tau_{\mathrm{abst}} - 0.22\,\mathrm{SES}_i + \delta_{\mathrm{transit}})\big]\big)},
+    \label{eq:turnout_probability}
+\end{equation}
+with steepness $\mu_{\mathrm{turn}} = 4.5$ and base threshold $\tau_{\mathrm{abst}} = 0.38$. Under municipal free public transit decrees (\emph{passe livre}), transit friction is eliminated ($\delta_{\mathrm{transit}} = -0.15$), compressing abstention among lower-SES citizens by $2.91$ percentage points.
+
+In the second-round runoff, third-party support ($O$) is reallocated based on relative pairwise affinities:
+\begin{equation}
+    P(k \mid i, \text{runoff}) = \frac{\exp(\beta_{\mathrm{vote}} U_{ik}(t))}{\exp(\beta_{\mathrm{vote}} U_{iL}(t)) + \exp(\beta_{\mathrm{vote}} U_{iF}(t))}, \qquad k \in \{L, F\}.
+    \label{eq:pairwise_logit_r2}
+\end{equation}
+
+
+% ==============================================================================
+% SUPPLEMENTARY NOTE 5
+% ==============================================================================
+\section{HPC Simulation Architecture, Numba JIT Numerical Kernels, Statistical Evaluation Metrics, and Full Operationalization of the Janones Tactical Suite}
+\label{snote:hpc_metrics_janones_suite}
+
+\subsection{High-performance computing architecture and parallel array layout}
+\label{sssec:hpc_architecture}
+Simulating populations of $N = 100{,}000$ to $N = 10{,}000{,}000$ agents across 1,500 integration steps requires high-performance computational infrastructure. The simulation engine is implemented in Python 3.11 with just-in-time (JIT) compilation via Numba 0.59 and parallel multi-threading.
+
+All agent states are organized as contiguous 1D and 2D C-ordered NumPy arrays in CPU cache memory:
+\begin{enumerate}
+    \item Opinions: $\mathbf{X} \in \mathbb{R}^{N \times D}$ (float64);
+    \item Convictions: $\mathbf{S} \in \mathbb{R}^{N \times D}$ (float64);
+    \item Demographic Covariates: $\mathbf{a} \in \mathbb{R}^N, \mathbf{SES} \in \mathbb{R}^N$ (float64);
+    \item Psychological Parameters: $\boldsymbol{\alpha}, \boldsymbol{\epsilon}, \mathbf{u}, \mathbf{b} \in \mathbb{R}^N$ (float64);
+    \item Electoral State: $\mathbf{A} \in \mathbb{R}^{N \times 3}, \mathbf{R} \in \mathbb{R}^{N \times 3}$ (float64).
+\end{enumerate}
+
+Graph topology is stored in Compressed Sparse Row (CSR) format:
+\begin{equation}
+    \mathbf{indptr} \in \mathbb{Z}^{N+1}, \quad \mathbf{indices} \in \mathbb{Z}^{2E}, \quad \mathbf{data} \in \mathbb{R}^{2E}.
+    \label{eq:csr_format}
+\end{equation}
+
+Numerical kernels for interpersonal peer aggregation, radial elastic tethering, and mass media projection are compiled with `@njit(parallel=True, fastmath=True, nogil=True)`. Simulations are distributed across 64 CPU cores (AMD EPYC 7763, 2.45 GHz, 512 GB RAM). At $N = 100{,}000$, a 100-step trajectory executes in $4.2$ seconds, enabling 100 Monte Carlo realizations per parameter sweep.
+
+\subsection{Scaling across municipal population sizes and thermodynamic convergence}
+\label{sssec:scaling_thermodynamics}
+To verify the structural validity of the agent-based twin, we executed scaling experiments across four orders of municipal population magnitude:
+$N \in \{10^4, 10^5, 10^6, 10^7\}$.
+
+In small municipalities ($N = 10^4$), stochastic demographic fluctuations generate wider confidence intervals ($\sigma(\bar{\rho}) = 0.042$). However, for populations $N \ge 10^5$, macroscopic convergence reaches a thermodynamic limit:
+\begin{equation}
+    \lim_{N \to \infty} \langle |\rho_{kl}| \rangle \to 0.031 \pm 0.003, \qquad \lim_{N \to \infty} \mathrm{PR}(\Sigma) \to 3.75 \pm 0.04.
+    \label{eq:thermodynamic_limit}
+\end{equation}
+These results establish that the empirical dynamics observed at $N = 100{,}000$ accurately represent multi-million metropolitan electorates without scale distortion.
+
+\subsection{Statistical evaluation metrics and polarization measures}
+\label{sssec:statistical_metrics_definitions}
+To assess system trajectories, four macroscopic statistical metrics are computed at each time step:
+
+1. \emph{Multidimensional Esteban--Ray Polarization Index} $P_{\mathrm{ER}}$:
+\begin{equation}
+    P_{\mathrm{ER}}(t) = \kappa_{\mathrm{ER}} \sum_{c=1}^C \sum_{c'=1}^C \pi_c^{1 + \alpha_{\mathrm{ER}}} \pi_{c'} \, d(\bar{\mathbf{x}}_c(t), \bar{\mathbf{x}}_{c'}(t)),
+    \label{eq:esteban_ray_index}
+\end{equation}
+where clusters $c \in \{1, \dots, C\}$ represent ideological cohorts, $\pi_c$ is cluster population share, $\bar{\mathbf{x}}_c$ is centroid coordinate, $\alpha_{\mathrm{ER}} = 1.30$ is polarization sensitivity, and $\kappa_{\mathrm{ER}} = 1.0$ is scaling constant.
+
+2. \emph{Sarle's Bimodality Coefficient} $\mathrm{BC}$:
+\begin{equation}
+    \mathrm{BC} = \frac{\gamma^2 + 1}{\kappa + 3 \frac{(n-1)^2}{(n-2)(n-3)}},
+    \label{eq:sarle_bimodality_coefficient}
+\end{equation}
+where $\gamma$ is sample skewness, $\kappa$ is excess kurtosis, and $n = N$. Values $\mathrm{BC} > 5/9 \approx 0.555$ indicate a multimodal or bimodal belief distribution.
+
+3. \emph{Participation Ratio of the Belief Covariance Matrix} $\mathrm{PR}(\Sigma)$:
+\begin{equation}
+    \mathrm{PR}(\Sigma) = \frac{(\mathrm{Tr}\,\Sigma)^2}{\mathrm{Tr}(\Sigma^2)} = \frac{\left(\sum_{d=1}^D \lambda_d\right)^2}{\sum_{d=1}^D \lambda_d^2} \in [1, D],
+    \label{eq:participation_ratio}
+\end{equation}
+where $\lambda_d$ are eigenvalues of the ideological covariance matrix $\Sigma = \mathrm{Cov}(\mathbf{X})$. A participation ratio $\mathrm{PR} \approx D = 4$ indicates full multidimensional independence, while $\mathrm{PR} \to 1.0$ indicates that political attitudes have collapsed onto a single partisan line.
+
+4. \emph{Mean Absolute Pairwise Issue Alignment} $\langle |\rho| \rangle$:
+\begin{equation}
+    \langle |\rho| \rangle = \frac{2}{D(D-1)} \sum_{k=1}^D \sum_{l > k}^D |\rho_{kl}|,
+    \label{eq:mean_alignment}
+\end{equation}
+where $\rho_{kl}$ is the Pearson correlation coefficient between opinions on issue $k$ and issue $l$.
+
+\subsection{Full operationalization of the Janones tactical suite}
+\label{sssec:janones_tactical_suite}
+The strategic counter-offensive doctrine articulated in \emph{Janonismo Cultural} is translated into six graph-theoretic operations:
+
+\begin{enumerate}
+    \item \emph{Tactic 1: Algorithmic Asphyxiation via Signal Denial}: Traditional campaign rebuttals inadvertently amplify disinformation by providing engagement signals (replies, quote-tweets) that boost algorithmic relevance $R_m$. Under T1, allied campaign accounts enforce total communicative disengagement toward rival bait ($P_{\mathrm{reply}}, P_{\mathrm{quote}} \to 0$). Deprived of opposition engagement, rival posts fail to trigger the outrage algorithm, collapsing engagement by $48\%$ and decelerating cascade propagation.
+    \item \emph{Tactic 2: Strict Monothematic Agenda Setting}: In fragmented digital environments, decentralized messaging dissipates attention. T2 enforces strict 24-hour message discipline across all campaign surrogates ($\sigma^2(T_{\mathrm{day}}) \to 0$). Exploiting the quadratic convexity of platform discovery functions ($V(\mathbf{x}) \propto \sum x_k^2$), concentrating all surrogate output onto a single negative theme quadruples virality relative to diverse communications.
+    \item \emph{Tactic 3: Material Loss-Aversion Framing}: Replaces abstract procedural defenses of democratic institutions with concrete, visceral threats to personal material well-being (e.g., elimination of the \emph{Bolsa Fam{\'i}lia} minimum income, wage freezes, taxation of staple food baskets). Grounded in Kahneman--Tversky prospect theory, losses are weighted with multiplier $\lambda_{\mathrm{loss}} \in [2.0, 2.5]$, mobilizing economically vulnerable voters whose bounded confidence resists abstract rhetoric.
+    \item \emph{Tactic 4: Molecular WhatsApp Synchronization}: Bypasses open feed algorithmic filtering by dispatching coordinated multimedia packets (micro-targeted video clips, infographics, voice memos) directly into closed messaging groups. Dispatched across thousands of community cells simultaneously, messages benefit from peer trust ($\tau_{\mathrm{WA}} = 0.85$), multiplying conversion efficiency by $2.8\times$.
+    \item \emph{Tactic 5: Mass Metropolitan Capital Rallies}: High-density physical mobilizations in major metropolitan centers ($v=4$). Rallies serve as affective amplification nodes: participant turnout probabilities lock into certainty ($A_{i,L} > \tau_{\mathrm{turnout}}$), while generating organic audiovisual documentation that feeds back into open digital networks.
+    \item \emph{Tactic 6: Continuous 24-Hour Livestream Saturation}: During the final 48-hour pre-election sprint, the campaign executes continuous, unbroken live broadcast streams across YouTube, Instagram, and TikTok. By capturing $62\%$--$65\%$ of active political attention, the live marathon imposes an attention saturation ceiling, suppressing the discovery volume of rival disinformation blitzes by $65\%$.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Tactical translation table: operationalizing the Janones doctrine into agent-based graph mechanics across the foundational model layers.}
+\label{tab:supp_janones_tactics}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lp{4.2cm}p{3.8cm}p{2.8cm}}
+\toprule
+\textbf{Janones Tactic} & \textbf{Operational Description} & \textbf{Agent / Graph Mechanism} & \textbf{Parameter / Subsystem} \\
+\midrule
+T1 Asphyxiation & Suppression of outbound interaction toward rival bait & Interactivity probability $P_{\mathrm{reply}}, P_{\mathrm{quote}} \to 0$ & $R_m$ signal denial \\
+T2 Monothematism & One coordinated agenda per 24h cycle & Variance $\sigma^2(T_{\mathrm{day}}) \to 0$ across allied nodes & Quadratic virality $\sum x_k^2$ \\
+T3 Material Loss Frame & Concrete economic risks (welfare cuts, wage freeze) & Kahneman--Tversky loss weighting & $\lambda_{\mathrm{loss}} \in [2.0, 2.5]$ \\
+T4 WhatsApp Sync & Scripted asset dispatch and molecular relay & Phased dispatch into private cliques & Trust weight $\times 2.8$ ($\tau_{\mathrm{WA}} = 0.85$) \\
+T5 Mass Rallies & Vast public assemblies in metropolitan capitals & Modality $v=4$ and multiplex layers $\mathcal{L}_1/\mathcal{L}_4$ & Turnout locking $A_{i,L} > \tau_{\mathrm{turnout}}$ \\
+T6 24h Live Saturation & Nonstop continuous broadcast during pre-election sprint & Attention saturation ceiling & Capping rival blitz by $65\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+\bibliographystyle{naturemag}
+\bibliography{references}
+
+\end{document}
