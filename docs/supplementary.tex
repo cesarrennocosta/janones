@@ -220,9 +220,9 @@ with baseline $\Delta_0 = 0.34$. Elastic restraint is enforced via radial hyperb
 \end{align}
 
 Internal convictions adapt over much slower timescales through two distinct biophysical mechanisms:
-1. \emph{Crystallization drift} $\eta_{\mathrm{cryst}, i}(t)$: Slow baseline integration of persistent public opinions into core identity, decelerating with historical time and individual age:
+1. \emph{Crystallization drift} $\eta_{\text{cryst}, i}(t)$: Slow baseline integration of persistent public opinions into core identity, decelerating with historical time and individual age:
 \begin{equation}
-    \eta_{\mathrm{cryst}, i}(t) = \eta_0 \left[1 + \left(\frac{t}{\tau_c}\right)^{1.15}\right]^{-1} (1.25 - 0.75\tilde{a}_i)(1.22 - 0.68 E_i(t))(1.10 - 0.25\,\mathrm{SES}_i),
+    \eta_{\text{cryst}, i}(t) = \eta_0 \left[1 + \left(\frac{t}{\tau_c}\right)^{1.15}\right]^{-1} (1.25 - 0.75\tilde{a}_i)(1.22 - 0.68 E_i(t))(1.10 - 0.25\,\mathrm{SES}_i),
     \label{eq:crystallization_rate}
 \end{equation}
 with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and characteristic consolidation timescale $\tau_c = 280$ simulation steps.
@@ -235,7 +235,7 @@ with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and characteristic conso
 
 The coupled conviction update is:
 \begin{equation}
-    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
+    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\text{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
     \label{eq:conviction_update_full}
 \end{equation}
 Because $\eta_0 \ll \Delta t$, transient communicative shocks shift opinions $\mathbf{x}_i$ while convictions $\mathbf{s}_i$ remain anchored. Only sustained, multi-week informational pressure permanently alters electoral identity.
@@ -360,10 +360,10 @@ $\beta_m, \kappa_0$ & Media selective exposure beta and broadcast strength & $\b
 \midrule
 \multicolumn{4}{l}{\textit{Algorithmic Social Media Platforms \& Influencers}} \\
 $p \in \{0, 1, 2, 3\}$ & Platforms (Instagram/TikTok, YouTube/X, FB, WhatsApp) & 4 platform modalities & \cite{reuters2023digital, cinelli2021echo} \\
-$\alpha, \mathrm{Gini}$ & Influencer follower power-law exponent and Gini & $\alpha \approx 1.15, \mathrm{Gini} \approx 0.73$ & \cite{barabasi1999emergence, bianconi2001competition} \\
-$\beta, \mu_{\mathrm{emo}}$ & Algorithmic curation homophily and emotional boost & $\beta = 2.0, \mu_{\mathrm{emo}} = 1.5$ & \cite{brady2017emotion, vosoughi2018spread} \\
-$\omega, R_m$ & Dual-valence engagement weight and relevance & $\omega = 1.0, R_m = \mathrm{Likes} + \omega\,\mathrm{Dislikes}$ & \cite{crockett2017moral, bail2018exposure} \\
-$K_{\mathrm{WA}}, \tau_{\mathrm{WA}}$ & WhatsApp group capacity limit and peer trust weight & $K \le 256, \tau_{\mathrm{WA}} = 0.85$ & \cite{resende2019whatsapp, garimella2020images} \\
+$\alpha$ & Influencer follower power-law exponent (Gini $\approx 0.73$) & $\alpha \approx 1.15$ & \cite{barabasi1999emergence, bianconi2001competition} \\
+$\beta$ & Algorithmic curation homophily ($\mu_{\text{emo}} = 1.5$) & $\beta = 2.0$ & \cite{brady2017emotion, vosoughi2018spread} \\
+$\omega$ & Dual-valence engagement weight ($R_m$) & $\omega = 1.0$ & \cite{crockett2017moral, bail2018exposure} \\
+$\tau_{\text{WA}}$ & WhatsApp peer trust weight ($K \le 256$) & $\tau_{\text{WA}} = 0.85$ & \cite{resende2019whatsapp, garimella2020images} \\
 $\tau_{\mathrm{inf}}$ & Influencer creator tendentiousness & $[0.10, 0.90]$ & \cite{sasahara2021social, tucker2018social} \\
 \bottomrule
 \end{tabular}
@@ -411,13 +411,13 @@ Upon exposure to post $j$, user reactions branch into two mutually exclusive beh
 1. \emph{Affirmative engagement (Likes and Retweets)}: Triggered when ideological distance falls within the acceptance threshold $d(\mathbf{x}_i, \mathbf{y}_j) \le \epsilon_{\mathrm{like}, i} = 0.85 \epsilon_i$:
 \begin{align}
     \mathrm{Like}_{ij} &= 1, \label{eq:like_trigger} \\
-    \Delta \mathbf{x}_i^{\mathrm{dig}}(t) &= \kappa_{\mathrm{dig}} \cdot \exp\!\left(-b_i d(\mathbf{x}_i, \mathbf{y}_j)^2\right) \big(\mathbf{y}_j - \mathbf{x}_i(t)\big). \label{eq:like_assimilation}
+    \Delta x_i^{\text{dig}}(t) &= \kappa_{\mathrm{dig}} \cdot \exp\!\left(-b_i d(\mathbf{x}_i, \mathbf{y}_j)^2\right) \big(\mathbf{y}_j - \mathbf{x}_i(t)\big). \label{eq:like_assimilation}
 \end{align}
 
 2. \emph{Antagonistic engagement (Moral outrage, Quote-tweets, Angry replies)}: Triggered when ideological distance exceeds the outrage threshold $d(\mathbf{x}_i, \mathbf{y}_j) \ge \tau_{\mathrm{dislike}, i} = 1.35 \epsilon_i$:
 \begin{align}
     \mathrm{Dislike}_{ij} &= 1, \label{eq:dislike_trigger} \\
-    \Delta \mathbf{x}_i^{\mathrm{dig}}(t) &= -\kappa_{\mathrm{rep}} \cdot \frac{\mathbf{y}_j - \mathbf{x}_i(t)}{\|\mathbf{y}_j - \mathbf{x}_i(t)\|_2 + 10^{-12}} \cdot \min(0.25, d(\mathbf{x}_i, \mathbf{y}_j)), \label{eq:dislike_repulsion}
+    \Delta x_i^{\text{dig}}(t) &= -\kappa_{\mathrm{rep}} \cdot \frac{\mathbf{y}_j - \mathbf{x}_i(t)}{\|\mathbf{y}_j - \mathbf{x}_i(t)\|_2 + 10^{-12}} \cdot \min(0.25, d(\mathbf{x}_i, \mathbf{y}_j)), \label{eq:dislike_repulsion}
 \end{align}
 where $\kappa_{\mathrm{rep}} = 0.04$ produces active psychological reactance, driving the citizen's opinion away from the provocative post.
 
@@ -432,15 +432,15 @@ Because the algorithm values hostile comments and quote-retweets equally with su
 \label{sssec:viral_cascades_dark_social}
 Information spread across the digital substrate follows a three-stage cascade:
 \begin{equation}
-    \text{Broadcast Injection} \xrightarrow{\quad\beta_{\mathrm{alg}}\quad} \text{Algorithmic Feed Discovery} \xrightarrow{\quad\beta_{\mathrm{WA}}\quad} \text{Dark-Social Closed Forwarding}.
+    \text{Broadcast Injection} \xrightarrow{\quad\beta_{\mathrm{alg}}\quad} \text{Algorithmic Feed Discovery} \xrightarrow{\quad\beta_{\text{WA}}\quad} \text{Dark-Social Closed Forwarding}.
     \label{eq:cascade_stages}
 \end{equation}
 In closed WhatsApp networks ($p=3$), messages propagate across micro-cliques with statutory forwarding limits ($K \le 256$ participants per group). Because messages are received from personal contacts rather than institutional handles, peer trust is elevated:
 \begin{equation}
-    \tau_{\mathrm{WA}} = 0.85,
+    \tau_{\text{WA}} = 0.85,
     \label{eq:whatsapp_trust_weight}
 \end{equation}
-increasing persuasion efficiency by $2.8\times$ relative to public feeds ($\kappa_{\mathrm{WA}} = 0.14$). Dark-social networks operate as ideological echo chambers where unverified narratives circulate rapidly without counter-speech.
+increasing persuasion efficiency by $2.8\times$ relative to public feeds ($\kappa_{\text{WA}} = 0.14$). Dark-social networks operate as ideological echo chambers where unverified narratives circulate rapidly without counter-speech.
 
 Hybrid intermedia agenda-setting couples digital virality with legacy journalism. When aggregate social media volume $\mathcal{V}_{\mathrm{soc}}(t) = \sum_m R_m(t)$ surpasses journalistic salience thresholds, television and print newsrooms are compelled to cover the trending controversy, creating a feedback loop that injects digital disinformation into the national broadcast sphere.
 
@@ -513,15 +513,15 @@ The structural digital asymmetry between the campaigns was anchored in legislati
 \label{sssec:electoral_decision_calculus}
 Candidate positions in the four-dimensional hypercube $\Omega$ are fixed:
 \begin{align}
-    \text{Lula: } \mathbf{c}_L &= (-0.65, -0.45, -0.70, -0.30)^{\top}, \label{eq:coord_lula} \\
-    \text{Fl\'avio Bolsonaro: } \mathbf{c}_F &= (+0.70, +0.80, +0.75, +0.85)^{\top}, \label{eq:coord_flavio} \\
-    \text{Third-Way: } \mathbf{c}_O &= (+0.15, -0.10, +0.10, +0.05)^{\top}. \label{eq:coord_thirdway}
+    \text{Lula: } \mathbf{c}_L &= (-0.25, -0.20, -0.35, -0.15)^{\top}, \label{eq:coord_lula} \\
+    \text{Fl\'avio Bolsonaro: } \mathbf{c}_F &= (+0.65, +0.70, +0.60, +0.65)^{\top}, \label{eq:coord_flavio} \\
+    \text{Third-Way: } \mathbf{c}_O &= (+0.20, +0.25, +0.10, +0.30)^{\top}. \label{eq:coord_thirdway}
 \end{align}
 
 Each voter $i$ updates dynamic candidate affinity $A_{ik}(t) \in [0, 1]$ and aversion $R_{ik}(t) \in [0, 1]$:
 \begin{align}
     A_{ik}(t+1) &= (1 - \delta_A)\,A_{ik}(t) + \lambda_A \max\!\left(0, \frac{0.62 - d_{ik}(t)}{0.62}\right)^2, \label{eq:affinity_evolution} \\
-    R_{ik}(t+1) &= (1 - \delta_R)\,R_{ik}(t) + \lambda_R \max\!\left(0, \frac{d_{ik}(t) - 0.78}{1.22}\right)^{1.5}, \label{eq:aversion_evolution}
+    R_{ik}(t+1) &= (1 - \delta_R)\,R_{ik}(t) + \lambda_R \max\!\left(0, \frac{d_{ik}(t) - 0.78}{1.22}\right)^{1.35}, \label{eq:aversion_evolution}
 \end{align}
 with asymmetric accumulation parameters: $\lambda_A = 0.12, \delta_A = 0.06$ versus $\lambda_R = 0.14, \delta_R = 0.04$. The ratio $(\lambda_R / \delta_R) / (\lambda_A / \delta_A) = 1.75$ establishes that candidate aversion accumulates faster and decays slower than positive affinity.
 
@@ -659,7 +659,7 @@ The strategic counter-offensive doctrine articulated in \emph{Janonismo Cultural
     \item \emph{Tactic 1: Algorithmic Asphyxiation via Signal Denial}: Traditional campaign rebuttals inadvertently amplify disinformation by providing engagement signals (replies, quote-tweets) that boost algorithmic relevance $R_m$. Under T1, allied campaign accounts enforce total communicative disengagement toward rival bait ($P_{\mathrm{reply}}, P_{\mathrm{quote}} \to 0$). Deprived of opposition engagement, rival posts fail to trigger the outrage algorithm, collapsing engagement by $48\%$ and decelerating cascade propagation. This mechanism reflects principles documented in agent-based analyses of peer-to-peer networks, where local shifts in interaction rules and defensive behavioral norms nonlinearly reshape macroscopic collective outcomes \citep{alvarenga2026power}.
     \item \emph{Tactic 2: Strict Monothematic Agenda Setting}: In fragmented digital environments, decentralized messaging dissipates attention. T2 enforces strict 24-hour message discipline across all campaign surrogates ($\sigma^2(T_{\mathrm{day}}) \to 0$). Exploiting the quadratic convexity of platform discovery functions ($V(\mathbf{x}) \propto \sum x_k^2$), concentrating all surrogate output onto a single negative theme quadruples virality relative to diverse communications.
     \item \emph{Tactic 3: Material Loss-Aversion Framing}: Replaces abstract procedural defenses of democratic institutions with concrete, visceral threats to personal material well-being (e.g., elimination of the \emph{Bolsa Fam{\'i}lia} minimum income, wage freezes, taxation of staple food baskets). Grounded in Kahneman--Tversky prospect theory, losses are weighted with multiplier $\lambda_{\mathrm{loss}} \in [2.0, 2.5]$, mobilizing economically vulnerable voters whose bounded confidence resists abstract rhetoric.
-    \item \emph{Tactic 4: Molecular WhatsApp Synchronization}: Bypasses open feed algorithmic filtering by dispatching coordinated multimedia packets (micro-targeted video clips, infographics, voice memos) directly into closed messaging groups. Dispatched across thousands of community cells simultaneously, messages benefit from peer trust ($\tau_{\mathrm{WA}} = 0.85$), multiplying conversion efficiency by $2.8\times$.
+    \item \emph{Tactic 4: Molecular WhatsApp Synchronization}: Bypasses open feed algorithmic filtering by dispatching coordinated multimedia packets (micro-targeted video clips, infographics, voice memos) directly into closed messaging groups. Dispatched across thousands of community cells simultaneously, messages benefit from peer trust ($\tau_{\text{WA}} = 0.85$), multiplying conversion efficiency by $2.8\times$.
     \item \emph{Tactic 5: Mass Metropolitan Capital Rallies}: High-density physical mobilizations in major metropolitan centers ($v=4$). Rallies serve as affective amplification nodes: participant turnout probabilities lock into certainty ($A_{i,L} > \tau_{\mathrm{turnout}}$), while generating organic audiovisual documentation that feeds back into open digital networks.
     \item \emph{Tactic 6: Continuous 24-Hour Livestream Saturation}: During the final 48-hour pre-election sprint, the campaign executes continuous, unbroken live broadcast streams across YouTube, Instagram, and TikTok. By capturing $62\%$--$65\%$ of active political attention, the live marathon imposes an attention saturation ceiling, suppressing the discovery volume of rival disinformation blitzes by $65\%$.
 \end{enumerate}
@@ -677,7 +677,7 @@ The strategic counter-offensive doctrine articulated in \emph{Janonismo Cultural
 T1 Asphyxiation & Suppression of outbound interaction toward rival bait & Interactivity probability $P_{\mathrm{reply}}, P_{\mathrm{quote}} \to 0$ & $R_m$ signal denial \\
 T2 Monothematism & One coordinated agenda per 24h cycle & Variance $\sigma^2(T_{\mathrm{day}}) \to 0$ across allied nodes & Quadratic virality $\sum x_k^2$ \\
 T3 Material Loss Frame & Concrete economic risks (welfare cuts, wage freeze) & Kahneman--Tversky loss weighting & $\lambda_{\mathrm{loss}} \in [2.0, 2.5]$ \\
-T4 WhatsApp Sync & Scripted asset dispatch and molecular relay & Phased dispatch into private cliques & Trust weight $\times 2.8$ ($\tau_{\mathrm{WA}} = 0.85$) \\
+T4 WhatsApp Sync & Scripted asset dispatch and molecular relay & Phased dispatch into private cliques & Trust weight $\times 2.8$ ($\tau_{\text{WA}} = 0.85$) \\
 T5 Mass Rallies & Vast public assemblies in metropolitan capitals & Modality $v=4$ and multiplex layers $\mathcal{L}_1/\mathcal{L}_4$ & Turnout locking $A_{i,L} > \tau_{\mathrm{turnout}}$ \\
 T6 24h Live Saturation & Nonstop continuous broadcast during pre-election sprint & Attention saturation ceiling & Capping rival blitz by $65\%$ \\
 \bottomrule
