@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-Prominent democratic elections have exhibited striking late-campaign volatility, producing substantial polling discrepancies despite the documented stability of voters' foundational political convictions. Explaining this divergence, exemplified in its most acute form by double polling errors where tracking surveys miss late-breaking surges across sequential rounds, challenges traditional models of political behavior. Here we provide a mechanistic explanation for late-campaign volatility and evaluate active socio-technical counter-tactics through an empirical digital twin of the 2026 Brazilian presidential election, an informative quasi-natural experiment featuring a Round~1 conservative blitz followed by a historic runoff reversal. Coupling a census-calibrated urban multiplex network, an institutional mass media ecosystem, and algorithmic digital platforms, our model reproduces longitudinal survey trajectories and official ballot totals ($R^2 = 0.9955$, root-mean-square error $0.85$ percentage points). We identify a two-timescale decoupling whereby volatile public opinions temporarily depart from inertial convictions, amplified by an asymmetric cognitive hysteresis where candidate aversion accumulates $3.5\times$ faster than it decays. Under this asymmetry, late-stage dark-social cascades induce sharp voting swings during polling blackout windows. Conversely, counter-tactics combining outrage-starvation embargos, monothematic messaging, and loss-aversion framing offer a generative account of how democratic campaigns can mitigate viral offensives and restore electoral resilience.
+Prominent democratic elections exhibit late-campaign volatility and polling discrepancies despite the documented stability of voters' foundational political convictions. Explaining this divergence, exemplified by double polling errors across sequential rounds, challenges traditional political behavior models. Here we provide a mechanistic explanation for late-campaign volatility and evaluate socio-technical counter-tactics through an empirical digital twin of the 2026 Brazilian presidential election. Coupling a census-calibrated urban multiplex network, mass media, and algorithmic platforms, our model reproduces longitudinal survey trajectories and official ballot totals ($R^2 = 0.9955$, RMSE $0.85$ percentage points). We identify a two-timescale decoupling: expressed opinions temporarily diverge from inertial convictions, driven by cognitive asymmetry where candidate aversion accumulates $3.5\times$ faster than it decays. Under this asymmetry, late-stage dark-social cascades induce sharp voting swings during polling blackouts. Conversely, counter-tactics combining outrage starvation, monothematic messaging, and loss-aversion framing demonstrate how democratic campaigns can neutralize viral offensives and restore electoral resilience.
 \end{abstract}
 
 \vspace{0.8em}
@@ -58,7 +58,7 @@ Here, we develop a high-resolution computational digital twin of the 2026 Brazil
 
 \section*{Results}
 
-\subsection*{Empirical trajectories of the 2026 presidential race}
+\subsection*{Empirical dynamics of the 2026 presidential election}
 
 The 2026 Brazilian presidential contest provides a detailed longitudinal record of electoral competition under divergent communicative regimes (Fig.~\ref{fig:fig1_election_data}). Under Brazilian electoral law (Lei n\textordmasculine~9.504/1997), presidential elections employ a two-round majoritarian system with strict statutory regulations governing campaign finance and broadcast airtime (Supplementary Note~4). In the first round, incumbent president Luiz Inácio Lula da Silva assembled a broad seven-party coalition securing 5m~31s per daily broadcast block ($44.1\%$ of total airtime, 433 thirty-second insertions), compared to 4m~20s ($34.7\%$, 339 insertions) for Senator Flávio Bolsonaro, generating a $+27.3\%$ broadcast endowment advantage for the incumbent (Fig.~\ref{fig:fig1_election_data}d). Financially, while both campaigns adhered to the statutory first-round spending ceiling of $\mathrm{R}\$$~88.9 million (Fig.~\ref{fig:fig1_election_data}e), they diverged sharply in their revenue models (Fig.~\ref{fig:fig1_election_data}f): Lula's campaign was $96.3\%$ funded by public transfers from the Special Campaign Financing Fund (FEFC; $\mathrm{R}\$$~123.8M of $\mathrm{R}\$$~128.6M declared), whereas Flávio's campaign deployed a hybrid model raising an unprecedented $\mathrm{R}\$$~43.2M in physical individual donations and micro-crowdfunding, establishing a $9.0\times$ private capital advantage over Lula ($\mathrm{R}\$$~4.8M).
 
@@ -67,7 +67,7 @@ Throughout the 50-day first-round campaign, voter intentions remained stable (Fi
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=\textwidth]{figures/figure0_jan_electiondata.pdf}
-\caption{\textbf{The 2026 Brazilian presidential election in empirical data.} 
+\caption{\textbf{Asymmetric campaign endowments and late-stage digital surges drove a two-round electoral reversal in Brazil in 2026.} 
 \textbf{a}, Official Superior Electoral Court (TSE) election results for Round~1 (October 4) and Round~2 (October 25), alongside election-day turnout mobilization that compressed non-voters by $-2.91$ percentage points. 
 \textbf{b}, Longitudinal tracking of valid vote intentions across six Round~1 and four Round~2 Datafolha tracking surveys, with gold markers indicating official ballot tallies. 
 \textbf{c}, Candidate rejection dynamics (Datafolha: percentage stating they would not vote for the candidate under any circumstance), highlighting the second-round reversal that drove Flávio's rejection to $46.0\%$. 
@@ -84,14 +84,14 @@ This outcome prompted an immediate political realignment. Initial post-election 
 
 During the runoff, the progressive campaign adopted an active digital counter-offensive. Following the October 16 televised debate, progressive channels generated $25.5$ million interactions against $5.0$ million for the opponent ($5.1\times$ ratio; Fig.~\ref{fig:fig1_election_data}h), maintaining a sustained $3.5\times$ daily interaction advantage throughout the runoff ($8.52$M vs.\ $2.41$M/day). This sustained engagement steadily eroded Flávio's momentum: by October 22, Flávio's rejection rose to $46.0\%$ while polling intentions reached a dead heat ($50.0\%$ vs.\ $50.0\%$; Fig.~\ref{fig:fig1_election_data}b,c), accompanied by a $+16.0$-point net swing in the Quaest IPD (Lula $+6.7$, $83.3$ vs.\ $76.6$; Fig.~\ref{fig:fig1_election_data}g). On election day (October 25), assisted by municipal free public transit decrees that lowered economic voting frictions, voter non-participation fell by $2.91$ percentage points (from $24.70\%$ to $21.79\%$; Fig.~\ref{fig:fig1_election_data}a). Lula secured victory with $51.79\%$ of valid votes ($61.8$M vs.\ $57.5$M), representing the first time in modern Brazilian democratic history that a presidential candidate trailing in the first round won the executive in the runoff.
 
-\subsection*{Opinion elasticity and conviction inertia in cities}
+\subsection*{Baseline relaxation physics of urban attitude networks}
 
 To establish the baseline stability of public attitudes prior to media exposure or algorithmic amplification, we first quantify the relaxation physics of the urban interpersonal network (Fig.~\ref{fig:fig2_interpersonal_network}). Calibrated to IBGE 2022 National Population Census demography \citep{ibge2022censo}, our model situates citizens in a four-dimensional concept hypercube $\Omega = [-1, 1]^4$ \citep{converse1964nature}. Individual behavioral parameters, cognitive plasticity $\alpha_i$, bounded confidence threshold $\epsilon_i$, attitude uncertainty $u_i$, and confirmation bias $b_i$, are conditioned on empirical age and socioeconomic status (SES; Fig.~\ref{fig:fig2_interpersonal_network}a--c). In agreement with the aging-stability hypothesis \citep{alwin1991aging, kiley2020measuring}, cognitive plasticity $\alpha(a)$ undergoes monotonic decay with age (Fig.~\ref{fig:fig2_interpersonal_network}a), while older and lower-SES cohorts exhibit narrower confidence bounds $\epsilon_i$ and elevated confirmation bias $b_i$ (Supplementary Note~1).
 
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=\textwidth]{figures/figure1_jan_nonmedianetwork.pdf}
-\caption{\textbf{Structure and dynamics of the urban interpersonal attitude network.} 
+\caption{\textbf{Decentralized deliberation across urban multiplex networks converges toward a scale-invariant centrist equilibrium while buffering core convictions against acute shocks.} 
 \textbf{a}, Empirical age pyramid from the 2022 IBGE Census and age-dependent cognitive plasticity $\alpha(a)$. 
 \textbf{b}, Urban socioeconomic status (SES) distribution fitted to a Beta(2, 3) density. 
 \textbf{c}, Cohort distributions of individual behavioral traits ($\alpha, \epsilon, u, b$). 
@@ -114,14 +114,14 @@ In the absence of external media distortion, decentralized deliberation over thi
 
 Our formulation resolves the dynamical coupling between fast expressed opinions $\mathbf{x}_i(t)$ and slow internalized convictions $\mathbf{s}_i(t)$ \citep{zaller1992nature, howe2017attitude} (Fig.~\ref{fig:fig2_interpersonal_network}l--n). Under an acute exogenous factual shock, mean opinion $\bar{\mathbf{x}}(t)$ responds rapidly ($\tau_x \approx 0.15$), whereas mean conviction $\bar{\mathbf{s}}(t)$ exhibits strong structural inertia ($\tau_s / \tau_x \approx 11.3$), shifting only marginally before pulling opinions back toward baseline during post-shock relaxation (Fig.~\ref{fig:fig2_interpersonal_network}l). This separation of timescales induces an elastic tether displacement $\|\mathbf{x}_i(t) - \mathbf{s}_i(t)\|$ that varies across demographics (Fig.~\ref{fig:fig2_interpersonal_network}m): younger citizens experience substantial opinion displacement due to higher cognitive plasticity, while older citizens remain tightly tethered to crystallized convictions \citep{alwin1991aging}. A cross-sectional snapshot of the belief hypercube at peak shock excursion ($t_{\mathrm{shock}}$; Fig.~\ref{fig:fig2_interpersonal_network}n) illustrates this instantaneous decoupling between displaced opinions and stationary convictions, providing a mechanistic explanation for how acute campaign events can trigger large short-term shifts in voting intention without immediately destabilizing core ideological convictions.
 
-\subsection*{Broadcast gatekeeping and market-driven polarization}
+\subsection*{Media market structure and editorial gatekeeping}
 
 Introducing the second communicative substrate, institutional mass media channels structure collective public attention via centralized broadcast scheduling and editorial gatekeeping \citep{mccombs1972agenda} (Fig.~\ref{fig:fig3_traditional_media}). We parameterize five distinct modalities: Broadcast Television ($v = 0$), Radio ($v = 1$), Print and Legacy News Portals ($v = 2$), Outdoor Signage ($v = 3$), and Campaign Rallies ($v = 4$) (Fig.~\ref{fig:fig3_traditional_media}a). Modalities differ in their characteristic attention decay rate $\delta_v$ and institutional credibility $\gamma_v$ (Supplementary Note~2): Written Press combines high institutional credibility ($\gamma = 0.82$) with slow editorial decay ($\delta = 0.18$), Broadcast Television provides mass reach with intermediate persistence ($\gamma = 0.75, \delta = 0.30$), and Campaign Rallies deliver high emotional mobilization pulses ($\gamma = 0.80$) subject to rapid post-event decay ($\delta = 0.70$). Audience penetration curves $P_v(\mathrm{age})$ calibrated to Kantar IBOPE 2023 surveys \citep{kantar2023inside} indicate that linear television viewing increases monotonically with age, dominating news consumption among senior citizens, whereas Radio and Outdoor signage reach daily commuters (Fig.~\ref{fig:fig3_traditional_media}b).
 
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=\textwidth]{figures/figure2_jan_medianetwork.pdf}
-\caption{\textbf{Structure and gatekeeping dynamics of the traditional mass media ecosystem.} 
+\caption{\textbf{Editorial tendentiousness and market concentration nonlinearly govern collective factual accuracy and societal polarization.} 
 \textbf{a}, Attention decay rates $\delta_v$ and institutional credibility $\gamma_v$ across five classical media modalities. 
 \textbf{b}, Age-dependent demographic reach curves $P_v(\mathrm{age})$ calibrated to empirical audience surveys. 
 \textbf{c}, Editorial projection of exogenous facts $\mathbf{f}_k$ toward media group centers $\mathbf{m}_g$ under factual ($\tau = 0.10$) and tendentious ($\tau = 0.90$) regimes. 
@@ -137,14 +137,14 @@ Market structure nonlinearly governs collective responsiveness following an acut
 
 Coupling the broadcast layer to the interpersonal network reveals a fundamental separation of operational timescales (Fig.~\ref{fig:fig3_traditional_media}f). Broadcast notices display high instantaneous reach but rapid temporal decay ($\tau_{\mathrm{media}} \approx 4.8$~steps) \citep{downs1972up}. In contrast, interpersonal deliberation across the multiplex network operates on a substantially slower relaxation timescale ($\tau_{\mathrm{network}} \approx 19.0$~steps) \citep{friedkin1990social}. Consequently, when broadcast channels introduce a salient campaign event, its societal impact is sustained long after the initial broadcast window closes, as citizens continue to process the information across household and peer ties.
 
-\subsection*{Outrage amplification and dark-social cascades}
+\subsection*{Algorithmic outrage amplification in digital platforms}
 
 Completing the communication architecture, the digital layer introduces algorithmic social platforms and closed encrypted messaging networks \citep{cinelli2021echo, tucker2018social} (Fig.~\ref{fig:fig4_social_media}). Calibrated to national surveys \citep{reuters2023digital}, age access profiles $P_p(\mathrm{age})$ define four digital modalities (Fig.~\ref{fig:fig4_social_media}a): short-form visual discovery feeds (Platform~0: Instagram and TikTok), capturing over $88\%$ of youth cohorts; video commentary and microblogging (Platform~1: YouTube and X), engaging politically attentive citizens; reciprocal social feeds (Platform~2: Facebook), concentrating among mature adults; and closed encrypted messaging (Platform~3: WhatsApp and Telegram), operating as a universal communications backbone ($>80\%$ penetration across all adult brackets) structured into private micro-groups ($K \le 256$~members).
 
 \begin{figure*}[t!]
 \centering
 \includegraphics[width=0.82\textwidth]{figures/figure3_jan_socialmedianetwork.pdf}
-\caption{\textbf{Algorithmic curation, influencer hierarchies, and multi-stage cascade dynamics in social media.} 
+\caption{\textbf{Engagement-maximizing recommendation algorithms amplify polarizing content and sustain multi-stage cascades into encrypted messaging networks.} 
 \textbf{a}, Age-dependent daily access probability $P_p(\mathrm{age})$ across four digital platform modalities and broadcast television. 
 \textbf{b}, Heavy-tailed follower distribution $P(k) \sim k^{-\alpha}$ ($\alpha \approx 1.15$, Gini coefficient $0.73$) and emergent influencer hierarchy. 
 \textbf{c}, Algorithmic relevance score $R_m$ mapped across positive-valence (admiration) and negative-valence (outrage) engagement coordinates, highlighting maximal amplification along the diagonal of controversy. 
@@ -160,14 +160,14 @@ Feed recommendation algorithms rank content by optimizing for aggregate user eng
 
 This architecture generates a three-stage cross-platform cascade lifecycle (Fig.~\ref{fig:fig4_social_media}d; Supplementary Note~3). Diffusion initiates in Stage~1 on visual discovery feeds (Instagram/TikTok), surfacing novel memes to high-plasticity youth within $10$~hours. In Stage~2, narratives migrate to commentary platforms (YouTube/X), where quote-dunking triggers secondary viral waves between hours $15$ and $25$. In Stage~3, content penetrates closed messaging groups (WhatsApp/Telegram). Forwarded across trusted peer contacts ($\tau_{\text{WA}} = 0.85$, $2.8\times$ persuasion efficiency), dark-social cascades bypass platform moderation and persist long after open-feed attention has decayed. Coupling the digital layer to traditional newsrooms creates a hybrid agenda-setting feedback loop \citep{chadwick2017hybrid, harder2017intermedia} (Fig.~\ref{fig:fig4_social_media}e): while investigative journalism requires an editorial turnaround of $\tau_{\mathrm{turnaround}} \approx 1$--$2$~days, digital platforms respond within hours ($\tau_{\mathrm{social}} \approx 0.1$--$0.3$~days), generating social volume that compels broadcast media to maintain follow-up coverage. When influencers exploit this dynamic with high tendentiousness ($\tau_{\mathrm{inf}} = 0.90$), societal polarization climbs to an entrenched plateau of $P_{\mathrm{ER}} = 0.18$ (Fig.~\ref{fig:fig4_social_media}f).
 
-\subsection*{Negativity asymmetry drives late-campaign swings}
+\subsection*{Negativity asymmetry in late-campaign voting swings}
 
 The convergence of multiplex interpersonal clustering, traditional media gatekeeping, and algorithmic outrage explains the dynamics of the first-round election (Fig.~\ref{fig:fig5_first_round}). Calibrating initial ideological identification to national survey benchmarks \citep{datafolha2024identificacao} establishes four distinct voting blocs (Fig.~\ref{fig:fig5_first_round}a): Lulistas ($\sim 40\%$, comprising $28\%$ convinced identifiers and $12\%$ non-convinced sympathizers), Bolsonaristas ($\sim 34\%$, $23\%$ convinced and $11\%$ sympathizers), Centrists ($\sim 19\%$), and unaligned non-voters ($\sim 7\%$). In concept space $\Omega$, Lula is positioned at Center-Left ($\mathbf{c}_L = [-0.25, -0.20, -0.35, -0.15]^\top$), Flávio Bolsonaro at Far-Right ($\mathbf{c}_F = [0.65, 0.70, 0.60, 0.65]^\top$), and Third-Way contenders at Center-Right ($\mathbf{c}_O = [0.20, 0.25, 0.10, 0.30]^\top$). Brazilian centrists are culturally conservative on moral and security axes ($d=1, 3$) yet supportive of state welfare and minimum wages ($d=0, 2$), making them a cross-pressured swing constituency \citep{almeida2019evangelicals}.
 
 \begin{figure*}[p]
 \centering
 \includegraphics[width=0.92\textwidth,height=0.695\textheight,keepaspectratio]{figures/figure4_jan_election_first.pdf}
-\caption{\textbf{First-round electoral dynamics, sociopolitical baseline, and five-vector attribution (the Janones diagnosis).} 
+\caption{\textbf{Cognitive negativity asymmetry and a 48-hour dark-social blitz overturned an established polling lead in the first round.} 
 \textbf{a}, Sociopolitical segmentation of the electorate into ideological identification blocs: Lulistas ($\sim 40\%$, decomposed into convict identifiers vs.\ non-convict sympathizers), Bolsonaristas ($\sim 34\%$, convict vs.\ non-convict), Centrists/Others ($\sim 19\%$), and unaligned/None ($\sim 7\%$), calibrated to national survey data. 
 \textbf{b}, Longitudinal 50-day first-round campaign trajectories (Model Fit, solid curves vs.\ Neutral Model organic baseline, dashed curves) benchmarked against Datafolha tracking survey waves (diamonds $\pm 1\,\mathrm{SD}$) and official TSE ballot totals (circles on October 4: Flávio $47.0\%$ / $55.7\mathrm{M}$, Lula $45.2\%$ / $53.5\mathrm{M}$, Others $7.8\%$ / $9.3\mathrm{M}$), highlighting the August 23 debate shock ($*$) and the acute 48-hour pre-election blitz (shaded amber band). 
 \textbf{c}, Coupled affective trajectory of population-mean candidate admiration (solid curves) and rejection (dashed curves) for Lula (red) and Flávio (blue), showing the acute late-campaign aversion spike triggered against Lula ($\lambda_R/\delta_R = 3.5\times$). 
@@ -183,14 +183,14 @@ The psychological engine powering this late-stage divergence is a cognitive nega
 
 Factorial attribution isolates the specific contribution of each mechanism toward Flávio's $+8.20\%$ ($+9.72\mathrm{M}$ votes) surge (Fig.~\ref{fig:fig5_first_round}d): Religious Priming (M1, $+1.77\%$, $+2.10\mathrm{M}$ votes) anchors Evangelical voters in layer $\mathcal{L}_3$; Traditional Media Slant (M2, $+1.20\%$, $+1.42\mathrm{M}$ votes) reinforces fiscal conservatism; Bot Astroturfing (M3, $+1.35\%$, $+1.60\mathrm{M}$ votes) manufactures artificial outrage on open feeds; Asymmetric Rejection News (M4, $+1.55\%$, $+1.84\mathrm{M}$ votes) exploits cognitive negativity bias; and the 48-Hour WhatsApp Blitz (M5, $+2.20\%$, $+2.61\mathrm{M}$ votes) floods dark-social groups beyond journalistic verification horizons. Parametric dose-response curves reveal that the WhatsApp blitz exhibits the steepest marginal electoral return ($\mathrm{d}V_F/\mathrm{d}\theta \approx 0.034\%$ per percentage point; Fig.~\ref{fig:fig5_first_round}e). A cumulative build-up test reveals a threshold principle (Fig.~\ref{fig:fig5_first_round}f): Lula preserves his polling lead through stages 1 to 4 (+Church, +Media, +Bots, +Rejection); decisive lead reversal is triggered exclusively when the acute dark-social blitz is added in Stage 5, lifting Flávio to $47.0\%$ vs $45.2\%$.
 
-\subsection*{Algorithmic counter-tactics reverse runoff momentum}
+\subsection*{Algorithmic counter-mobilization during the runoff}
 
 The first-round diagnosis informed the design of the progressive counter-offensive in the second-round runoff (October 4--25, 2026; Fig.~\ref{fig:fig6_second_round}), which operationalized the strategic doctrine of \emph{Janonismo Cultural} \citep{janones2023janonismo}. In our simulation, if the progressive campaign had maintained its passive first-round posture relying on broadcast airtime and conventional fact-checking, the \textbf{Same-Strategy Counterfactual} (dashed curves, Fig.~\ref{fig:fig6_second_round}a) indicates that Flávio would have consolidated centrist support to win decisively with $53.6\%$ ($63.9\mathrm{M}$ votes) against $46.4\%$ for Lula ($55.4\mathrm{M}$ votes).
 
 \begin{figure*}[p]
 \centering
 \includegraphics[width=0.92\textwidth,height=0.725\textheight,keepaspectratio]{figures/figure5_jan_election_second.pdf}
-\caption{\textbf{Second-round runoff dynamics, Janonismo counter-tactics, and six-vector turnaround sensitivity analysis.} 
+\caption{\textbf{Coordinated socio-technical counter-tactics inverted candidate rejection trajectories and crossed the runoff majority threshold.} 
 \textbf{a}, Longitudinal 21-day second-round calibration ($N = 100{,}000$ citizens, 100-seed ensemble $\pm 1\,\mathrm{SD}$ envelope) contrasting the Same-Strategy Counterfactual (Neutral Model, dashed curves: Flávio wins $53.6\%$ vs $46.4\%$) against the fitted Janonismo Cultural counter-offensive (Model Fit, solid curves: Lula wins $51.8\%$ / $61.8\mathrm{M}$ vs Flávio $48.2\%$ / $57.5\mathrm{M}$, jumping $+6.64\%$ from Round 1), incorporating the October 18 Band debate shock ($*$), the final 48-hour sprint (shaded amber band), Datafolha tracking surveys (diamonds $\pm 1\,\mathrm{SD}$), and official TSE runoff results (yellow-filled markers on October 25). 
 \textbf{b}, Coupled affective trajectory illustrating the complete structural inversion of candidate rejection (dashed curves: Flávio $\bar{R}_F$ climbs $40\% \to 53\%$, while Lula $\bar{R}_L$ drops $50\% \to 41\%$) alongside admiration consolidation (solid curves: Lula $\bar{A}_L$ climbs $43\% \to 52\%$). 
 \textbf{c}, Factorial attribution of Lula's $+6.64\%$ ($+7.93\mathrm{M}$ votes) runoff turnaround across the six Janonismo counter-tactics: T1 Algorithmic Asphyxiation ($+1.36\mathrm{M}$ votes), T2 Strict Monothematism ($+1.61\mathrm{M}$), T3 Material Loss-Aversion Framing ($+1.69\mathrm{M}$), T4 Molecular WhatsApp Synchronization ($+1.25\mathrm{M}$), T5 Mass Capital Rallies ($+1.05\mathrm{M}$), and T6 24-Hour Live Saturation ($+0.95\mathrm{M}$); error bars indicate the full simulation range $[\min, \max]$ across 100 independent Monte Carlo seeds ($N=100{,}000$). 
@@ -230,7 +230,7 @@ Notwithstanding these boundaries, the core behavioral mechanisms identified in t
 \section*{Methods}
 \label{sec:methods}
 
-\subsection*{Concept space and population synthesis}
+\subsection*{Multidimensional concept space}
 Citizens, political candidates, and media outlets are positioned within a $D$-dimensional continuous concept hypercube $\Omega = [-1, 1]^D$ ($D = 4$), whose coordinate axes represent the primary cleavages structuring contemporary democratic deliberation in Brazil: state economic redistribution and fiscal policy ($d=0$), moral, cultural, and religious customs ($d=1$), environmental governance and Amazonian preservation ($d=2$), and public security and firearms regulation ($d=3$) (Supplementary Note~1). The normalized distance between any two belief vectors $\mathbf{u}, \mathbf{v} \in \Omega$ is normalized by the maximal Euclidean diameter $2\sqrt{D}$:
 \begin{equation}
     d(\mathbf{u}, \mathbf{v}) = \frac{1}{\sqrt{D}} \|\mathbf{u} - \mathbf{v}\|_2 \in [0, 2],
@@ -243,7 +243,7 @@ such that individual conviction extremity is measured by the metric distance fro
 \end{equation}
 Ideological cross-issue constraint is enforced via a row-normalized cognitive coupling matrix $\mathbf{C} = [C_{dd'}] \in \mathbb{R}^{D \times D}$ satisfying decaying off-diagonal constraints (Supplementary Note~1). The strong cross-coupling between moral conservatism ($d=1$), environmental deregulation ($d=2$), and punitive security ($d=3$) directly reflects empirical roll-call voting alignments in the Brazilian National Congress.
 
-\subsection*{Multi-layer contact network}
+\subsection*{Urban multiplex network topology}
 Following urban digital twin methodologies established in computational epidemiology \citep{lopes2022measuring}, everyday interpersonal interactions unfold across a five-layer multiplex network $\mathcal{M} = \{\mathcal{L}_1, \dots, \mathcal{L}_5\}$ stored in Compressed Sparse Row (CSR) format, capturing the structural domains of urban social life (Supplementary Note~1):
 Layer 1 ($\mathcal{L}_1$, Households): Disjoint fully connected cliques calibrated to national census statistics ($2.79$ residents per household, strong tie weight $w_1 = 0.36$);
 Layer 2 ($\mathcal{L}_2$, Workplaces and Schools): Circular regular lattices with localized peer clustering ($\langle k^{[2]} \rangle = 10$, tie weight $w_2 = 0.26$);
@@ -253,7 +253,7 @@ Layer 5 ($\mathcal{L}_5$, Public Transit and Incidental Weak Ties): Erd\H{o}s--R
 
 Composite inter-agent edge weights $W_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]} / \sum_k \sum_\ell w_\ell A_{ik}^{[\ell]}$ yield an empirical mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ contacts per citizen. Inter-cohort contact is governed by the empirical contact matrix $M_{ab}$ across six adult age brackets, balancing generational clustering in workplaces against cross-generational mixing within households and religious assemblies (Supplementary Note~1).
 
-\subsection*{Opinion and conviction dynamics}
+\subsection*{Two-timescale attitude dynamics}
 At each discrete integration step $\Delta t = 0.15$, citizen $i$ engages in peer deliberation with neighbors $j \in \mathcal{N}_i$ satisfying the bounded-confidence acceptance condition $d_{ij}(t) = \frac{1}{\sqrt{D}}\|\mathbf{x}_j(t) - \mathbf{x}_i(t)\|_2 \le \epsilon_i + 0.5\,u_i(t)$. Effective peer weights combine Relative Agreement (RA) uncertainty overlap $\phi_{ij}^{\mathrm{RA}}(t)$ and Biased Assimilation (BA) cosine similarity $\phi_{ij}^{\mathrm{BA}}(t)$:
 \begin{equation}
     \tilde{w}_{ij}(t) = W_{ij} \big(0.40 + 0.60\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \, \mathbb{I}\!\big(d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)\big).
@@ -282,7 +282,7 @@ with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and crystallization time
     \label{eq:methods_conviction}
 \end{equation}
 
-\subsection*{Mass media and social platforms}
+\subsection*{Mass media and digital platform rules}
 Media conglomerates $g \in \{1, \dots, M\}$ operate across five modalities $v \in \{0, 1, 2, 3, 4\}$ (Broadcast Television, Radio, Print, Outdoor Signage, and Rallies) with demographic reach probabilities $P_v(a_i, \mathrm{SES}_i)$ (Supplementary Note~2). When a factual event $\mathbf{f}_k(t) \in \Omega$ occurs, outlet $g$ projects the notice toward its ideological center $\mathbf{m}_g \in \Omega$ through tendentiousness parameter $\tau_g \in [0, 1]$:
 \begin{equation}
     \mathbf{y}_{k,g,v}(t) = (1 - \eta_{g,v})\,\mathbf{f}_k(t) + \eta_{g,v}\,\mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \qquad \eta_{g,v} = \mathrm{clip}_{[0, 1]}(\tau_g \mu_v),
@@ -304,7 +304,7 @@ Reactions branch into affirmative likes ($d \le \epsilon_{\mathrm{like}, i}$, as
 \end{equation}
 maximizing viral discovery along the diagonal of controversy (Supplementary Note~3). Information propagates through a three-stage cascade: open-feed broadcast injection, algorithmic recommendation discovery, and dark-social closed micro-group forwarding ($K \le 256$ participants per group, peer trust multiplier $\tau_{\text{WA}} = 0.85$, $2.8\times$ persuasion efficiency).
 
-\subsection*{Voting calculus and calibration}
+\subsection*{Electoral decision calculus and calibration}
 Candidates $k \in \{L, F, O\}$ occupy fixed ideological coordinates $\mathbf{c}_k \in \Omega$. Candidate affinity $A_{ik}(t)$ and aversion $R_{ik}(t)$ evolve with asymmetric parameters ($\lambda_A = 0.12, \delta_A = 0.06; \lambda_R = 0.14, \delta_R = 0.04$):
 \begin{align}
     A_{ik}(t+1) &= (1 - \delta_A)\,A_{ik}(t) + \lambda_A \max\!\left(0, \frac{0.62 - d_{ik}(t)}{0.62}\right)^2, \label{eq:methods_adm} \\
@@ -361,7 +361,7 @@ The optimization objective minimizes weighted squared error across all survey wa
 \end{equation}
 with ballot weight $\omega_{\mathrm{ballot}} = 3.0$, yielding $\mathrm{RMSE} = 0.85$ percentage points ($R^2 = 0.9955$) across Round~1 and $\mathrm{RMSE} = 0.56$ percentage points ($R^2 = 0.9128$) across Round~2. Profile likelihood intervals, Hessian conditioning, parameter identifiability, and Sobol global sensitivity analyses are detailed extensively in Supplementary Note~4 and Supplementary Note~5. Operational translations of the Janones tactical suite into graph mechanics are reported in Supplementary Table~3.
 
-\subsection*{Computational implementation and statistical evaluation}
+\subsection*{Computational implementation}
 Simulations were executed across $S = 100$ independent Monte Carlo realizations at population scale $N = 100{,}000$ agents using just-in-time (JIT) compiled Numba 0.59 kernels in Python 3.11 with parallel multi-threading across 64 CPU cores (AMD EPYC 7763, 2.45 GHz, 512 GB RAM) (Supplementary Note~5). All agent attributes are laid out as contiguous 1D and 2D C-ordered NumPy arrays in CPU cache memory, with network topology represented in CSR format. At $N = 100{,}000$, a 100-step trajectory executes in $4.2$ seconds. Municipal scaling experiments ($N = 10^4$ to $10^7$) confirm that finite-size stochasticity vanishes into a scale-invariant thermodynamic limit for $N \ge 10^5$ (Supplementary Note~5).
 
 Macroscopic system trajectories are monitored through four statistical evaluation metrics:
