@@ -1,6 +1,17 @@
-"""ElectoralEngine: Multinomial Logit vote projection, Two-Leg (4 -> 2 candidates) election with
-independent Candidate Admiration & Rejection, and Three-Way Voting (Not Going to Vote / Blank Vote / Valid Vote)
-based on Current Opinions rather than Convictions.
+"""ElectoralEngine: Multinomial Logit vote projection, Two-Leg election with
+independent Candidate Admiration & Rejection, and Three-Way Voting (Abstention / Blank / Valid)
+based on expressed opinions elastically tethered to core convictions.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Equations:
+- Dynamic Candidate Affinity: A_{ik}(t+1) = (1 - \\delta_A) A_{ik} + \\lambda_A max(0, (0.62 - d)/0.62)^2 (Eq. 13, Eq. S55)
+- Dynamic Candidate Aversion: R_{ik}(t+1) = (1 - \\delta_R) R_{ik} + \\lambda_R max(0, (d - 0.78)/1.22)^{1.35} (Eq. 14, Eq. S56)
+- Quadratic Utility Penalty: U_{ik}(t) = A_{ik}(t) - \\theta_{rej} R_{ik}(t)^2 (Eq. 15, Eq. S57)
+- Multinomial Logit Choice: P(Vote k | turnout) \\propto exp(\\beta_{vote} U_{ik}) (Eq. S58)
+- Logistic Turnout Mobilization: P(Turnout | i) = 1 / (1 + exp(-\\mu_{turn}[max_k U_{ik} - (\\tau_{abst} - 0.22 SES_i + \\delta_{transit})])) (Eq. S59)
 """
 
 from __future__ import annotations

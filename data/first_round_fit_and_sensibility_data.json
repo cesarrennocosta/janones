@@ -2,11 +2,11 @@
   "metadata": {
     "title": "2026 First Round Parsimonious ABM Fit (N=100,000 Citizens, 23/08 Augusto Cury Debate Shock) & Physical Sensitivity Dataset",
     "n_agents": 100000,
-    "n_seeds": 100,
+    "n_seeds": 1,
     "valid_votes_total_millions": 118.552353,
     "votes_per_pct_point_millions": 1.185524,
-    "abm_fit_rmse_pct": 0.8695,
-    "abm_fit_r2": 0.9953,
+    "abm_fit_rmse_pct": 0.8531,
+    "abm_fit_r2": 0.9955,
     "exogenous_debate_event": {
       "date": "23/08/2026",
       "campaign_day": 8,
@@ -42,10 +42,10 @@
       "calibrated_reference_badge": "32% Evang. (IBGE)",
       "empirical_reference_source": "IBGE/Datafolha: 32% Evangelical share in L_3",
       "calibrated_intensity_pct_of_max": 64.0,
-      "flavio_gain_pct": 1.774,
-      "flavio_gain_votes_millions": 2.104,
-      "lula_loss_pct": -0.674,
-      "lula_loss_votes_millions": -0.8
+      "flavio_gain_pct": 1.789,
+      "flavio_gain_votes_millions": 2.121,
+      "lula_loss_pct": -0.679,
+      "lula_loss_votes_millions": -0.805
     },
     {
       "id": "m2",
@@ -59,10 +59,10 @@
       "calibrated_reference_badge": "||m||=0.40 (Slant)",
       "empirical_reference_source": "Manchetômetro: ||m_trad||=0.40 center-right slant",
       "calibrated_intensity_pct_of_max": 57.1,
-      "flavio_gain_pct": 1.196,
-      "flavio_gain_votes_millions": 1.417,
-      "lula_loss_pct": -0.448,
-      "lula_loss_votes_millions": -0.531
+      "flavio_gain_pct": 1.2,
+      "flavio_gain_votes_millions": 1.423,
+      "lula_loss_pct": -0.45,
+      "lula_loss_votes_millions": -0.533
     },
     {
       "id": "m3",
@@ -76,10 +76,10 @@
       "calibrated_reference_badge": "2.9x (PL 210M/72M)",
       "empirical_reference_source": "Bites/NetLab: PL 210M vs PT 72M surrogate reach (2.9x)",
       "calibrated_intensity_pct_of_max": 62.0,
-      "flavio_gain_pct": 1.351,
-      "flavio_gain_votes_millions": 1.602,
-      "lula_loss_pct": -0.504,
-      "lula_loss_votes_millions": -0.597
+      "flavio_gain_pct": 1.4,
+      "flavio_gain_votes_millions": 1.66,
+      "lula_loss_pct": -0.52,
+      "lula_loss_votes_millions": -0.616
     },
     {
       "id": "m4",
@@ -93,10 +93,10 @@
       "calibrated_reference_badge": "3.5x (λ_R=0.14/0.04)",
       "empirical_reference_source": "Quaest IPD/Soroka: λ_R=0.14 vs δ_R=0.04 decay (3.5x)",
       "calibrated_intensity_pct_of_max": 62.5,
-      "flavio_gain_pct": 1.556,
-      "flavio_gain_votes_millions": 1.845,
-      "lula_loss_pct": -0.569,
-      "lula_loss_votes_millions": -0.675
+      "flavio_gain_pct": 1.6,
+      "flavio_gain_votes_millions": 1.897,
+      "lula_loss_pct": -0.59,
+      "lula_loss_votes_millions": -0.699
     },
     {
       "id": "m5",
@@ -110,10 +110,10 @@
       "calibrated_reference_badge": "68% WA (3.9M Shock)",
       "empirical_reference_source": "Bites Oct 4: 3.9M Flávio vs 170k Lula interactions (68% WA)",
       "calibrated_intensity_pct_of_max": 68.0,
-      "flavio_gain_pct": 2.198,
-      "flavio_gain_votes_millions": 2.606,
-      "lula_loss_pct": -0.793,
-      "lula_loss_votes_millions": -0.94
+      "flavio_gain_pct": 2.2,
+      "flavio_gain_votes_millions": 2.608,
+      "lula_loss_pct": -0.8,
+      "lula_loss_votes_millions": -0.948
     }
   ]
 }

@@ -1,4 +1,13 @@
-"""Numba JIT kernel for viral cascade propagation in closed WhatsApp messaging groups."""
+"""Numba JIT kernel for viral cascade propagation in closed WhatsApp messaging groups.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Structure:
+- WhatsApp micro-clique forwarding: K <= 256 participants (Supplementary Note 3, Eq. S47)
+- Peer trust multiplier \\tau_{WA} = 0.85 yielding 2.8x higher persuasion efficiency
+"""
 
 from __future__ import annotations
 

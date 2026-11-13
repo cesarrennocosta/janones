@@ -1,8 +1,12 @@
 """Multidimensional polarization, clustering, and issue alignment reference metrics.
 
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
 Reference Literature Implemented:
 1. Esteban, J., & Ray, D. (1994). "On the Measurement of Polarization." Econometrica, 62(4), 819-851.
-   - Multidimensional Esteban-Ray Index (`esteban_ray`).
+   - Multidimensional Esteban-Ray Index (`esteban_ray`, Eq. S51).
 2. Sarle, W. S. (1983) / SAS Institute; Pfister et al. (2013). "Good things peak in pairs: a note on the bimodality coefficient."
    - Sarle's Bimodality Coefficient (`sarle_bimodality`), where BC > 5/9 (~0.555) indicates bimodality.
 3. Bramson, A., et al. (2016). "Disambiguation of social polarization concepts and measures." The Journal of Mathematical Sociology, 40(2), 80-111.
@@ -10,7 +14,7 @@ Reference Literature Implemented:
 4. Laakso, M., & Taagepera, R. (1979) / Herfindahl-Hirschman Inverse Participation Ratio (IPR) & Jost (2006) True Diversity:
    - Effective Number of Opinion Clusters (`effective_cluster_count`, N_eff = 1 / sum(p_c^2)) and Shannon Entropy Cluster Count (`entropy_cluster_count`, exp(H)).
 5. Baldassarri, D., & Gelman, A. (2008). "Partisans without Constraint: Political Polarization and Trends in American Public Opinion." American Journal of Sociology, 114(2), 408-446.
-   - Issue Alignment / Cross-Dimensional Correlation (`mean_issue_correlation`, `max_issue_correlation`, and pairwise `corr_d{i}_d{j}`) plus Roy's (1953) Participation Ratio (`effective_dimensionality`, PR = (Tr Sigma)^2 / Tr(Sigma^2)) measuring collapse of multidimensional space into a 1D ideological axis.
+   - Issue Alignment / Cross-Dimensional Correlation (`mean_issue_correlation`, `max_issue_correlation`, and pairwise `corr_d{i}_d{j}`) plus Roy's (1953) Participation Ratio (`effective_dimensionality`, PR = (Tr Sigma)^2 / Tr(Sigma^2)) measuring collapse of multidimensional space into a 1D ideological axis (Eq. S49).
 """
 
 from __future__ import annotations

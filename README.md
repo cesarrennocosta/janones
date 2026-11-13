@@ -1,6 +1,44 @@
-# OmniOpinion
+# OmniOpinion: Sociopolitical Digital Twin & Replication Package
 
-**High-Performance Multidimensional Opinion Dynamics, Multiplex Media Ecosystems, and Electoral Projection Framework for SLURM HPC Clusters**
+**Accompanying computational replication repository for the research paper:**
+
+> **Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections**  
+> **Author:** César Rennó-Costa$^{1,*}$  
+> $^{1}$*Brain Institute, Federal University of Rio Grande do Norte (UFRN), Natal, RN, Brazil*  
+> $^*$Corresponding author: `rennocosta@neuro.ufrn.br`  
+> **Target Journal:** *Nature Human Behaviour* (2026)
+
+---
+
+## Quick Replication Guide
+
+All six figures from the manuscript can be reproduced directly via the dedicated replication scripts in `replication/` or interactively in the Jupyter notebook:
+
+```bash
+# 1. Environment Setup
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# 2. Fast Replication (Runs all 6 figures in ~20 seconds)
+python replication/run_simulations.py --all --mode fast
+
+# 3. Interactive Reproduction Notebook (Renders Figures 1 to 6 inline)
+jupyter notebook notebooks/paper_reproduction_figures.ipynb
+```
+
+### Individual Replication Scripts (`replication/`)
+- `replication/sim_figure1_empirical_data.py`: Figure 1 (TSE ballot outcomes, Datafolha polls, HGPE airtime, campaign finances, Bites interactions)
+- `replication/sim_figure2_urban_network.py`: Figure 2 (Urban multiplex contact network & two-timescale opinion-conviction elastic tether)
+- `replication/sim_figure3_traditional_media.py`: Figure 3 (Traditional mass media gatekeeping & market polarization)
+- `replication/sim_figure4_social_media.py`: Figure 4 (Algorithmic social media feeds, influencer power law & dark-social cascades)
+- `replication/sim_figure5_first_round.py`: Figure 5 (First-round calibration: RMSE = 0.85% & 5 Janones mechanisms sensitivity)
+- `replication/sim_figure6_second_round.py`: Figure 6 (Second-round runoff: RMSE = 0.56% & 6 Janonismo counter-tactics)
+
+For complete details on parameter mappings, see [`replication/README.md`](replication/README.md).
+
+---
+
+## Overview & Framework
 
 `OmniOpinion` is a stochastic computational statistical physics and complex networks framework developed in Python and compiled with **Numba** (`@njit(parallel=True, fastmath=True)`). It simulates multidimensional attitude evolution, cognitive issue constraints, organic interaction across 5-layer sparse CSR multiplex networks, competitive algorithmic and private messaging media platforms, misinformation cascades, and multinomial logit electoral geography on high-performance computing (HPC) clusters.
 
@@ -174,4 +212,29 @@ sbatch scripts/slurm/consolidate_results.sh
 ```bash
 uv run jupyter nbconvert --to notebook --execute --inplace notebooks/analyze_local_cities.ipynb
 uv run jupyter nbconvert --to notebook --execute --inplace notebooks/analyze_traditional_media.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/paper_reproduction_figures.ipynb
 ```
+
+---
+
+## 4. Citation & Academic Attribution
+
+If you use this codebase, replication scripts, or digital twin framework in your research, please cite:
+
+```bibtex
+@article{rennocosta2026latecampaign,
+  title={Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections},
+  author={Renn{\'o}-Costa, C{\'e}sar},
+  journal={Nature Human Behaviour},
+  year={2026},
+  publisher={Nature Publishing Group},
+  institution={Brain Institute, Federal University of Rio Grande do Norte (UFRN), Natal, RN, Brazil}
+}
+```
+
+---
+
+## 5. Author & Contact
+- **Author:** César Rennó-Costa
+- **Affiliation:** Brain Institute, Federal University of Rio Grande do Norte (UFRN), Natal, RN, Brazil
+- **Email:** `rennocosta@neuro.ufrn.br`

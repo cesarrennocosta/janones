@@ -1,4 +1,16 @@
-"""AgentStateEngine: Contiguous memory allocation for demographic and attitudinal properties."""
+"""AgentStateEngine: Contiguous memory allocation for demographic and attitudinal properties.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Equations:
+- Concept Space: \\Omega = [-1, 1]^D, D=4 (Eq. S1)
+- Demographics: a_i ~ IBGE 2022 Census (Eq. S5), SES_i ~ Beta(2, 3) (Eq. S6)
+- Social Susceptibility: \\alpha_i(a_i, SES_i) (Eq. S8)
+- Bounded Confidence: \\epsilon_i(a_i, SES_i, E_i) (Eq. S9)
+- Biased Assimilation: b_i(a_i, SES_i, E_i) (Eq. S11)
+"""
 
 from __future__ import annotations
 

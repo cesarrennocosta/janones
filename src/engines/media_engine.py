@@ -1,5 +1,18 @@
 """MediaEngine: Concurrent simulation of fact-driven traditional media (TV, Radio, Press),
-closed-loop social feeds, and WhatsApp cascades."""
+closed-loop social feeds, and WhatsApp cascades.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Equations:
+- Traditional Media Projection: y_{k,g,v} = (1 - \\eta_{g,v}) f_k + \\eta_{g,v} m_g (Eq. 12, Eq. S33)
+- Modality Reach Curves: P_v(age, SES) (Eqs. S28-S32)
+- Modality Decay: I_{k,g,v}(t+1) = I_{k,g,v}(t) exp(-\\delta_v) (Eq. S35)
+- Algorithmic Recommendation Scoring: q_{ij} \\propto (d(x_i, y_j) + \\delta)^{-\\beta_{cur}} ... (Eq. S41)
+- Relevance Metric: R_m = Likes_m + \\omega Dislikes_m, \\omega=1.0 (Eq. S46)
+- WhatsApp Dark-Social Forwarding: \\tau_{WA} = 0.85 (Eq. S47)
+"""
 
 from __future__ import annotations
 

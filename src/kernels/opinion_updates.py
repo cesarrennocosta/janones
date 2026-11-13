@@ -1,4 +1,19 @@
-"""DynamicsKernel: Numba @njit(parallel=True, fastmath=True) kernels for multidimensional opinion dynamics."""
+"""DynamicsKernel: Numba @njit(parallel=True, fastmath=True) kernels for multidimensional opinion dynamics.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Equations:
+- Friedkin-Johnsen + Deffuant Relative Agreement: Eqs. 1-4, Eqs. S14-S18
+- Direct Exogenous Fact Pull: \\gamma_i(t) (Eq. 6, Eqs. S19-S20)
+- Two-Timescale Opinion-Conviction Elastic Tether:
+  - Opinion deviation: g_i(t) = ||\\tilde{x}_i(t) - s_i(t)||_2 / \\sqrt{D} (Eq. 7, Eq. S23)
+  - Elastic tanh restraint: g_i^{eff}(t) = \\Delta_{max,i} tanh(g_i / \\Delta_{max,i}) (Eq. 8, Eq. S24)
+  - Conviction crystallization: \\eta_{cryst,i}(t) (Eq. 10, Eq. S25)
+  - Sustained tension rate: \\eta_{sust,i}(t) (Eq. 11, Eq. S26)
+  - Coupled update: s_i(t+1) = clip(s_i + (\\eta_{cryst} + \\eta_{sust})(x_i - s_i)) (Eq. 9, Eq. S27)
+"""
 
 from __future__ import annotations
 

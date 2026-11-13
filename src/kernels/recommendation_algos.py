@@ -1,4 +1,14 @@
-"""Numba JIT kernels for closed-loop algorithmic social media feeds and broadcast reach."""
+"""Numba JIT kernels for closed-loop algorithmic social media feeds and broadcast reach.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Equations:
+- Algorithmic feed homophily scoring: Eq. S41
+- Dual-valence like assimilation & dislike outrage repulsion: Eqs. S43, S45
+- Algorithmic relevance metric on controversy diagonal: R_m = Likes_m + \\omega Dislikes_m (Eq. S46)
+"""
 
 from __future__ import annotations
 

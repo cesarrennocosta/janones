@@ -1,4 +1,15 @@
-"""GraphEngine: Multiplex 5-layer interpersonal network and social media topologies in CSR format."""
+"""GraphEngine: Multiplex 5-layer interpersonal network and social media topologies in CSR format.
+
+Author: César Rennó-Costa (Brain Institute, UFRN, Natal, RN, Brazil)
+Paper: "Late-campaign opinion volatility and algorithmic counter-mobilization in polarized elections"
+Target: Nature Human Behaviour (2026)
+
+Governing Structure:
+- 5 Physical Layers: M = {L_1 (household), L_2 (work/school), L_3 (church/community),
+  L_4 (friendship small-world), L_5 (transit weak ties)} (Supplementary Note 1, Eq. S12)
+- Directed Scale-Free Social Feed: P(k) ~ k^{-1.15}, Gini = 0.73 (Supplementary Note 3, Eq. S39-S40)
+- Closed WhatsApp Micro-Cliques: K <= 256, trust multiplier \\tau_{WA} = 0.85 (Eq. S47)
+"""
 
 from __future__ import annotations
 
