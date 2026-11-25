@@ -22,8 +22,16 @@
 
 \begin{document}
 \let\WriteBookmarks\relax
-\def\floatpagefraction{0.85}
-\def\textpagefraction{.05}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.40}
+\renewcommand{\dbltopfraction}{0.95}
+\renewcommand{\dblfloatpagefraction}{0.40}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{8}
+\setcounter{dbltopnumber}{4}
 
 \shorttitle{Opinion--conviction decoupling explains late-campaign electoral swings}
 \shortauthors{C. Rennó-Costa}
@@ -134,48 +142,62 @@ Interpersonal interactions unfold across a five-layer multiplex network $\mathca
     \item \textbf{Layer 5 ($\mathcal{L}_5$, Transit Weak Ties):} Erd\H{o}s--R\'enyi random graphs representing incidental encounters ($\langle k^{[5]} \rangle = 4$, weight $w_5 = 0.10$).
 \end{itemize}
 
-Composite inter-agent weights $W_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]} / \sum_k \sum_\ell w_\ell A_{ik}^{[\ell]}$ yield a mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ contacts per citizen. Inter-cohort contact is governed by the empirical age contact matrix $M_{ab}$ across six adult age brackets (16--24, 25--34, 35--44, 45--54, 55--64, 65+).
+Composite inter-agent weights\linebreak $W_{ij} = \sum_{\ell=1}^5 w_\ell A_{ij}^{[\ell]} \big/ \sum_k \sum_\ell w_\ell A_{ik}^{[\ell]}$ yield a mean interpersonal degree of $\langle k_{\mathrm{comp}} \rangle \approx 30.8$ contacts per citizen. Inter-cohort contact is governed by the empirical age contact matrix $M_{ab}$ across six adult age brackets (16--24, 25--34, 35--44, 45--54, 55--64, 65+).
 
 \subsection{Two-Timescale Opinion-Conviction Dynamics}
 \label{subsec:opinion_dynamics}
 At each integration step $\Delta t = 0.15$, citizen $i$ engages in peer deliberation with neighbors $j \in \mathcal{N}_i$ satisfying the bounded-confidence condition $d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)$. Effective peer weights combine Relative Agreement (RA) uncertainty overlap $\phi_{ij}^{\mathrm{RA}}(t)$ and Biased Assimilation (BA) cosine similarity $\phi_{ij}^{\mathrm{BA}}(t)$:
 \begin{equation}
-    \tilde{w}_{ij}(t) = W_{ij} \big(0.40 + 0.60\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \, \mathbb{I}\!\big(d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)\big).
-    \label{eq:methods_peer_weight}
+\begin{aligned}
+    \tilde{w}_{ij}(t) = \; & W_{ij} \big(0.40 + 0.60\,\phi_{ij}^{\mathrm{RA}}(t)\big) \phi_{ij}^{\mathrm{BA}}(t) \\
+    & \times \mathbb{I}\!\big(d_{ij}(t) \le \epsilon_i + 0.5\,u_i(t)\big).
+\end{aligned}
+\label{eq:methods_peer_weight}
 \end{equation}
 The interpersonal social shift $\Delta \mathbf{x}_i^{\mathrm{soc}}(t) = \sum_{j} \tilde{w}_{ij}(\mathbf{x}_j - \mathbf{x}_i) / \sum_j \tilde{w}_{ij}$ updates current opinions through the Friedkin--Johnsen formulation:
 \begin{equation}
-    \mathbf{x}_i^{\mathrm{int}}(t) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{x}_i(t) + \Delta t \big[(1 - \alpha_i)(\mathbf{s}_i(t) - \mathbf{x}_i(t)) + \alpha_i \mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)\big] + \boldsymbol{\xi}_i(t)\Big),
-    \label{eq:methods_fj}
+\begin{aligned}
+    \mathbf{x}_i^{\mathrm{int}}(t) = \mathrm{clip}_{[-1, 1]^D}\!\Big(& \mathbf{x}_i(t) + \Delta t \big[(1 - \alpha_i)(\mathbf{s}_i(t) - \mathbf{x}_i(t)) \\
+    & + \alpha_i \mathbf{C}\Delta \mathbf{x}_i^{\mathrm{soc}}(t)\big] + \boldsymbol{\xi}_i(t)\Big),
+\end{aligned}
+\label{eq:methods_fj}
 \end{equation}
 where $\boldsymbol{\xi}_i(t) \sim \mathcal{N}(\mathbf{0}, \sigma_{\xi}^2 \mathbf{I}_D)$ ($\sigma_{\xi} = 0.012$) is intrinsic cognitive noise. When an exogenous factual impulse $\mathbf{b}_{\mathrm{fact}}(t)$ is present, opinions pull toward it with sensitivity $\gamma_i(t) = \gamma_0 (1.30 - 0.72 E_i)(1.18 - 0.48\tilde{a}_i)(0.85 + 0.30\,\mathrm{SES}_i)$, yielding intermediate opinion $\tilde{\mathbf{x}}_i(t)$.
 
 Opinions cannot depart indefinitely from internal convictions. The maximal allowable departure is defined by an individual tether radius $\Delta_{\max, i}(t) = \Delta_0 (1.25 - 0.55\tilde{a}_i)(1.30 - 0.75 E_i)(0.90 + 0.25\,\mathrm{SES}_i)$. Radial elastic restraint is enforced via hyperbolic-tangent bounding:
 \begin{align}
-    g_i^{\mathrm{eff}}(t) &= \Delta_{\max, i}(t) \tanh\!\left(\frac{\frac{1}{\sqrt{D}}\|\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\|_2}{\Delta_{\max, i}(t)}\right), \label{eq:methods_tether_radius} \\
-    \mathbf{x}_i(t+1) &= \mathrm{clip}_{[-1, 1]^D}\!\left(\mathbf{s}_i(t) + \frac{g_i^{\mathrm{eff}}(t)}{g_i(t) + 10^{-12}}\big(\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\big)\right). \label{eq:methods_tether_update}
+    g_i^{\mathrm{eff}}(t) &= \Delta_{\max, i}(t) \tanh\!\left(\frac{\|\tilde{\mathbf{x}}_i(t) - \mathbf{s}_i(t)\|_2}{\sqrt{D}\,\Delta_{\max, i}(t)}\right), \label{eq:methods_tether_radius} \\
+    \mathbf{x}_i(t+1) &= \mathrm{clip}_{[-1, 1]^D}\!\left(\mathbf{s}_i(t) + \frac{g_i^{\mathrm{eff}}(t)(\tilde{\mathbf{x}}_i - \mathbf{s}_i)}{g_i(t) + 10^{-12}}\right). \label{eq:methods_tether_update}
 \end{align}
 Convictions adapt over substantially slower timescales through baseline crystallization drift $\eta_{\mathrm{cryst}, i}(t)$ and sustained-tension restructuring $\eta_{\mathrm{sust}, i}(t)$:
 \begin{align}
-    \eta_{\mathrm{cryst}, i}(t) &= \eta_0 [1 + (t/\tau_c)^{1.15}]^{-1}(1.25 - 0.75\tilde{a}_i)(1.22 - 0.68 E_i)(1.10 - 0.25\,\mathrm{SES}_i), \label{eq:methods_cryst} \\
-    \eta_{\mathrm{sust}, i}(t) &= 0.28\eta_0 (g_i^{\mathrm{eff}} / \Delta_{\max, i})^2(1.18 - 0.58\tilde{a}_i)(1.20 - 0.62 E_i), \label{eq:methods_sust}
+    \eta_{\mathrm{cryst}, i}(t) &= \frac{\eta_0\,(1.25 - 0.75\tilde{a}_i)}{1 + (t/\tau_c)^{1.15}} \nonumber \\
+    &\quad \times (1.22 - 0.68 E_i)(1.1 - 0.25\,\mathrm{SES}_i), \label{eq:methods_cryst} \\
+    \eta_{\mathrm{sust}, i}(t) &= \frac{0.28\eta_0 (g_i^{\mathrm{eff}})^2}{\Delta_{\max, i}^2} \nonumber \\
+    &\quad \times (1.18 - 0.58\tilde{a}_i)(1.20 - 0.62 E_i). \label{eq:methods_sust}
 \end{align}
 with baseline drift $\eta_0 = 0.0024 \text{ step}^{-1}$ and crystallization timescale $\tau_c = 280$ steps:
 \begin{equation}
-    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(\mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big]\big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
-    \label{eq:methods_conviction}
+\begin{aligned}
+    \mathbf{s}_i(t+1) = \mathrm{clip}_{[-1, 1]^D}\!\Big(& \mathbf{s}_i(t) + \big[\eta_{\mathrm{cryst}, i}(t) + \eta_{\mathrm{sust}, i}(t)\big] \\
+    & \times \big(\mathbf{x}_i(t+1) - \mathbf{s}_i(t)\big)\Big).
+\end{aligned}
+\label{eq:methods_conviction}
 \end{equation}
 
 \subsection{Mass Media Ecosystem and Editorial Gatekeeping}
 \label{subsec:mass_media}
 Media conglomerates $g \in \{1, \dots, M\}$ operate across five modalities $v \in \{0, 1, 2, 3, 4\}$ (Broadcast Television, Radio, Print, Outdoor Signage, and Campaign Rallies) with demographic reach probabilities $P_v(a_i, \mathrm{SES}_i)$. When a factual event $\mathbf{f}_k(t) \in \Omega$ occurs, outlet $g$ projects the notice toward its ideological center $\mathbf{m}_g \in \Omega$ through tendentiousness parameter $\tau_g \in [0, 1]$:
 \begin{equation}
-    \mathbf{y}_{k,g,v}(t) = (1 - \eta_{g,v})\,\mathbf{f}_k(t) + \eta_{g,v}\,\mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \qquad \eta_{g,v} = \mathrm{clip}_{[0, 1]}(\tau_g \mu_v),
-    \label{eq:methods_media_projection}
+\begin{aligned}
+    \mathbf{y}_{k,g,v}(t) &= (1 - \eta_{g,v})\,\mathbf{f}_k(t) + \eta_{g,v}\,\mathbf{m}_g + \boldsymbol{\xi}_{k,g,v}, \\
+    \eta_{g,v} &= \mathrm{clip}_{[0, 1]}(\tau_g \mu_v),
+\end{aligned}
+\label{eq:methods_media_projection}
 \end{equation}
 where $\mu_v$ is modal baseline reach and $\sigma_{\mathrm{media}} = 0.03$. Published notices decay exponentially as $I_v(t+1) = I_v(t)\exp(-\delta_v)$. Citizens select active notices via distance-weighted softmax selective exposure:
 \begin{equation}
-    P(g, v \mid i) = \frac{P_v(a_i, \mathrm{SES}_i) \cdot I_{g,v}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g,v}(t))\right)}{\sum_{g',v'} P_{v'}(a_i, \mathrm{SES}_i) \cdot I_{g',v'}(t) \cdot \exp\!\left(-\beta_{\mathrm{media}} d(\mathbf{x}_i(t), \mathbf{y}_{g',v'}(t))\right) + \kappa_0},
+    P(g, v \mid i) = \frac{P_{iv} \, I_{gv}(t) \, e^{-\beta_{\mathrm{m}} d_{igv}(t)}}{\sum_{g',v'} P_{iv'} \, I_{g'v'}(t) \, e^{-\beta_{\mathrm{m}} d_{ig'v'}(t)} + \kappa_0},
     \label{eq:methods_selective_exposure}
 \end{equation}
 updating opinions within credibility-expanded confidence bounds $d(\mathbf{x}_i, \mathbf{y}_v) \le \epsilon_i (1 + 1.10\,\gamma_v)$ with coupling efficiency $\kappa_{\mathrm{trad}} = 0.08$.
@@ -195,8 +217,10 @@ maximizing viral discovery along the diagonal of controversy. Information propag
 \label{subsec:voting_calculus}
 Candidates $k \in \{L, F, O\}$ occupy fixed ideological coordinates $\mathbf{c}_k \in \Omega$. Candidate affinity $A_{ik}(t)$ and aversion $R_{ik}(t)$ evolve with asymmetric parameters ($\lambda_A = 0.12, \delta_A = 0.06; \lambda_R = 0.14, \delta_R = 0.04$):
 \begin{align}
-    A_{ik}(t+1) &= (1 - \delta_A)\,A_{ik}(t) + \lambda_A \max\!\left(0, \frac{0.62 - d_{ik}(t)}{0.62}\right)^2, \label{eq:methods_adm} \\
-    R_{ik}(t+1) &= (1 - \delta_R)\,R_{ik}(t) + \lambda_R \max\!\left(0, \frac{d_{ik}(t) - 0.78}{1.22}\right)^{1.35}. \label{eq:methods_rej}
+    A_{ik}(t+1) &= (1 - \delta_A) A_{ik}(t) \nonumber \\
+    &\quad + \lambda_A \Big[\max\!\Big(0, \frac{0.62 - d_{ik}}{0.62}\Big)\Big]^2, \label{eq:methods_adm} \\
+    R_{ik}(t+1) &= (1 - \delta_R) R_{ik}(t) \nonumber \\
+    &\quad + \lambda_R \Big[\max\!\Big(0, \frac{d_{ik} - 0.78}{1.22}\Big)\Big]^{1.35}. \label{eq:methods_rej}
 \end{align}
 Net candidate utility is penalized quadratically by aversion:
 \begin{equation}
@@ -210,8 +234,11 @@ Conditional on voting, citizen $i$ chooses candidate $k \in \{L, F, O\}$ via mul
 \end{equation}
 with choice sensitivity $\beta_{\mathrm{vote}} = 3.2$. Turnout probability is modeled via a logistic threshold:
 \begin{equation}
-    P(\text{Turnout} \mid i) = \frac{1}{1 + \exp\!\big(-\mu_{\mathrm{turn}}\big[\max_k U_{ik}(t) - (\tau_{\mathrm{abst}} - 0.22\,\mathrm{SES}_i + \delta_{\mathrm{transit}})\big]\big)},
-    \label{eq:methods_turnout}
+\begin{aligned}
+    P(\text{Turnout} \mid i) &= \Big[1 + \exp\!\big(-\mu_{\mathrm{turn}}\big[\max_k U_{ik}(t) \\
+    &\quad - (\tau_{\mathrm{abst}} - 0.22\,\mathrm{SES}_i + \delta_{\mathrm{transit}})\big]\big)\Big]^{-1}.
+\end{aligned}
+\label{eq:methods_turnout}
 \end{equation}
 with steepness $\mu_{\mathrm{turn}} = 4.5$ and free transit subsidy $\delta_{\mathrm{transit}} = -0.15$.
 
@@ -262,7 +289,7 @@ Second, \emph{parameters anchored in established cognitive and complex network l
 (7) Barab\'asi--Albert preferential attachment scaling exponent $\gamma_{\mathrm{pl}} = 1.15$ and Gini coefficient $0.73$ for digital influencers \citep{barabasi1999emergence, bianconi2001competition};
 (8) Hyperbolic-tangent elastic tethering $g_i^{\mathrm{eff}}$ enforcing Sherif--Hovland latitudes of rejection around convictions \citep{sherif1961social, howe2017attitude}.
 
-Third, \emph{free parameters fitted to longitudinal 2026 Datafolha tracking surveys and TSE ballot totals} are estimated via bounded grid search and Markov Chain Monte Carlo (MCMC) sampling:
+Third, \emph{free parameters fitted to longitudinal tracking surveys and ballot totals} are estimated via bounded grid search and Markov Chain Monte Carlo (MCMC) sampling:
 (1) Fast opinion discrete integration step size $\Delta t = 0.15$ and cognitive perturbation noise $\sigma_{\xi} = 0.012$;
 (2) Baseline conviction adaptation drift rate $\eta_0 = 0.0024 \text{ step}^{-1}$ and crystallization timescale $\tau_c = 280$ simulation steps;
 (3) Direct exogenous fact pull coefficient $\gamma_0 = 0.055 \text{ step}^{-1}$;
@@ -271,8 +298,11 @@ Third, \emph{free parameters fitted to longitudinal 2026 Datafolha tracking surv
 
 The optimization objective minimizes weighted squared error across all survey waves and official election totals:
 \begin{equation}
-    L(\boldsymbol{\theta}) = \sum_{w=1}^W \sum_{k \in \{L, F, O\}} \big(V_k^{\mathrm{model}}(t_w; \boldsymbol{\theta}) - V_k^{\mathrm{Datafolha}}(t_w)\big)^2 + \omega_{\mathrm{ballot}} \sum_{k} \big(V_k^{\mathrm{model}}(t_{\mathrm{election}}; \boldsymbol{\theta}) - V_k^{\mathrm{TSE}}\big)^2,
-    \label{eq:methods_loss_function}
+\begin{aligned}
+    L(\boldsymbol{\theta}) = \; & \sum_{w=1}^W \sum_{k \in \{L, F, O\}} \big(V_k^{\mathrm{model}}(t_w; \boldsymbol{\theta}) - V_k^{\mathrm{Datafolha}}(t_w)\big)^2 \\
+    & + \omega_{\mathrm{ballot}} \sum_{k} \big(V_k^{\mathrm{model}}(t_{\mathrm{election}}; \boldsymbol{\theta}) - V_k^{\mathrm{TSE}}\big)^2,
+\end{aligned}
+\label{eq:methods_loss_function}
 \end{equation}
 with ballot weight $\omega_{\mathrm{ballot}} = 3.0$, yielding $\mathrm{RMSE} = 0.85$ percentage points ($R^2 = 0.9955$) across Round~1 and $\mathrm{RMSE} = 0.56$ percentage points ($R^2 = 0.9128$) across Round~2.
 
@@ -281,7 +311,7 @@ with ballot weight $\omega_{\mathrm{ballot}} = 3.0$, yielding $\mathrm{RMSE} = 0
 Simulations were executed across $S = 100$ independent Monte Carlo realizations at population scale $N = 100{,}000$ agents using just-in-time (JIT) compiled Numba 0.59 kernels in Python 3.11 with parallel multi-threading across 64 CPU cores (AMD EPYC 7763, 2.45 GHz, 512 GB RAM). All agent attributes are laid out as contiguous 1D and 2D C-ordered NumPy arrays in CPU cache memory, with network topology represented in CSR format. At $N = 100{,}000$, a 100-step trajectory executes in $4.2$ seconds. Municipal scaling experiments ($N = 10^4$ to $10^7$) confirm that finite-size stochasticity vanishes into a scale-invariant thermodynamic limit for $N \ge 10^5$.
 
 Macroscopic system trajectories are monitored through four statistical evaluation metrics:
-(1) Multidimensional Esteban--Ray polarization index $P_{\mathrm{ER}}(t) = \kappa_{\mathrm{ER}} \sum_{c, c'} \pi_c^{1 + \alpha_{\mathrm{ER}}} \pi_{c'} d(\bar{\mathbf{x}}_c, \bar{\mathbf{x}}_{c'})$ ($\alpha_{\mathrm{ER}} = 1.30$, $\kappa_{\mathrm{ER}} = 1.0$) \citep{esteban1994measurement};
+(1) Multidimensional Esteban--Ray polarization index\linebreak $P_{\mathrm{ER}}(t) = \kappa_{\mathrm{ER}} \sum_{c, c'} \pi_c^{1 + \alpha_{\mathrm{ER}}} \pi_{c'} d(\bar{\mathbf{x}}_c, \bar{\mathbf{x}}_{c'})$ ($\alpha_{\mathrm{ER}} = 1.30$, $\kappa_{\mathrm{ER}} = 1.0$) \citep{esteban1994measurement};
 (2) Sarle's Bimodality Coefficient $\mathrm{BC} = (\gamma^2 + 1) / (\kappa + 3 \frac{(n-1)^2}{(n-2)(n-3)})$;
 (3) Participation Ratio of the belief covariance matrix $\mathrm{PR}(\Sigma) = (\mathrm{Tr}\,\Sigma)^2 / \mathrm{Tr}(\Sigma^2) \in [1, D]$ measuring effective ideological dimensionality \citep{roy1953useful};
 (4) Mean absolute pairwise issue alignment $\langle |\rho| \rangle = \frac{2}{D(D-1)} \sum_{k < l} |\rho_{kl}|$. All time-series trajectories report ensemble means with $95\%$ confidence intervals ($\bar{\mu} \pm 1.96\,\hat{\sigma}/\sqrt{S}$) or full simulation ranges $[\min, \max]$.
@@ -371,7 +401,7 @@ The convergence of multiplex interpersonal clustering, traditional media gatekee
 
 \begin{figure*}[t!]
 \centering
-\includegraphics[width=0.92\textwidth]{figures/figure4_jan_election_first.pdf}
+\includegraphics[width=0.82\textwidth]{figures/figure4_jan_election_first.pdf}
 \caption{\textbf{Cognitive negativity asymmetry and a 48-hour dark-social blitz overturned an established polling lead in the first round.} 
 \textbf{a}, Sociopolitical segmentation of the electorate into ideological identification blocs: Lulistas ($\sim 40\%$, decomposed into convict identifiers vs.\ non-convict sympathizers), Bolsonaristas ($\sim 34\%$, convict vs.\ non-convict), Centrists/Others ($\sim 19\%$), and unaligned/None ($\sim 7\%$), calibrated to national survey data. 
 \textbf{b}, Longitudinal 50-day first-round campaign trajectories (Model Fit, solid curves vs.\ Neutral Model organic baseline, dashed curves) benchmarked against Datafolha tracking survey waves (diamonds $\pm 1\,\mathrm{SD}$) and official TSE ballot totals (circles on October 4: Flávio $47.0\%$ / $55.7\mathrm{M}$, Lula $45.2\%$ / $53.5\mathrm{M}$, Others $7.8\%$ / $9.3\mathrm{M}$), highlighting the August 23 debate shock ($*$) and the acute 48-hour pre-election blitz (shaded amber band). 
@@ -397,7 +427,7 @@ The first-round diagnosis informed the design of the progressive counter-offensi
 
 \begin{figure*}[t!]
 \centering
-\includegraphics[width=0.92\textwidth]{figures/figure5_jan_election_second.pdf}
+\includegraphics[width=0.82\textwidth]{figures/figure5_jan_election_second.pdf}
 \caption{\textbf{Coordinated socio-technical counter-tactics inverted candidate rejection trajectories and crossed the runoff majority threshold.} 
 \textbf{a}, Longitudinal 21-day second-round calibration ($N = 100{,}000$ citizens, 100-seed ensemble $\pm 1\,\mathrm{SD}$ envelope) contrasting the Same-Strategy Counterfactual (Neutral Model, dashed curves: Flávio wins $53.6\%$ vs $46.4\%$) against the fitted Janonismo Cultural counter-offensive (Model Fit, solid curves: Lula wins $51.8\%$ / $61.8\mathrm{M}$ vs Flávio $48.2\%$ / $57.5\mathrm{M}$, jumping $+6.64\%$ from Round 1), incorporating the October 18 Band debate shock ($*$), the final 48-hour sprint (shaded amber band), Datafolha tracking surveys (diamonds $\pm 1\,\mathrm{SD}$), and official TSE runoff results (yellow-filled markers on October 25). 
 \textbf{b}, Coupled affective trajectory illustrating the complete structural inversion of candidate rejection (dashed curves: Flávio $\bar{R}_F$ climbs $40\% \to 53\%$, while Lula $\bar{R}_L$ drops $50\% \to 41\%$) alongside admiration consolidation (solid curves: Lula $\bar{A}_L$ climbs $43\% \to 52\%$). 
@@ -472,7 +502,7 @@ Tables~\ref{tab:supp_model_parameters}, \ref{tab:supp_media_parameters}, and \re
 \caption{Summary of population demographics, interpersonal multiplex network, and two-timescale conviction--opinion parameters.}
 \label{tab:supp_model_parameters}
 \footnotesize
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{6.5cm}p{4.2cm}p{4.5cm}@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{5.2cm}p{3.8cm}p{4.2cm}@{}}
 \toprule
 \textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
 \midrule
@@ -515,7 +545,7 @@ $\gamma_0, \sigma_{\xi}$ & Factual pull and cognitive perturbation noise & $\gam
 \caption{Summary of traditional mass media and algorithmic social media platform parameters.}
 \label{tab:supp_media_parameters}
 \footnotesize
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{6.5cm}p{4.2cm}p{4.5cm}@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{5.2cm}p{3.8cm}p{4.2cm}@{}}
 \toprule
 \textbf{Symbol} & \textbf{Description} & \textbf{Value / Range} & \textbf{Reference} \\
 \midrule
@@ -548,7 +578,7 @@ $\mu_{\mathrm{turn}}, \delta_{\mathrm{transit}}$ & Turnout logistic steepness an
 \caption{Tactical translation table: operationalizing the Janones doctrine into agent-based graph mechanics across the foundational model layers.}
 \label{tab:supp_janones_tactics}
 \footnotesize
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{5.0cm}p{5.5cm}p{4.2cm}@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lp{4.2cm}p{5.0cm}p{3.6cm}@{}}
 \toprule
 \textbf{Janones Tactic} & \textbf{Operational Description} & \textbf{Agent / Graph Mechanism} & \textbf{Parameter / Subsystem} \\
 \midrule
